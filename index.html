@@ -325,32 +325,16 @@ details.sub textarea{width:100%;min-height:116px;margin-top:8px;background:var(-
       </div>
       <p class="hint" id="scanHostNote"></p>
       <div class="scan-grid">
-        <label for="scanSource">Data source
-          <select id="scanSource">
-            <option value="proxy">Proxy / Worker · Yahoo Finance</option>
-            <option value="fmp">Financial Modeling Prep · key</option>
-            <option value="twelvedata">Twelve Data · key (no free NSE)</option>
-          </select>
-        </label>
-        <label for="proxyChoice" id="proxyWrap">CORS proxy <span class="hint">(auto-fallback)</span>
+        <label for="proxyChoice" id="proxyWrap">Data source · CORS proxy
           <select id="proxyChoice">
-            <option value="https://api.allorigins.win/raw?url=">allorigins.win</option>
-            <option value="https://api.codetabs.com/v1/proxy/?quest=">codetabs.com</option>
-            <option value="https://thingproxy.freeboard.io/fetch/">thingproxy</option>
-            <option value="https://corsproxy.io/?url=">corsproxy.io (needs key)</option>
-            <option value="custom">custom (use {url})…</option>
+            <option value="custom">your own Worker / proxy (use {url})…</option>
+            <option value="https://api.allorigins.win/raw?url=">allorigins.win (unreliable)</option>
+            <option value="https://api.codetabs.com/v1/proxy/?quest=">codetabs.com (unreliable)</option>
+            <option value="https://thingproxy.freeboard.io/fetch/">thingproxy (unreliable)</option>
           </select>
         </label>
-        <label for="proxyCustom" id="proxyCustomWrap" hidden>Custom proxy template
-          <input id="proxyCustom" type="text" placeholder="https://my-proxy/?u={url}" autocomplete="off">
-        </label>
-        <label for="apiKey" id="apiKeyWrap" hidden>Twelve Data API key
-          <input id="apiKey" type="text" placeholder="paste key" autocomplete="off">
-          <span class="hint" style="color:var(--warn)">free tier does NOT cover NSE — needs the paid Grow plan</span>
-        </label>
-        <label for="fmpKey" id="fmpKeyWrap" hidden>Financial Modeling Prep key
-          <input id="fmpKey" type="text" placeholder="paste key" autocomplete="off">
-          <span class="hint">free 250/day — <a href="https://site.financialmodelingprep.com/developer/docs" target="_blank" rel="noopener">get one here</a>. Uses FMP's current API; <code>.NS</code> may be paid-only — the preflight will say.</span>
+        <label for="proxyCustom" id="proxyCustomWrap">Worker / proxy URL <span class="hint">(must contain {url})</span>
+          <input id="proxyCustom" type="text" placeholder="https://your-worker.workers.dev/?url={url}" autocomplete="off">
         </label>
         <label for="universeSize">Universe
           <select id="universeSize">
@@ -374,10 +358,9 @@ details.sub textarea{width:100%;min-height:116px;margin-top:8px;background:var(-
       <details class="sub" id="universeEditBox">
         <summary>Universe list (<span id="uniCount">0</span> symbols) — edit to add / remove</summary>
         <textarea id="universeEdit" spellcheck="false" aria-label="Universe list"></textarea>
-        <p class="hint">One per line: <code>SYMBOL,Sector</code>. NSE symbols (e.g. <code>RELIANCE</code>, <code>BAJAJ-AUTO</code>, <code>M&amp;M</code>). If a symbol keeps failing, the provider may not carry it — remove it or try the other data source.</p>
+        <p class="hint">One per line: <code>SYMBOL,Sector</code>. NSE symbols (e.g. <code>RELIANCE</code>, <code>BAJAJ-AUTO</code>, <code>M&amp;M</code>). If a symbol keeps failing, Yahoo may not carry it under that ticker — remove it.</p>
       </details>
 
-      <label class="chk" style="margin:6px 0 2px"><input type="checkbox" id="fetchEvents"> Also fetch earnings / event dates <span class="hint">(Twelve Data only · for the top ~40 setups · adds a few min)</span></label>
       <div class="row-actions">
         <button class="primary" id="scanBtn">Scan now</button>
         <button id="scanCancelBtn" hidden>Stop</button>
@@ -643,7 +626,7 @@ details.sub textarea{width:100%;min-height:116px;margin-top:8px;background:var(-
         <li><b>Prob*</b> — estimated chance of tagging the first target (+5%) before the stop. For a scanned stock it's a <b>historical follow-through rate</b>: how often, over the last 2 years, this stock reached +5% before −stop% within the holding window when it was in a similar state (price above rising EMAs, RSI 50–74). A trailing <b>e</b> means there wasn't enough history and it fell back to a score-based estimate. It is a base rate, not a forecast.</li>
         <li><b>Support / Resist</b> — the nearest swing pivot below and above price (fractal highs/lows plus the rising 20-EMA). “sky” = price is at/near its highs with no overhead pivot.</li>
         <li><b>Expectancy</b> (Analyzer) — <code>P(+10%) × R:R − (1 − P(+10%))</code>, in units of R (your 1% risk). Positive = the setup pays over many repetitions; it says nothing about the next single trade.</li>
-        <li><b>Event</b> — trading-ish days until the next earnings date (Twelve Data, opt-in). Red when it falls inside the holding window: earnings are a coin-flip you don't control, so wait until after or cut size. “Street EPS est” in the tooltip is the market's expectation; “beat 3/4” is how often the company cleared the estimate in the last four quarters.</li>
+        <li><b>Event</b> — days to the next earnings date. Currently shows “–” (the earnings feed needed a paid data plan and has been removed). Check earnings dates on your broker or screener.in before entering — never hold a swing through a result you can't predict.</li>
       </ul>
       <p>All four are decision <i>support</i>, not signals. The score, the 2:1 gate and the regime still decide the trade.</p>
 
@@ -659,11 +642,8 @@ details.sub textarea{width:100%;min-height:116px;margin-top:8px;background:var(-
       <p>Open any stock with <b>Analyze →</b> and the Analyzer draws a candlestick chart: EMA 20/50 (and 200 when enough history), the detected <b>consolidation base as a shaded box</b>, plus dashed lines for your entry, stop and +10% target and dotted lines for the nearest support / resistance. The <b>D / W</b> toggle switches between daily candles (~6 months) and weekly candles (~20 months) — weekly is aggregated from the daily data on the fly. Charts for the <b>top ~30 scored names are kept from the scan</b> so they open instantly; for anything else it fetches on demand (needs a working data source). <b>↻ live</b> forces a fresh pull. Always eyeball this before taking a trade — the score is a filter, the chart is the veto.</p>
 
       <h3>Getting the data in</h3>
-      <p><b>Auto-screen</b> (downloaded file only): pick a data source, universe and your leading sectors, then “Scan now”. It pulls ~2 years of daily candles per stock and computes EMA 20/50/200, RSI(14), MACD, volume ratio and the breakout / support levels locally, then scores the whole list. Results cache for the day.</p>
-      <p><b>Twelve Data — free tier does NOT work for NSE.</b> The free plan returns <i>“available starting with the Grow or Venture plan”</i> for Indian stocks. Only use this source if you pay for Grow ($79/mo). Not worth it for this.</p>
-      <p><b>Financial Modeling Prep — worth a try.</b> Free key (250 calls/day) at <a href="https://site.financialmodelingprep.com/developer/docs" target="_blank" rel="noopener">their site</a>. Set source to “Financial Modeling Prep”, paste the key. The scan does a preflight check and will tell you immediately if <code>.NS</code> isn't on your plan. If it works, a Nifty-200 scan is ~1 minute and fits inside the daily 250.</p>
-      <p><b>Public no-key proxy.</b> Routes Yahoo Finance through a shared CORS proxy. Zero setup — but as of Aug 2026 essentially all of them are down or gone key-only. Don't count on it; the tool still auto-tries them.</p>
-      <p><b>★ Your own Cloudflare Worker (keyless, permanent, free, unlimited — the reliable path).</b> Proxies Yahoo's NSE data. 5-minute one-time setup:</p>
+      <p><b>Auto-screen</b> (downloaded file only): set your universe and leading sectors, then “Scan now”. It pulls ~2 years of daily candles per stock (from Yahoo Finance, via a CORS proxy) and computes EMA 20/50/200, RSI(14), MACD, volume ratio and the breakout / support levels locally, then scores the whole list. Results cache for the day.</p>
+      <p><b>You need a CORS proxy.</b> A browser can't call Yahoo directly (same-origin policy), and the free public proxies are almost all dead. The fix is to run your own — a <b>Cloudflare Worker</b>, 5 minutes, free forever, no keys:</p>
       <ol>
         <li>Sign up at <a href="https://dash.cloudflare.com/sign-up" target="_blank" rel="noopener">cloudflare.com</a> (free).</li>
         <li>Workers &amp; Pages → <b>Create</b> → <b>Worker</b> → name it (e.g. <code>ledger-proxy</code>) → <b>Deploy</b>.</li>
@@ -681,12 +661,12 @@ details.sub textarea{width:100%;min-height:116px;margin-top:8px;background:var(-
 };</pre>
         </li>
         <li><b>Deploy</b>. Copy the URL it gives you (like <code>https://ledger-proxy.<i>you</i>.workers.dev</code>).</li>
-        <li>In this tool: CORS proxy → <b>custom</b> → paste <code>https://ledger-proxy.<i>you</i>.workers.dev/?url={url}</code></li>
+        <li>Paste <code>https://ledger-proxy.<i>you</i>.workers.dev/?url={url}</code> into the <b>Worker / proxy URL</b> field on the Screener tab. (Keep the literal <code>{url}</code> — the tool swaps it per request.) It's saved in your browser.</li>
+        <li>Test it works: open <code>&lt;your-url&gt;/?url=https://query1.finance.yahoo.com/v8/finance/chart/RELIANCE.NS</code> in a browser tab — you should see JSON.</li>
       </ol>
-      <p>Cloudflare's free tier is 100,000 requests/day — you will never hit it. This is the most reliable keyless option.</p>
-      <p><b>Or paste your own</b> from your broker terminal, <a href="https://www.tradingview.com" target="_blank" rel="noopener">TradingView</a>, <a href="https://www.screener.in" target="_blank" rel="noopener">screener.in</a> or a <a href="https://chartink.com" target="_blank" rel="noopener">Chartink</a> scan. Every scanned row lands in the paste box so you can inspect and edit it before scoring.</p>
+      <p>Cloudflare's free tier is 100,000 requests/day — you will never hit it. A Nifty-200 scan takes ~30 seconds.</p>
+      <p><b>Or paste your own data</b> from your broker terminal, <a href="https://www.tradingview.com" target="_blank" rel="noopener">TradingView</a>, <a href="https://www.screener.in" target="_blank" rel="noopener">screener.in</a> or a <a href="https://chartink.com" target="_blank" rel="noopener">Chartink</a> scan into the “Raw data” box.</p>
       <p>The auto-screener's breakout / support / resistance / MACD / higher-high-low reads are rule-based approximations from the candle series — always eyeball the chart before acting.</p>
-      <p><b>Earnings / events</b> (checkbox, Twelve Data only): after the price scan, fetches the next earnings date, the Street EPS estimate and the recent beat rate — only for the <b>top ~40 names scoring ≥65</b> (you don't need an earnings date for a reject). Adds a few minutes. If your plan doesn't include the earnings endpoint it's skipped silently and prices still work.</p>
 
       <h3>Daily workflow</h3>
       <ul>
@@ -709,17 +689,13 @@ details.sub textarea{width:100%;min-height:116px;margin-top:8px;background:var(-
   "use strict";
 
   /* ═══════════════════════════════════════════════════════════════════════
-     ▼▼▼  EDIT THESE ONCE, SAVE THE FILE, AND YOU NEVER RE-ENTER THEM  ▼▼▼
-     Keep the values between the quote marks.  Leave "" to skip a setting.
-     (This file lives on your PC — a key here is as safe as the file itself.
-      Don't share the file with the key in it.)
+     OPTIONAL local settings. Leave "" here (this file is public / on GitHub)
+     and instead paste your CORS-proxy / Worker URL into the field in the app —
+     it's saved in your browser, not in the file.
   ═══════════════════════════════════════════════════════════════════════ */
   var CONFIG = {
-    twelveDataKey: "c445d46ad171488d92da0daca62f4caa",   // your free key from https://twelvedata.com/pricing
-    fmpKey:        "W9jazBC3lMJhkb52TQfTPybdUViSGnEU",    // Financial Modeling Prep key (free 250/day) — may need a paid plan for .NS
-    corsProxy: "https://ledger.midaas369.workers.dev/?url={url}"
+    corsProxy: ""   // e.g. "https://<your-worker>.workers.dev/?url={url}"
   };
-  /* ▲▲▲  end of settings  ▲▲▲ ══════════════════════════════════════════ */
 
   var $ = function(s,r){return (r||document).querySelector(s);};
   var $$ = function(s,r){return Array.prototype.slice.call((r||document).querySelectorAll(s));};
@@ -729,7 +705,7 @@ details.sub textarea{width:100%;min-height:116px;margin-top:8px;background:var(-
     capital: 100000, riskpct: 1, timeframe: "daily", regime: "yellow",
     theme: null, batchInput: "", watchlist: [], sort:{k:"total",dir:-1},
     scanSource: "proxy",
-    proxyChoice: "https://api.allorigins.win/raw?url=",
+    proxyChoice: "custom",
     proxyCustom: "", apiKey: "", fmpKey: "", chartTF: "daily",
     universeSize: "200", customUniverse: "", leadingSectors: [],
     dropForming: true, fetchEvents: false, scanCache: null, hostOverride: false
@@ -756,12 +732,9 @@ details.sub textarea{width:100%;min-height:116px;margin-top:8px;background:var(-
       var raw = localStorage.getItem(KEY);
       if(raw){ hadSaved = true; var o = JSON.parse(raw); for(var k in o){ if(k in state) state[k] = o[k]; } }
     }catch(e){}
-    // baked-in settings act as fallbacks so you don't retype them each session
-    if(CONFIG.twelveDataKey && !state.apiKey) state.apiKey = String(CONFIG.twelveDataKey).trim();
-    if(CONFIG.fmpKey && !state.fmpKey) state.fmpKey = String(CONFIG.fmpKey).trim();
+    // optional local override for the proxy / Worker URL
     if(CONFIG.corsProxy && !state.proxyCustom){ state.proxyChoice = "custom"; state.proxyCustom = String(CONFIG.corsProxy).trim(); }
-    if(!hadSaved && CONFIG.corsProxy) state.scanSource = "proxy";
-    else if(!hadSaved && CONFIG.fmpKey) state.scanSource = "fmp";
+    state.scanSource = "proxy";   // only data source now
   }
   function save(){
     try{ localStorage.setItem(KEY, JSON.stringify(state)); }catch(e){}
@@ -2226,13 +2199,10 @@ details.sub textarea{width:100%;min-height:116px;margin-top:8px;background:var(-
     }
 
     var cfg = {
-      proxy: state.proxyChoice==="custom" ? state.proxyCustom.trim() : state.proxyChoice,
-      apiKey: (state.apiKey||"").trim(),
-      fmpKey: (state.fmpKey||"").trim()
+      proxy: state.proxyChoice==="custom" ? (state.proxyCustom||"").trim() : state.proxyChoice
     };
-    if(state.scanSource==="twelvedata" && !cfg.apiKey){ $("#scanErrline").textContent = "Enter your Twelve Data API key first."; return; }
-    if(state.scanSource==="fmp" && !cfg.fmpKey){ $("#scanErrline").textContent = "Enter your Financial Modeling Prep key first."; return; }
-    if(state.scanSource==="proxy" && !cfg.proxy){ $("#scanErrline").textContent = "Choose a proxy or paste your Cloudflare Worker URL."; return; }
+    if(!cfg.proxy){ $("#scanErrline").innerHTML = "Paste your Worker / proxy URL in the field above (it must contain <code>{url}</code>). See the Playbook tab → “Your own proxy” for the 5-minute Cloudflare Worker setup."; return; }
+    if(state.proxyChoice==="custom" && cfg.proxy.indexOf("{url}")<0){ $("#scanErrline").innerHTML = "That proxy URL needs a <code>{url}</code> placeholder, e.g. <code>https://your-worker.workers.dev/?url={url}</code>"; return; }
 
     var isTD = state.scanSource==="twelvedata";
     var isFMP = state.scanSource==="fmp";
@@ -2372,23 +2342,8 @@ details.sub textarea{width:100%;min-height:116px;margin-top:8px;background:var(-
       else {
         scanUIRunning(false); setStatus("failed", false); setProg(0,0);
         var msg = (e && e.message) || String(e);
-        var workerLine = "Set up your own free Cloudflare Worker (Playbook tab → “Your own proxy”) — it proxies Yahoo's NSE data, no key, no limits. That's the reliable path now.";
         if(e && e.message==="no working proxy"){
-          $("#scanErrline").innerHTML = "No public proxy is responding (almost all are dead as of Aug 2026). "+esc(workerLine);
-        } else if(e && e.tdProbe){
-          var hint;
-          if(/credit|per minute|per day|429|\blimit\b/i.test(msg)) hint = "Rate/quota limit — free tier is 8/min, 800/day. Wait a minute, use a smaller universe.";
-          else if(/grow|venture|upgrade|paid|starting with the/i.test(msg)) hint = "Confirmed: Twelve Data's free plan does NOT include NSE — RELIANCE needs the paid Grow plan. "+workerLine;
-          else if(/apikey|api key|401|invalid|incorrect|not specified/i.test(msg)) hint = "The key isn't accepted — recheck it (no quotes, no spaces).";
-          else hint = workerLine;
-          $("#scanErrline").innerHTML = 'Twelve Data replied: <b>“'+esc(msg)+'”</b><br>'+esc(hint);
-        } else if(e && e.fmpProbe){
-          var fh;
-          if(/plan|403|exclusive|premium|special|legacy|upgrade/i.test(msg)) fh = "FMP's free plan doesn't include NSE (.NS) history. "+workerLine;
-          else if(/invalid api key|401/i.test(msg)) fh = "The key isn't accepted — recheck it.";
-          else if(/limit|429|too many/i.test(msg)) fh = "You've used today's 250 free calls. Try tomorrow, or use the Worker route.";
-          else fh = workerLine;
-          $("#scanErrline").innerHTML = 'Financial Modeling Prep replied: <b>“'+esc(msg)+'”</b><br>'+esc(fh);
+          $("#scanErrline").innerHTML = "The proxy didn't respond. If you're using your own Worker, test it: open <code>&lt;your-worker-url&gt;/?url=https://query1.finance.yahoo.com/v8/finance/chart/RELIANCE.NS</code> in a browser tab — you should see JSON. Otherwise deploy one (Playbook → “Your own proxy”).";
         } else {
           $("#scanErrline").textContent = "Scan could not start: "+msg;
         }
@@ -2432,14 +2387,11 @@ details.sub textarea{width:100%;min-height:116px;margin-top:8px;background:var(-
       setStatus(aborted?"stopped":"done", false);
       scanMetaFromCache();
       if(!ok.length){
-        $("#scanErrline").innerHTML = "Nothing fetched — every request failed. "+
-          (state.scanSource==="proxy"
-            ? "Free proxies are unreliable right now; get a free <a href=\"https://twelvedata.com/pricing\" target=\"_blank\" rel=\"noopener\">Twelve Data key</a> and switch source."
-            : "Check the API key, or your daily quota (800 calls) may be used up.");
+        $("#scanErrline").innerHTML = "Nothing fetched — every request failed. Your proxy / Worker isn't returning data. Test it by opening <code>&lt;your-worker-url&gt;/?url=https://query1.finance.yahoo.com/v8/finance/chart/RELIANCE.NS</code> in a browser tab.";
       } else if(failed.length){
         $("#scanErrline").textContent = failed.length+" not fetched (already retried once): "+
           failed.slice(0,18).join(", ")+(failed.length>18?" …":"")+
-          "  ·  “Force refresh” to re-scan all, or switch data source for these.";
+          "  ·  “Force refresh” to re-scan all. Yahoo may not carry those tickers.";
       }
     }
   }
@@ -2448,14 +2400,10 @@ details.sub textarea{width:100%;min-height:116px;margin-top:8px;background:var(-
     buildSectorMap(universeText());
     $("#universeEdit").value = universeText();
     $("#uniCount").textContent = parseUniverse(universeText()).length;
-    $("#scanSource").value = state.scanSource;
     $("#proxyChoice").value = state.proxyChoice;
     $("#proxyCustom").value = state.proxyCustom;
-    $("#apiKey").value = state.apiKey;
-    $("#fmpKey").value = state.fmpKey || "";
     $("#universeSize").value = state.universeSize;
     $("#dropForming").checked = state.dropForming!==false;
-    $("#fetchEvents").checked = !!state.fetchEvents;
     renderSectorChips();
     syncSourceUI();
 
@@ -2463,21 +2411,15 @@ details.sub textarea{width:100%;min-height:116px;margin-top:8px;background:var(-
       ? '<span class="scan-host">Auto-scan needs the <b>downloaded HTML file</b> — the hosted preview blocks outside network requests. '+
         (state.hostOverride ? 'Override on.' : '<a href="#" id="hostTry">try anyway</a>')+'</span>'
       : 'Pulls ~2 years of daily candles per stock and computes EMA / RSI / MACD / volume on your machine; results cache for the day. '+
-        '<b>The public no-key proxies are almost all dead now</b> — for a scan that actually works, either get a free '+
-        '<a href="https://twelvedata.com/pricing" target="_blank" rel="noopener">Twelve Data key</a> (pick “Twelve Data” as source) '+
-        'or deploy your own free Cloudflare Worker proxy (steps in the Playbook tab → “Your own proxy”).';
+        'Needs a working <b>CORS proxy</b> — the public ones are mostly dead, so deploy your own free Cloudflare Worker (steps in the Playbook tab → “Your own proxy”) and paste its URL above.';
     var ht = $("#hostTry");
     if(ht) ht.addEventListener("click", function(e){ e.preventDefault(); state.hostOverride=true; save(); initScanUI(); });
 
     if(state.scanCache) scanMetaFromCache();
 
-    $("#scanSource").addEventListener("change", function(){ state.scanSource=this.value; save(); syncSourceUI(); });
     $("#proxyChoice").addEventListener("change", function(){ state.proxyChoice=this.value; save(); syncSourceUI(); });
-    $("#proxyCustom").addEventListener("input", function(){ state.proxyCustom=this.value; save(); });
-    $("#apiKey").addEventListener("input", function(){ state.apiKey=this.value; save(); });
-    $("#fmpKey").addEventListener("input", function(){ state.fmpKey=this.value; save(); });
+    $("#proxyCustom").addEventListener("input", function(){ state.proxyCustom=this.value; save(); syncSourceUI(); });
     $("#dropForming").addEventListener("change", function(){ state.dropForming=this.checked; save(); });
-    $("#fetchEvents").addEventListener("change", function(){ state.fetchEvents=this.checked; save(); syncSourceUI(); });
     $("#universeSize").addEventListener("change", function(){
       state.universeSize=this.value; save();
       if(this.value==="custom") $("#universeEditBox").open = true;
@@ -2495,24 +2437,11 @@ details.sub textarea{width:100%;min-height:116px;margin-top:8px;background:var(-
     $("#scanCancelBtn").addEventListener("click", function(){ if(scanAbort) scanAbort.abort(); setStatus("stopping…", false); });
   }
   function syncSourceUI(){
-    var src = state.scanSource;
-    $("#proxyWrap").hidden = src!=="proxy";
-    $("#proxyCustomWrap").hidden = !(src==="proxy" && state.proxyChoice==="custom");
-    $("#apiKeyWrap").hidden = src!=="twelvedata";
-    $("#fmpKeyWrap").hidden = src!=="fmp";
-    $("#fetchEvents").disabled = src!=="twelvedata";
-    var evLbl = $("#fetchEvents").closest("label");
-    if(evLbl) evLbl.style.opacity = src!=="twelvedata" ? ".5" : "";
+    $("#proxyCustomWrap").hidden = state.proxyChoice!=="custom";
     var n = state.universeSize==="custom" ? parseUniverse(universeText()).length
           : Math.min(parseInt(state.universeSize,10)||200, parseUniverse(universeText()).length);
-    if(src==="twelvedata"){
-      var calls = n + (state.fetchEvents ? Math.min(40, n) : 0);
-      $("#scanMeta").textContent = "· TD throttled to 6/min → ~"+Math.ceil(calls/6)+" min for "+n+" names"+
-        (state.fetchEvents?" + events (top ~40)":"")+" — note: free tier has NO NSE data";
-    } else if(src==="fmp"){
-      $("#scanMeta").textContent = "· FMP free = 250 calls/day → one "+n+"-name scan fits; ~"+Math.ceil(n/3)+"s if .NS is on your plan";
-    } else if(src==="proxy" && state.proxyChoice==="custom" && state.proxyCustom){
-      $("#scanMeta").textContent = "· your own proxy/Worker → ~"+Math.max(15,Math.ceil(n/6))+"s for "+n+" names, no limits";
+    if(state.proxyChoice==="custom" && state.proxyCustom){
+      $("#scanMeta").textContent = "· your own Worker/proxy → ~"+Math.max(15,Math.ceil(n/6))+"s for "+n+" names, no limits";
     } else if(!state.scanCache){
       $("#scanMeta").textContent = "";
     }
