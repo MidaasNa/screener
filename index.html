@@ -1365,7 +1365,7 @@ details.sub textarea{width:100%;min-height:116px;margin-top:8px;background:var(-
     var ex=getExtra(sym);
     if(ex && ex.chart && ex.chart.c && ex.chart.c.length>=30){ chartCache[sym]=ex.chart; draw(ex.chart); return; }
     if(isHosted && !state.hostOverride){
-      host.innerHTML='<p class="empty">The chart needs the downloaded file — this hosted preview can’t fetch price data.</p>';
+      host.innerHTML='<p class="empty">The Claude artifact preview can’t fetch price data. Use the downloaded file or a self-hosted copy.</p>';
       return;
     }
     host.innerHTML='<p class="empty">loading chart…</p>';
@@ -2112,9 +2112,10 @@ details.sub textarea{width:100%;min-height:116px;margin-top:8px;background:var(-
       });
   }
 
-  /* ---------- auto-screen: host guard + orchestration ---------- */
-  var isHosted = (location.protocol==="https:" || location.protocol==="http:") &&
-    location.hostname && !/^(localhost|127\.|0\.0\.0\.0|\[::1\]|.+\.local)$/.test(location.hostname);
+  /* ---------- auto-screen: orchestration ---------- */
+  // only the Claude artifact sandbox blocks outside fetches via CSP; a self-hosted
+  // page (GitHub Pages, your own server) or the local file all work fine.
+  var isHosted = /(^|\.)(claude\.(ai|site|com)|usercontent\.|anthropic\.)/.test(location.hostname||"");
   var scanAbort = null;
 
   function setStatus(txt, busy){
@@ -2177,7 +2178,7 @@ details.sub textarea{width:100%;min-height:116px;margin-top:8px;background:var(-
   function startScan(force){
     $("#scanErrline").textContent = "";
     if(isHosted && !state.hostOverride){
-      $("#scanErrline").textContent = "Auto-scan is blocked in the hosted version. Open the downloaded HTML file, or click “try anyway” above.";
+      $("#scanErrline").textContent = "The Claude artifact preview blocks outside requests. Use the downloaded file or a self-hosted copy — or click “try anyway” above.";
       return;
     }
     buildSectorMap(universeText());
@@ -2407,11 +2408,10 @@ details.sub textarea{width:100%;min-height:116px;margin-top:8px;background:var(-
     renderSectorChips();
     syncSourceUI();
 
-    $("#scanHostNote").innerHTML = isHosted
-      ? '<span class="scan-host">Auto-scan needs the <b>downloaded HTML file</b> — the hosted preview blocks outside network requests. '+
-        (state.hostOverride ? 'Override on.' : '<a href="#" id="hostTry">try anyway</a>')+'</span>'
-      : 'Pulls ~2 years of daily candles per stock and computes EMA / RSI / MACD / volume on your machine; results cache for the day. '+
-        'Needs a working <b>CORS proxy</b> — the public ones are mostly dead, so deploy your own free Cloudflare Worker (steps in the Playbook tab → “Your own proxy”) and paste its URL above.';
+    $("#scanHostNote").innerHTML = (isHosted && !state.hostOverride)
+      ? '<span class="scan-host">This looks like the Claude artifact preview, which blocks outside network requests. Open the downloaded file or a self-hosted copy (GitHub Pages works). <a href="#" id="hostTry">try anyway</a></span>'
+      : 'Pulls ~2 years of daily candles per stock and computes EMA / RSI / MACD / volume locally; results cache for the day. '+
+        'Needs a working <b>CORS proxy</b> — deploy your own free Cloudflare Worker (Playbook tab → “Getting the data in”) and paste its URL above.';
     var ht = $("#hostTry");
     if(ht) ht.addEventListener("click", function(e){ e.preventDefault(); state.hostOverride=true; save(); initScanUI(); });
 
