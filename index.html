@@ -1,0 +1,2623 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The 10% Ledger</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+:root{
+  --bg:#f6f4ef; --surface:#ffffff; --surface-2:#f0ede4;
+  --ink:#1b2024; --ink-soft:#434a4e; --muted:#6c736f;
+  --line:#e6e0d4; --line-strong:#d2c9b8;
+  --accent:#a9791f; --accent-soft:#f2e7cf;
+  --pos:#1c7c46; --pos-bg:#e3f0e7;
+  --warn:#a9750c; --warn-bg:#f6ebd5;
+  --neg:#bb3b28; --neg-bg:#f6e2dc;
+  --focus:#a9791f;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#10161a; --surface:#161e23; --surface-2:#1d272d;
+    --ink:#e7ece9; --ink-soft:#bcc5c1; --muted:#8b968f;
+    --line:#25313a; --line-strong:#35454f;
+    --accent:#d6a052; --accent-soft:#2a2215;
+    --pos:#45cf89; --pos-bg:#16261e;
+    --warn:#e0a63c; --warn-bg:#2a2213;
+    --neg:#f0805f; --neg-bg:#2c1a15;
+    --focus:#d6a052;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#10161a; --surface:#161e23; --surface-2:#1d272d;
+  --ink:#e7ece9; --ink-soft:#bcc5c1; --muted:#8b968f;
+  --line:#25313a; --line-strong:#35454f;
+  --accent:#d6a052; --accent-soft:#2a2215;
+  --pos:#45cf89; --pos-bg:#16261e;
+  --warn:#e0a63c; --warn-bg:#2a2213;
+  --neg:#f0805f; --neg-bg:#2c1a15;
+  --focus:#d6a052;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);
+  font-family:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  font-size:15px;line-height:1.55;-webkit-font-smoothing:antialiased}
+h1,h2,h3{font-family:"Fraunces","Iowan Old Style",Georgia,serif;font-weight:600;line-height:1.15;text-wrap:balance;margin:0}
+p{margin:0}
+button{font:inherit;cursor:pointer;color:inherit}
+input,select,textarea{font:inherit;color:inherit}
+a{color:var(--accent);text-underline-offset:2px}
+:focus-visible{outline:2px solid var(--focus);outline-offset:2px;border-radius:3px}
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
+.mono,.num{font-family:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;font-variant-numeric:tabular-nums}
+
+/* masthead */
+.masthead{display:flex;flex-wrap:wrap;gap:16px 28px;align-items:center;justify-content:space-between;
+  padding:16px 24px;background:var(--surface);border-bottom:1px solid var(--line-strong);position:sticky;top:0;z-index:20}
+.wordmark{display:flex;gap:13px;align-items:center}
+.wordmark .mark{font-family:"Fraunces",serif;font-size:26px;font-weight:600;color:var(--accent);
+  width:42px;height:42px;display:grid;place-items:center;border:1px solid var(--line-strong);border-radius:8px;background:var(--accent-soft)}
+.wordmark h1{font-size:21px;letter-spacing:.2px}
+.wordmark p{margin-top:2px;color:var(--muted);font-size:11px;letter-spacing:.9px;text-transform:uppercase}
+.controls{display:flex;flex-wrap:wrap;gap:10px 14px;align-items:flex-end}
+.field{display:flex;flex-direction:column;gap:4px}
+.field label{font-size:10px;text-transform:uppercase;letter-spacing:.7px;color:var(--muted)}
+.field input{width:118px;padding:7px 9px;background:var(--bg);border:1px solid var(--line-strong);border-radius:6px}
+.seg{display:inline-flex;border:1px solid var(--line-strong);border-radius:6px;overflow:hidden}
+.seg button{padding:7px 11px;background:var(--bg);border:0;color:var(--muted);font-size:12px;border-right:1px solid var(--line-strong)}
+.seg button:last-child{border-right:0}
+.seg button[aria-pressed="true"]{background:var(--accent-soft);color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent)}
+.seg.regime button[aria-pressed="true"][data-v="green"]{background:var(--pos-bg);color:var(--pos);box-shadow:inset 0 0 0 1px var(--pos)}
+.seg.regime button[aria-pressed="true"][data-v="yellow"]{background:var(--warn-bg);color:var(--warn);box-shadow:inset 0 0 0 1px var(--warn)}
+.seg.regime button[aria-pressed="true"][data-v="red"]{background:var(--neg-bg);color:var(--neg);box-shadow:inset 0 0 0 1px var(--neg)}
+.icon-btn{width:38px;height:34px;border:1px solid var(--line-strong);border-radius:6px;background:var(--bg)}
+
+/* tabs */
+.tabs{display:flex;gap:2px;padding:12px 24px 0;background:var(--surface);border-bottom:1px solid var(--line)}
+.tabs button{padding:9px 15px;background:transparent;border:0;border-bottom:2px solid transparent;color:var(--muted);font-weight:500;font-size:14px}
+.tabs button.active{color:var(--ink);border-bottom-color:var(--accent)}
+
+main{max-width:1180px;margin:0 auto;padding:22px 24px 40px}
+.two-col{display:grid;grid-template-columns:minmax(0,.92fr) minmax(0,1.08fr);gap:20px;align-items:start}
+@media (max-width:900px){.two-col{grid-template-columns:1fr}.masthead{position:static}}
+.two-col>*{min-width:0}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:17px 17px 19px;min-width:0}
+.panel + .panel{margin-top:18px}
+.panel h2{font-size:16px;margin-bottom:4px}
+.hint{color:var(--muted);font-size:12.5px;margin:6px 0 8px}
+code.cols{display:block;font-family:"IBM Plex Mono",monospace;font-size:11px;background:var(--surface-2);
+  border:1px solid var(--line);border-radius:6px;padding:8px 10px;color:var(--ink-soft);overflow-x:auto;white-space:nowrap;margin-bottom:10px}
+textarea{width:100%;min-height:184px;resize:vertical;padding:11px 12px;background:var(--bg);
+  border:1px solid var(--line-strong);border-radius:8px;font-family:"IBM Plex Mono",monospace;font-size:12.5px;line-height:1.5}
+.row-actions{display:flex;flex-wrap:wrap;gap:9px;align-items:center;margin-top:12px}
+button.primary{background:var(--ink);color:var(--bg);border:0;padding:9px 16px;border-radius:7px;font-weight:600}
+button.primary:hover{opacity:.9}
+.row-actions button:not(.primary),.field-actions button:not(.primary){background:var(--bg);border:1px solid var(--line-strong);padding:9px 13px;border-radius:7px}
+button.ghost{color:var(--muted)}
+.chk{display:flex;gap:6px;align-items:center;font-size:12.5px;color:var(--muted);margin-left:auto;cursor:pointer}
+
+/* summary + banner */
+.regime-banner{border-radius:8px;padding:10px 13px;font-size:12.5px;margin-bottom:15px;line-height:1.5}
+.regime-banner.green{background:var(--pos-bg);color:var(--pos)}
+.regime-banner.yellow{background:var(--warn-bg);color:var(--warn)}
+.regime-banner.red{background:var(--neg-bg);color:var(--neg)}
+.summary{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:12px;font-size:12px}
+.summary .chip{background:var(--surface-2);border:1px solid var(--line);border-radius:6px;padding:4px 9px;color:var(--ink-soft)}
+.summary .chip b{font-family:"IBM Plex Mono";font-variant-numeric:tabular-nums;color:var(--ink)}
+
+/* table */
+.table-wrap{overflow-x:auto;border:1px solid var(--line);border-radius:8px}
+table{border-collapse:collapse;width:100%;font-size:12.5px;min-width:1020px}
+thead th{text-align:right;padding:9px 10px;background:var(--surface-2);border-bottom:1px solid var(--line-strong);
+  font-size:10px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);cursor:pointer;white-space:nowrap;user-select:none}
+thead th.sorted{color:var(--ink)}
+thead th:first-child,tbody td:first-child{text-align:left}
+tbody td{padding:9px 10px;border-bottom:1px solid var(--line);text-align:right;white-space:nowrap}
+tbody tr:last-child td{border-bottom:0}
+tbody tr:hover td{background:var(--surface-2)}
+td.sym{font-family:"IBM Plex Mono",monospace;font-weight:500;letter-spacing:.3px;border-left:3px solid transparent}
+tr.tier5 td.sym,tr.tier4 td.sym{border-left-color:var(--pos)}
+tr.tier3 td.sym,tr.tier2 td.sym{border-left-color:var(--warn)}
+tr.tier1 td.sym,tr.tier0 td.sym{border-left-color:var(--neg)}
+td .subs{font-family:"IBM Plex Mono";color:var(--muted);font-size:11px}
+td .dim,.dim{color:var(--muted);opacity:.75;font-size:11px}
+tbody td.num .pos{color:var(--pos)}
+tbody td.num .warn{color:var(--warn)}
+tbody td.num .neg{color:var(--neg)}
+.openbtn{background:var(--bg);border:1px solid var(--line-strong);border-radius:5px;padding:3px 8px;font-size:11px}
+.pill{display:inline-block;padding:2px 8px;border-radius:999px;font-size:10.5px;font-weight:600}
+.pill.pos{background:var(--pos-bg);color:var(--pos)}
+.pill.warn{background:var(--warn-bg);color:var(--warn)}
+.pill.neg{background:var(--neg-bg);color:var(--neg)}
+.empty{color:var(--muted);font-size:13px;font-style:italic;padding:14px 4px}
+
+/* analyzer form */
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:11px 14px}
+.form-grid .full{grid-column:1/-1}
+.form-grid label{display:flex;flex-direction:column;gap:4px;font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted)}
+.form-grid input,.form-grid select{padding:8px 9px;background:var(--bg);border:1px solid var(--line-strong);border-radius:6px;font-size:14px}
+.checks{display:flex;gap:16px;flex-wrap:wrap;margin-top:4px}
+.checks label{flex-direction:row;align-items:center;gap:7px;text-transform:none;letter-spacing:0;font-size:13px;color:var(--ink-soft)}
+.field-actions{margin-top:14px;display:flex;gap:9px;flex-wrap:wrap}
+
+/* scorecard */
+.gradebox{display:flex;align-items:baseline;gap:13px;flex-wrap:wrap;margin-bottom:2px}
+.gradebox .score{font-family:"Fraunces";font-size:40px;font-weight:600;font-variant-numeric:tabular-nums;line-height:1}
+.gradebox .score small{font-size:16px;color:var(--muted);font-weight:400}
+.gradebox .verdict{font-size:14px;font-weight:600}
+.verdict.pos{color:var(--pos)}.verdict.warn{color:var(--warn)}.verdict.neg{color:var(--neg)}
+.card-sub{color:var(--muted);font-size:12px;margin-bottom:14px}
+.meter{display:grid;grid-template-columns:90px 1fr 60px;gap:10px;align-items:center;margin:7px 0;font-size:12px}
+.meter .lbl{color:var(--ink-soft)}
+.meter .track{height:8px;background:var(--surface-2);border-radius:999px;overflow:hidden}
+.meter .fill{height:100%;background:var(--accent);border-radius:999px;transition:width .4s ease}
+.meter .val{text-align:right;font-family:"IBM Plex Mono";color:var(--muted)}
+@media (prefers-reduced-motion:reduce){.meter .fill{transition:none}}
+.rr{margin:16px 0 6px}
+.rr .rr-top{display:flex;justify-content:space-between;font-size:12px;margin-bottom:5px}
+.rr .rr-top b{font-family:"IBM Plex Mono"}
+.rr .bar{position:relative;height:10px;background:var(--surface-2);border-radius:999px;overflow:hidden}
+.rr .bar i{position:absolute;left:0;top:0;bottom:0;background:var(--pos);border-radius:999px}
+.rr .bar i.bad{background:var(--neg)}
+.rr .mk{position:absolute;top:-4px;height:18px;width:2px;background:var(--ink);left:40%}
+.rr .rr-cap{font-size:11px;color:var(--muted);margin-top:4px}
+.ladder{margin:14px 0 4px;font-size:13px}
+.ladder div{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px dashed var(--line)}
+.ladder div:last-child{border-bottom:0}
+.ladder .k{color:var(--muted)}
+.ladder .v{font-family:"IBM Plex Mono";font-variant-numeric:tabular-nums}
+.ladder .v.pos{color:var(--pos)}
+.posgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px 16px;margin-top:12px;padding-top:12px;border-top:1px solid var(--line)}
+.posgrid .k{color:var(--muted);font-size:10px;text-transform:uppercase;letter-spacing:.6px}
+.posgrid .v{font-family:"IBM Plex Mono";font-size:15px;font-variant-numeric:tabular-nums;margin-top:2px}
+.note{font-size:12px;color:var(--muted);margin-top:12px;padding-top:10px;border-top:1px solid var(--line);line-height:1.5}
+.note.warn{color:var(--warn)}
+.note.neg{color:var(--neg)}
+
+/* auto-screen */
+.scan-head{display:flex;align-items:center;gap:10px;margin-bottom:2px;flex-wrap:wrap}
+.scan-head h2{font-size:16px}
+.scan-status{font-size:10.5px;font-family:"IBM Plex Mono";color:var(--muted);padding:2px 8px;border:1px solid var(--line-strong);border-radius:999px}
+.scan-status.busy{color:var(--accent);border-color:var(--accent)}
+.scan-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(188px,1fr));gap:11px 14px;margin:12px 0 4px}
+.scan-grid label{display:flex;flex-direction:column;gap:4px;font-size:10px;text-transform:uppercase;letter-spacing:.6px;color:var(--muted)}
+.scan-grid input,.scan-grid select{padding:8px 9px;background:var(--bg);border:1px solid var(--line-strong);border-radius:6px;font-size:13px}
+details.sub{margin:9px 0;border:1px solid var(--line);border-radius:7px;padding:8px 11px;background:var(--surface-2)}
+details.sub>summary{cursor:pointer;font-size:12px;color:var(--ink-soft);list-style:none}
+details.sub>summary::-webkit-details-marker{display:none}
+details.sub>summary::before{content:"\25B8  ";color:var(--muted)}
+details.sub[open]>summary::before{content:"\25BE  "}
+details.sub textarea{width:100%;min-height:116px;margin-top:8px;background:var(--bg);border:1px solid var(--line-strong);border-radius:6px;font-family:"IBM Plex Mono",monospace;font-size:11.5px;line-height:1.5;padding:8px;resize:vertical}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin:9px 0 4px}
+.chip-ck{position:relative;display:inline-flex;align-items:center;font-size:11.5px;padding:4px 10px;border:1px solid var(--line-strong);border-radius:999px;cursor:pointer;color:var(--muted)}
+.chip-ck.on{background:var(--accent-soft);color:var(--accent);border-color:var(--accent)}
+.chip-ck input{position:absolute;opacity:0;width:0;height:0}
+.progress{height:6px;background:var(--surface-2);border-radius:999px;overflow:hidden;margin-top:12px}
+.progress>i{display:block;height:100%;width:0;background:var(--accent)}
+@media (prefers-reduced-motion:no-preference){.progress>i{transition:width .2s linear}}
+.scan-meta{font-size:12px;color:var(--muted)}
+.scan-errline{font-size:11px;color:var(--neg);margin-top:8px;font-family:"IBM Plex Mono",monospace;word-break:break-word;line-height:1.5}
+.scan-host{font-size:12px;color:var(--warn);background:var(--warn-bg);padding:8px 11px;border-radius:7px;margin:9px 0 2px;line-height:1.5}
+.scan-host a{color:var(--warn);font-weight:600}
+
+/* analyzer chart */
+#chart{overflow-x:auto}
+.cx-legend{display:flex;flex-wrap:wrap;gap:6px 13px;font-size:10.5px;color:var(--muted);margin-bottom:6px;align-items:center}
+.cx-legend span{display:inline-flex;align-items:center;gap:4px}
+.cx-legend i{display:inline-block;width:14px;height:0;border-top:2px solid currentColor}
+.cx-legend .k20{color:var(--accent)} .cx-legend .k50{color:var(--muted)}
+.cx-legend .kbase{width:12px;height:9px;border:1px solid var(--accent);background:var(--accent-soft)}
+.cx-legend .kent{color:var(--ink)} .cx-legend .kstp{color:var(--neg)} .cx-legend .ktgt{color:var(--pos)}
+.cx-svg{width:100%;min-width:560px;height:auto;display:block}
+.cx-grid{stroke:var(--line);stroke-width:1}
+.cx-ylab,.cx-xlab{fill:var(--muted);font-size:9px;font-family:"IBM Plex Mono",monospace}
+.cx-up{fill:var(--pos);stroke:var(--pos)}
+.cx-dn{fill:var(--muted);stroke:var(--muted)}
+.cx-wick{stroke-width:1}
+.cx-vol{opacity:.3;stroke:none}
+.cx-base{fill:var(--accent);fill-opacity:.10;stroke:var(--accent);stroke-opacity:.55;stroke-dasharray:3 2}
+.cx-e20{fill:none;stroke:var(--accent);stroke-width:1.3}
+.cx-e50{fill:none;stroke:var(--muted);stroke-width:1.1}
+.cx-e200{fill:none;stroke:var(--muted);stroke-width:1;stroke-dasharray:2 2;opacity:.55}
+.cx-line{stroke-width:1;stroke-dasharray:4 3;fill:none}
+.cx-line.cx-ent{stroke:var(--ink)} .cx-line.cx-stp{stroke:var(--neg)} .cx-line.cx-tgt{stroke:var(--pos)}
+.cx-line.cx-sup{stroke:var(--pos);stroke-dasharray:1 3} .cx-line.cx-res{stroke:var(--neg);stroke-dasharray:1 3}
+.cx-flab{font-size:9px;font-family:"IBM Plex Mono",monospace;fill:var(--muted)}
+.cx-flab.cx-ent{fill:var(--ink)} .cx-flab.cx-stp{fill:var(--neg)} .cx-flab.cx-tgt{fill:var(--pos)}
+.cx-flab.cx-sup{fill:var(--pos)} .cx-flab.cx-res{fill:var(--neg)}
+.cx-trig{fill:var(--accent);stroke:var(--accent)}
+
+/* hold vs exit */
+.hverdict{border-radius:8px;padding:11px 13px;font-size:13px;line-height:1.55}
+.hverdict.pos{background:var(--pos-bg);color:var(--ink-soft)}
+.hverdict.neg{background:var(--neg-bg);color:var(--ink-soft)}
+.hverdict b:first-child{font-size:14px;letter-spacing:.5px}
+.hverdict.pos b:first-child{color:var(--pos)} .hverdict.neg b:first-child{color:var(--neg)}
+.hrow{display:grid;grid-template-columns:150px 1fr 42px;gap:10px;align-items:center;font-size:12.5px;margin:5px 0}
+.hrow b{font-family:"IBM Plex Mono",monospace;text-align:right}
+.hb{height:8px;background:var(--surface-2);border-radius:999px;overflow:hidden;display:block}
+.hb i{display:block;height:100%;background:var(--pos);border-radius:999px}
+.hrow.dim .hb i{background:var(--muted)}
+
+/* watchlist */
+.wl-item{display:flex;flex-wrap:wrap;gap:6px 14px;align-items:center;padding:10px 0;border-bottom:1px solid var(--line);font-size:12.5px}
+.wl-item:last-child{border-bottom:0}
+.wl-item .s{font-family:"IBM Plex Mono";font-weight:600;min-width:92px}
+.wl-item .m{color:var(--muted);font-family:"IBM Plex Mono"}
+.wl-item .x{margin-left:auto;background:transparent;border:0;color:var(--neg);font-size:12px}
+
+/* playbook */
+.prose{max-width:70ch}
+.prose h2{font-size:18px;margin:22px 0 8px}
+.prose h3{font-size:14px;font-family:"IBM Plex Sans";font-weight:600;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);margin:18px 0 6px}
+.prose p{margin:0 0 10px;color:var(--ink-soft)}
+.prose ul,.prose ol{margin:0 0 12px;padding-left:20px;color:var(--ink-soft)}
+.prose li{margin:4px 0}
+.prose pre{font-family:"IBM Plex Mono",monospace;margin:6px 0}
+.prose code{background:var(--surface-2);padding:1px 4px;border-radius:3px;font-size:.9em}
+.prose table{min-width:0;width:100%;font-size:13px;margin:6px 0 14px}
+.prose td,.prose th{border-bottom:1px solid var(--line);padding:7px 8px;text-align:left}
+.prose th{color:var(--muted);font-size:10.5px;text-transform:uppercase;letter-spacing:.5px}
+.prose td:last-child,.prose th:last-child{text-align:right;font-family:"IBM Plex Mono"}
+
+.disclaimer{max-width:1180px;margin:0 auto;padding:6px 24px 46px;color:var(--muted);font-size:11px;line-height:1.65}
+.disclaimer b{color:var(--ink-soft)}
+</style>
+</head>
+<body>
+<h1 class="sr-only">The 10% Ledger — a rules-based momentum and pullback screener for NSE swing trades that ranks setups you feed it and sizes each position.</h1>
+
+<header class="masthead">
+  <div class="wordmark">
+    <span class="mark" aria-hidden="true">₹</span>
+    <div>
+      <h1>The 10% Ledger</h1>
+      <p>Momentum + pullback screener · NSE swing setups</p>
+    </div>
+  </div>
+  <div class="controls">
+    <div class="field">
+      <label for="capital">Capital ₹</label>
+      <input id="capital" type="text" inputmode="numeric" value="100000">
+    </div>
+    <div class="field">
+      <label for="riskpct">Risk % / trade</label>
+      <input id="riskpct" type="text" inputmode="decimal" value="1">
+    </div>
+    <div class="field">
+      <label>Timeframe</label>
+      <div class="seg" id="timeframe" role="group" aria-label="Timeframe">
+        <button data-v="daily" aria-pressed="true">Daily</button>
+        <button data-v="weekly" aria-pressed="false">Weekly</button>
+      </div>
+    </div>
+    <div class="field">
+      <label>Market regime</label>
+      <div class="seg regime" id="regime" role="group" aria-label="Market regime">
+        <button data-v="green" aria-pressed="false">Green</button>
+        <button data-v="yellow" aria-pressed="true">Yellow</button>
+        <button data-v="red" aria-pressed="false">Red</button>
+      </div>
+    </div>
+    <button class="icon-btn" id="themeBtn" title="Toggle theme" aria-label="Toggle light or dark theme">◐</button>
+  </div>
+</header>
+
+<nav class="tabs" id="tabs">
+  <button data-tab="screener" class="active">Screener</button>
+  <button data-tab="analyzer">Analyzer</button>
+  <button data-tab="playbook">Playbook</button>
+</nav>
+
+<main>
+  <!-- SCREENER -->
+  <section id="tab-screener">
+    <div class="regime-banner" id="regimeBanner"></div>
+
+    <div class="panel">
+      <div class="scan-head">
+        <h2>Auto-screen NSE</h2>
+        <span class="scan-status" id="scanStatus">idle</span>
+        <span class="scan-meta" id="scanMeta"></span>
+      </div>
+      <p class="hint" id="scanHostNote"></p>
+      <div class="scan-grid">
+        <label for="scanSource">Data source
+          <select id="scanSource">
+            <option value="proxy">Proxy / Worker · Yahoo Finance</option>
+            <option value="fmp">Financial Modeling Prep · key</option>
+            <option value="twelvedata">Twelve Data · key (no free NSE)</option>
+          </select>
+        </label>
+        <label for="proxyChoice" id="proxyWrap">CORS proxy <span class="hint">(auto-fallback)</span>
+          <select id="proxyChoice">
+            <option value="https://api.allorigins.win/raw?url=">allorigins.win</option>
+            <option value="https://api.codetabs.com/v1/proxy/?quest=">codetabs.com</option>
+            <option value="https://thingproxy.freeboard.io/fetch/">thingproxy</option>
+            <option value="https://corsproxy.io/?url=">corsproxy.io (needs key)</option>
+            <option value="custom">custom (use {url})…</option>
+          </select>
+        </label>
+        <label for="proxyCustom" id="proxyCustomWrap" hidden>Custom proxy template
+          <input id="proxyCustom" type="text" placeholder="https://my-proxy/?u={url}" autocomplete="off">
+        </label>
+        <label for="apiKey" id="apiKeyWrap" hidden>Twelve Data API key
+          <input id="apiKey" type="text" placeholder="paste key" autocomplete="off">
+          <span class="hint" style="color:var(--warn)">free tier does NOT cover NSE — needs the paid Grow plan</span>
+        </label>
+        <label for="fmpKey" id="fmpKeyWrap" hidden>Financial Modeling Prep key
+          <input id="fmpKey" type="text" placeholder="paste key" autocomplete="off">
+          <span class="hint">free 250/day — <a href="https://site.financialmodelingprep.com/developer/docs" target="_blank" rel="noopener">get one here</a>. Uses FMP's current API; <code>.NS</code> may be paid-only — the preflight will say.</span>
+        </label>
+        <label for="universeSize">Universe
+          <select id="universeSize">
+            <option value="50">Nifty 50 (top 50)</option>
+            <option value="100">Nifty 100 (top 100)</option>
+            <option value="200" selected>Nifty 200 (full list)</option>
+            <option value="custom">Custom list…</option>
+          </select>
+        </label>
+        <label for="dropForming" style="flex-direction:row;align-items:center;gap:7px;text-transform:none;letter-spacing:0;font-size:12.5px;color:var(--ink-soft)">
+          <input type="checkbox" id="dropForming" checked style="width:auto"> Ignore today's forming candle
+        </label>
+      </div>
+
+      <details class="sub" id="sectorBox">
+        <summary>Leading sectors <span class="hint" id="secCount"></span></summary>
+        <div class="chips" id="sectorChips"></div>
+        <p class="hint">Stocks in a checked sector score the full 20 on the Sector filter; the rest score 12. Set these to wherever market strength actually is right now — you can change them after a scan without re-fetching.</p>
+      </details>
+
+      <details class="sub" id="universeEditBox">
+        <summary>Universe list (<span id="uniCount">0</span> symbols) — edit to add / remove</summary>
+        <textarea id="universeEdit" spellcheck="false" aria-label="Universe list"></textarea>
+        <p class="hint">One per line: <code>SYMBOL,Sector</code>. NSE symbols (e.g. <code>RELIANCE</code>, <code>BAJAJ-AUTO</code>, <code>M&amp;M</code>). If a symbol keeps failing, the provider may not carry it — remove it or try the other data source.</p>
+      </details>
+
+      <label class="chk" style="margin:6px 0 2px"><input type="checkbox" id="fetchEvents"> Also fetch earnings / event dates <span class="hint">(Twelve Data only · for the top ~40 setups · adds a few min)</span></label>
+      <div class="row-actions">
+        <button class="primary" id="scanBtn">Scan now</button>
+        <button id="scanCancelBtn" hidden>Stop</button>
+        <button id="rescanBtn" class="ghost" hidden>Force refresh</button>
+      </div>
+      <div class="progress" id="scanProgress" hidden><i></i></div>
+      <p class="scan-errline" id="scanErrline"></p>
+    </div>
+
+    <div class="panel">
+      <div class="scan-head">
+        <h2>Ranked setups</h2>
+        <label class="chk"><input type="checkbox" id="onlyStage2"> Stage-2</label>
+        <label class="chk" style="margin-left:0"><input type="checkbox" id="onlyTriggered"> Triggered</label>
+        <label class="chk" style="margin-left:0"><input type="checkbox" id="onlyBreakout"> Breakouts</label>
+        <label class="chk" style="margin-left:0"><input type="checkbox" id="onlyActionable"> Actionable</label>
+      </div>
+      <div class="summary" id="summary" aria-live="polite"></div>
+      <div class="table-wrap">
+        <table id="resultsTable">
+          <thead>
+            <tr>
+              <th data-k="symbol">Symbol</th>
+              <th data-k="total" class="sorted">Score</th>
+              <th data-k="rs" title="Relative-strength rank 0–99 vs everything scanned, from the 6-month return. 80+ = a leader.">RS</th>
+              <th data-k="grade">Grade</th>
+              <th data-k="setup" title="Stage-2 continuation setup: base-on-base, pullback to a rising EMA, long-base breakout, VCP, or coiling. Falls back to the raw base pattern.">Setup</th>
+              <th data-k="prob" title="Estimated chance of tagging the first target (+5%) before the stop — from this stock's own history, or a score-based estimate">Prob*</th>
+              <th data-k="support">Support</th>
+              <th data-k="resist">Resist</th>
+              <th data-k="entry">Entry</th>
+              <th data-k="stop">Stop</th>
+              <th data-k="t10">+10%</th>
+              <th data-k="rr">R:R</th>
+              <th data-k="qty">Qty</th>
+              <th data-k="event" title="Trading days until next earnings / event">Event</th>
+              <th data-k="open"></th>
+            </tr>
+          </thead>
+          <tbody id="resultsBody">
+            <tr><td colspan="15" class="empty">Run a scan above, or open “Raw data” to paste your own.</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="hint" style="margin-top:10px"><b>RS</b> = 6-month relative-strength rank (0–99) vs everything scanned — the single best "something is happening here" tell; want 80+. <b>Setup</b> names the Stage-2 continuation pattern: <code>base-on-base</code> (stacked tight bases, higher lows — the LAURUSLABS staircase), <code>pullback→MA</code> (uptrend resting on a rising EMA), <code>long-base brk</code>, <code>VCP breakout</code>, <code>coiling</code> (tight, near trigger, not out yet). Use <b>"Stage-2 setups"</b> to see only these. * <b>Prob</b> = historical follow-through rate (not a forecast). <b>Support / Resist</b> = nearest swing levels. <b>Event</b> = earnings inside the holding window.</p>
+
+      <details class="sub" id="rawBox">
+        <summary>Raw data — paste your own or edit the scan output</summary>
+        <p class="hint">One stock per line, comma or tab separated. First 6 fields required. Edit any row and press “Score all”.</p>
+        <code class="cols">SYM, price, EMA20, EMA50, EMA200, RSI, volR, breakout, support, sector, macd, hhhl, resist, probT1, probT10, basePct, baseBars, stage2, RS, setup, trigger(e.g. hammer@1), trigWR(0-1)</code>
+        <textarea id="batchInput" spellcheck="false" aria-label="Stock data input"></textarea>
+        <div class="row-actions">
+          <button class="primary" id="scoreBtn">Score all</button>
+          <button id="sampleBtn">Load sample</button>
+          <button class="ghost" id="clearBtn">Clear</button>
+        </div>
+      </details>
+    </div>
+  </section>
+
+  <!-- ANALYZER -->
+  <section id="tab-analyzer" hidden>
+    <div class="two-col">
+      <div class="panel">
+        <h2>Setup inputs</h2>
+        <p class="hint">Deep-check one name against all five filters.</p>
+        <div class="form-grid">
+          <label class="full">Symbol
+            <input id="a_sym" type="text" value="HINDZINC">
+          </label>
+          <label>Current price
+            <input id="a_price" type="text" inputmode="decimal" value="627">
+          </label>
+          <label>EMA 20
+            <input id="a_e20" type="text" inputmode="decimal" value="598">
+          </label>
+          <label>EMA 50
+            <input id="a_e50" type="text" inputmode="decimal" value="560">
+          </label>
+          <label>EMA 200
+            <input id="a_e200" type="text" inputmode="decimal" value="505">
+          </label>
+          <label>RSI (14)
+            <input id="a_rsi" type="text" inputmode="decimal" value="69">
+          </label>
+          <label>Volume ratio (×avg)
+            <input id="a_vol" type="text" inputmode="decimal" value="2.3">
+          </label>
+          <label>Breakout level
+            <input id="a_bo" type="text" inputmode="decimal" value="620">
+          </label>
+          <label>Support (for stop)
+            <input id="a_sup" type="text" inputmode="decimal" value="590">
+          </label>
+          <label>Resistance (next ceiling)
+            <input id="a_res" type="text" inputmode="decimal" placeholder="optional">
+          </label>
+          <label>Breakout structure
+            <select id="a_struct">
+              <option value="20">Breakout + retest holding</option>
+              <option value="15" selected>Clean breakout, no retest yet</option>
+              <option value="11">Coiling / near breakout</option>
+              <option value="6">Extended &gt;5% above breakout</option>
+              <option value="0">No clear structure</option>
+            </select>
+          </label>
+          <label>Sector strength
+            <select id="a_sector">
+              <option value="20">Sector leading the market</option>
+              <option value="12" selected>Sector in line</option>
+              <option value="4">Sector lagging</option>
+            </select>
+          </label>
+          <label>Entry override (optional)
+            <input id="a_entry" type="text" inputmode="decimal" placeholder="defaults to breakout">
+          </label>
+          <label>Your avg buy price (if holding)
+            <input id="a_avgentry" type="text" inputmode="decimal" placeholder="only for context">
+          </label>
+          <div class="full">
+            <div class="checks">
+              <label><input type="checkbox" id="a_macd" checked> MACD positive</label>
+              <label><input type="checkbox" id="a_hhhl" checked> Higher highs &amp; higher lows</label>
+            </div>
+          </div>
+        </div>
+        <div class="field-actions">
+          <button class="primary" id="analyzeBtn">Evaluate</button>
+          <button id="addWatchBtn">Add to watchlist</button>
+        </div>
+      </div>
+
+      <div class="panel" id="scorecard" aria-live="polite">
+        <h2>Scorecard</h2>
+        <p class="card-sub" id="cardSub">Press Evaluate to score this setup.</p>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="scan-head">
+        <h2>Chart</h2>
+        <div class="seg" id="chartTF" role="group" aria-label="Chart timeframe">
+          <button data-v="daily" aria-pressed="true">D</button>
+          <button data-v="weekly" aria-pressed="false">W</button>
+        </div>
+        <button id="chartRefresh" class="ghost" title="Fetch fresh candles">↻ live</button>
+      </div>
+      <div id="chart"><p class="empty">Open a stock from the screener (Analyze →), or press Evaluate. Candlestick chart with EMA 20/50/200, the consolidation base, and your entry / stop / +10% lines. Toggle D / W for daily or weekly candles.</p></div>
+    </div>
+
+    <div class="panel" id="holdPanel">
+      <h2>If you're holding this — hold vs exit</h2>
+      <div id="hold"><p class="empty">Runs when a chart is loaded. Reframes the exit decision around the trend and probability — not your cost.</p></div>
+    </div>
+
+    <div class="panel">
+      <h2>Watchlist</h2>
+      <div id="watchlist"><p class="empty">No saved setups yet.</p></div>
+    </div>
+  </section>
+
+  <!-- PLAYBOOK -->
+  <section id="tab-playbook" hidden>
+    <div class="panel prose">
+      <h2>The 10% Momentum + Pullback system</h2>
+      <p>The goal is not “10% every week.” The goal is to <b>only take a trade when trend, momentum, volume, structure and sector all line up and the reward is at least twice the risk</b>. When nothing qualifies, the correct output is “no trade.”</p>
+
+      <h3>The five filters — 20 points each</h3>
+      <table>
+        <tr><th>Filter</th><th>What earns points</th><th>Max</th></tr>
+        <tr><td>Trend</td><td>Price above EMA 20 / 50 / 200; EMA 20 above EMA 50</td><td>20</td></tr>
+        <tr><td>Momentum</td><td>RSI 55–68 ideal; positive MACD; higher highs &amp; lows</td><td>20</td></tr>
+        <tr><td>Volume</td><td>Breakout-day volume ≥1.5× (ideally ≥2×) its 20-day average</td><td>20</td></tr>
+        <tr><td>Structure</td><td>Resistance → consolidation → breakout → retest → continuation</td><td>20</td></tr>
+        <tr><td>Sector</td><td>Stock sits in a sector that is leading the market</td><td>20</td></tr>
+      </table>
+
+      <h3>Verdict bands</h3>
+      <table>
+        <tr><th>Score</th><th>Meaning</th><th></th></tr>
+        <tr><td>90–100</td><td>Strong candidate</td><td>🔥</td></tr>
+        <tr><td>80–89</td><td>Buy setup</td><td>🟢</td></tr>
+        <tr><td>70–79</td><td>Watch</td><td>🟡</td></tr>
+        <tr><td>60–69</td><td>Avoid unless exceptional</td><td>⚠️</td></tr>
+        <tr><td>&lt;60</td><td>Reject</td><td>🔴</td></tr>
+      </table>
+      <p><b>Hard gate:</b> any setup with reward-to-risk below 2:1 is rejected regardless of score.</p>
+
+      <h3>Entry, stop, target</h3>
+      <ul>
+        <li><b>Entry</b> — the breakout level, ideally bought on the retest rather than chased on the breakout candle.</li>
+        <li><b>Stop</b> — just under the support / consolidation low. If no support is given, the tool uses a <b>3% stop for Daily</b> and <b>5% for Weekly</b> timeframe.</li>
+        <li><b>Targets</b> — scale out: ~25% at +5%, ~25–30% at +7.5%, the rest near +10%, then trail any remainder only if momentum is exceptional.</li>
+      </ul>
+
+      <h3>Position sizing</h3>
+      <p>Risk a fixed <b>1% of capital</b> per trade. Shares = (capital × 1%) ÷ (entry − stop), capped so you never deploy more than your capital. One bad trade should cost 1%, not 10%.</p>
+
+      <h3>The break-even exit — why you keep leaving 10-baggers on the table</h3>
+      <p>Holding LAURUSLABS through −50%, then selling the moment it got back to ~700, then watching it go to 1900 — that is the <b>disposition effect</b>, the most studied and most expensive mistake in retail trading: <b>you hold losers hoping to get back to even, and you sell winners the instant the pain of the earlier loss is gone.</b> The relief of "I didn't lose money" overwhelms the fact that you're sitting in a stock that is <i>still trending up</i>.</p>
+      <p>Three things went wrong, and each has a fix:</p>
+      <ul>
+        <li><b>No stop at entry</b> → you rode −50%. Fix: the stop is set the moment you buy (1% of capital), and it is never widened. If it hits, you're out, and you can always re-buy later on a clean setup with no baggage.</li>
+        <li><b>The exit was a feeling, not a rule</b> → "finally green, get out." Fix: your exit is a <b>price</b> (a trailing stop that follows the structure up) or a <b>signal</b> (a close below the 50-EMA on heavy volume). Both are decided in advance. Your P&L relative to your cost is <b>not an input</b>.</li>
+        <li><b>You anchored to your buy price</b> → 700 felt like "the top" because it was your cost. Fix: 700 was actually a <i>breakout from a base</i> — a place to add, not sell. The stock doesn't know or care what you paid.</li>
+      </ul>
+      <p><b>The tool now has a "Hold vs Exit" panel</b> (Analyzer, below the chart). For any stock you hold it shows: is the trend intact, where the <b>trailing stop</b> should be right now (from price structure, <i>not</i> your entry), a <b>measured-move and trend-extension target</b>, and — from that stock's own 2-year history — the <b>probability it reaches +10% / +20% / +30% / +50% from a spot like this</b>, plus the odds of an 8% shakeout first. When the trend is intact the answer is <b>HOLD and trail</b>; the panel makes that concrete so the decision stops being emotional. Enter your average buy price if you want (it's shown for context and then explicitly ignored).</p>
+      <p>The uncomfortable truth: with the Stage-2 continuation pattern, <b>your winners are supposed to be up 30–100%+ while your losers are −5%</b>. If you cut winners at +2–5%, you have personally inverted the only edge the setup has. One 10-bagger held properly pays for a year of small stops.</p>
+
+      <h3>Stage-2 continuation — catching them before the big move</h3>
+      <p>The most repeatable big winners (LAURUSLABS, TITAN, and the like) share one shape: <b>a stock already in a Stage-2 advance that pauses in a tight, shallow consolidation riding a rising moving average, then resumes</b>. The pause is where you get in — not the vertical part.</p>
+      <p>What every one of them has in common:</p>
+      <ul>
+        <li><b>Already trending</b> — price above a rising 50- and 200-EMA, within ~15% of the 52-week high, well off the 52-week low. The tool scores this 0–7 (the <b>Stage-2</b> number); 5+ qualifies.</li>
+        <li><b>Leadership</b> — the stock is outperforming the pack. <b>RS rank 80+</b> is the single strongest "something is going on here" signal. Relative strength shows up on the chart <i>before</i> the news does.</li>
+        <li><b>Tight, shallow bases</b> — each pause is ≤10–15% deep and a few weeks long, with <b>volume drying up</b> inside it.</li>
+        <li><b>The base sits on a rising EMA</b> — the 20 or 50 catches up to price during the pause, then acts as the launchpad.</li>
+        <li><b>Higher lows / stacking</b> — each base forms above the last one (base-on-base). Volatility contracts base to base (the ⋀ mark).</li>
+        <li><b>Volume expands on the break</b> — ≥1.5× average as it clears the base.</li>
+      </ul>
+      <p><b>What actually made them move</b> was a catalyst — an earnings beat, guidance upgrade, a sector re-rating (Laurus = pharma CDMO cycle, Titan = jewellery/consumption), sometimes index inclusion or a large fund building a position. You usually can't know the catalyst in advance. But the <i>accumulation footprint</i> it leaves — rising RS, tight bases on the MA, volume signature — <b>is</b> screenable, and that's what this does.</p>
+      <h3>Running the screen — each quality → where it lives in the tool</h3>
+      <table>
+        <tr><th>The quality</th><th>In the tool</th></tr>
+        <tr><td>Already in a Stage-2 uptrend (above rising 50/200)</td><td><b>Stage-2</b> number 5–7 · the <b>Stage-2</b> filter</td></tr>
+        <tr><td>Market leader / outperforming</td><td><b>RS</b> column ≥ 80 · sort by it</td></tr>
+        <tr><td>Tight, shallow base</td><td><b>Setup</b> = VCP / tight / base · basePct in Raw data</td></tr>
+        <tr><td>Base sitting on the rising EMA</td><td><b>Setup</b> = <code>pullback→MA</code>, or <code>base-on-base</code></td></tr>
+        <tr><td>Higher lows / stacked bases</td><td><b>Setup</b> = <code>base-on-base</code> (the ⋀ = contracting)</td></tr>
+        <tr><td>Volume dried up, then expands on the break</td><td><b>volRatio</b> column ≥ 1.5 on the breakout day</td></tr>
+        <tr><td>Entry candle at the MA</td><td>trigger badge (🔨 / ▲) + <b>Triggered</b> filter</td></tr>
+        <tr><td>Room to run</td><td><b>Resist</b> = "sky", or a distant number</td></tr>
+      </table>
+      <p><b>The A+ badge</b> in the Setup cell fires when the core ones line up at once: Stage-2 ≥ 6, RS ≥ 80, a real continuation setup (BOB / S2P / VCP / LBB), and either a trigger candle or a fresh breakout. That's your "all five qualities" shortlist — the summary bar shows how many there are.</p>
+      <p><b>The click sequence:</b></p>
+      <ol>
+        <li>Scan Nifty 200 (Green or Yellow regime only — skip Red).</li>
+        <li>Tick <b>Stage-2</b>. Sort by <b>RS</b> (click the column). </li>
+        <li>Read down from the top: you want <b>A+</b> or <b>A</b>, RS 80+, <code>base-on-base</code> or <code>pullback→MA</code> or <code>VCP</code>.</li>
+        <li>Also tick <b>Triggered</b> to see which of those have the entry candle <i>right now</i> — those are "buy tomorrow". The rest: set a price alert at the breakout level.</li>
+        <li>Open each on the chart (Analyze →). Confirm: rising 20/50 EMA, a visibly tight base on the MA, volume light in the base. If it looks messy, skip it regardless of the score.</li>
+        <li>Cross-check the trigger's historical % for that stock — anything under ~50% means this name doesn't respect the pattern well; be pickier.</li>
+      </ol>
+      <p>The setups fail in bulk when the Nifty rolls over, so size up only when the regime is Green, half-size in Yellow, nothing new in Red.</p>
+      <p><b>Is it "the most profitable"?</b> It's the highest-expectancy swing pattern in the literature (Minervini's SEPA, O'Neil's CAN SLIM, Weinstein's Stage Analysis, Darvas boxes all describe it) — <i>in a trending market</i>. It is not a high win-rate setup; the edge is that winners run 20–50%+ while you cut base failures at −3 to −5%. Your personal results depend on entering only A-grade bases, cutting fast, and standing aside in corrections.</p>
+
+      <h3>The trigger — a reversal candle at the moving average</h3>
+      <p>The pause resolves off a specific bar. On the pullback setups the resumption very often begins with a <b>hammer, bullish pin bar, inverted hammer or bullish engulfing candle whose low tags the rising 20- or 50-EMA and closes back above it</b>. That candle is the "buyers just took the MA back" signal — it's the entry, with the stop going just under that candle's low.</p>
+      <p>The tool now detects this. When a trigger candle has printed at the rising MA in the last few bars, the <b>Setup cell shows it</b> (e.g. <code>pullback→MA · 🔨 hammer today · 58%</code>). The <b>58%</b> is a genuine cross-check: how often, over this stock's own last 2 years, a trigger candle at a rising MA in a Stage-2 trend was followed by price tagging +6% before −3%. Use the <b>"Triggered"</b> filter to see only names where the candle has just fired — those are the "buy tomorrow" candidates. On the chart, the trigger bar is marked with a small ▲.</p>
+      <p>Your instinct is right that the move usually starts on one of these candles — but <b>the candle without the context is a coin-flip</b>. It only carries an edge when it prints at a <i>rising</i> MA, in a Stage-2 leader (RS 80+), inside a tight base. That's why it's a confirmation of the setup, not a setup on its own.</p>
+
+      <h3>The extra columns</h3>
+      <ul>
+        <li><b>Base</b> — the consolidation the stock is breaking out of, shown as <i>width % × bars</i>. The scanner walks back from a few bars ago and measures how tight and how long the sideways range was, then checks where price sits relative to the top of it:
+          <ul>
+            <li><b>VCP</b> — a very tight base (≤7.5% wide, ≥10 bars) breaking out <b>on ≥1.5× volume</b>. The highest-quality pattern (Volatility Contraction). Scores the full 20 on Structure.</li>
+            <li><b>tight break / base break</b> — a tight base (≤12%) breaking out, with less volume confirmation.</li>
+            <li><b>coiling</b> — price is still <i>inside</i> a tight base, near the top. Not a trade yet — set an alert above the base high.</li>
+            <li><b>wide break</b> — broke out but the base was loose (&gt;12%); lower conviction.</li>
+            <li><b>past base +x%</b> — already extended above the base; you missed the entry, wait for a pullback.</li>
+          </ul>
+          Use the <b>“Base breakouts only”</b> filter to see just the names clearing a base right now.</li>
+        <li><b>Prob*</b> — estimated chance of tagging the first target (+5%) before the stop. For a scanned stock it's a <b>historical follow-through rate</b>: how often, over the last 2 years, this stock reached +5% before −stop% within the holding window when it was in a similar state (price above rising EMAs, RSI 50–74). A trailing <b>e</b> means there wasn't enough history and it fell back to a score-based estimate. It is a base rate, not a forecast.</li>
+        <li><b>Support / Resist</b> — the nearest swing pivot below and above price (fractal highs/lows plus the rising 20-EMA). “sky” = price is at/near its highs with no overhead pivot.</li>
+        <li><b>Expectancy</b> (Analyzer) — <code>P(+10%) × R:R − (1 − P(+10%))</code>, in units of R (your 1% risk). Positive = the setup pays over many repetitions; it says nothing about the next single trade.</li>
+        <li><b>Event</b> — trading-ish days until the next earnings date (Twelve Data, opt-in). Red when it falls inside the holding window: earnings are a coin-flip you don't control, so wait until after or cut size. “Street EPS est” in the tooltip is the market's expectation; “beat 3/4” is how often the company cleared the estimate in the last four quarters.</li>
+      </ul>
+      <p>All four are decision <i>support</i>, not signals. The score, the 2:1 gate and the regime still decide the trade.</p>
+
+      <h3>Market regime</h3>
+      <table>
+        <tr><th>Regime</th><th>Action</th><th>Size</th></tr>
+        <tr><td>Green</td><td>Nifty above 20 DMA, higher highs, broad breadth — act on Buy setups and better</td><td>1.0×</td></tr>
+        <tr><td>Yellow</td><td>Nifty consolidating — take only A-grade (score ≥80)</td><td>0.5×</td></tr>
+        <tr><td>Red</td><td>Nifty below key support, broad selling — no new longs</td><td>0×</td></tr>
+      </table>
+
+      <h3>The chart</h3>
+      <p>Open any stock with <b>Analyze →</b> and the Analyzer draws a candlestick chart: EMA 20/50 (and 200 when enough history), the detected <b>consolidation base as a shaded box</b>, plus dashed lines for your entry, stop and +10% target and dotted lines for the nearest support / resistance. The <b>D / W</b> toggle switches between daily candles (~6 months) and weekly candles (~20 months) — weekly is aggregated from the daily data on the fly. Charts for the <b>top ~30 scored names are kept from the scan</b> so they open instantly; for anything else it fetches on demand (needs a working data source). <b>↻ live</b> forces a fresh pull. Always eyeball this before taking a trade — the score is a filter, the chart is the veto.</p>
+
+      <h3>Getting the data in</h3>
+      <p><b>Auto-screen</b> (downloaded file only): pick a data source, universe and your leading sectors, then “Scan now”. It pulls ~2 years of daily candles per stock and computes EMA 20/50/200, RSI(14), MACD, volume ratio and the breakout / support levels locally, then scores the whole list. Results cache for the day.</p>
+      <p><b>Twelve Data — free tier does NOT work for NSE.</b> The free plan returns <i>“available starting with the Grow or Venture plan”</i> for Indian stocks. Only use this source if you pay for Grow ($79/mo). Not worth it for this.</p>
+      <p><b>Financial Modeling Prep — worth a try.</b> Free key (250 calls/day) at <a href="https://site.financialmodelingprep.com/developer/docs" target="_blank" rel="noopener">their site</a>. Set source to “Financial Modeling Prep”, paste the key. The scan does a preflight check and will tell you immediately if <code>.NS</code> isn't on your plan. If it works, a Nifty-200 scan is ~1 minute and fits inside the daily 250.</p>
+      <p><b>Public no-key proxy.</b> Routes Yahoo Finance through a shared CORS proxy. Zero setup — but as of Aug 2026 essentially all of them are down or gone key-only. Don't count on it; the tool still auto-tries them.</p>
+      <p><b>★ Your own Cloudflare Worker (keyless, permanent, free, unlimited — the reliable path).</b> Proxies Yahoo's NSE data. 5-minute one-time setup:</p>
+      <ol>
+        <li>Sign up at <a href="https://dash.cloudflare.com/sign-up" target="_blank" rel="noopener">cloudflare.com</a> (free).</li>
+        <li>Workers &amp; Pages → <b>Create</b> → <b>Worker</b> → name it (e.g. <code>ledger-proxy</code>) → <b>Deploy</b>.</li>
+        <li><b>Edit code</b>, replace everything with:
+          <pre style="white-space:pre-wrap;background:var(--surface-2);border:1px solid var(--line);border-radius:6px;padding:8px;font-size:11px;overflow-x:auto">export default {
+  async fetch(req) {
+    const u = new URL(req.url).searchParams.get("url");
+    if (!u) return new Response("no url", { status: 400 });
+    const r = await fetch(u, { headers: { "User-Agent": "Mozilla/5.0" } });
+    const b = await r.arrayBuffer();
+    return new Response(b, { status: r.status, headers: {
+      "content-type": r.headers.get("content-type") || "application/json",
+      "access-control-allow-origin": "*" } });
+  }
+};</pre>
+        </li>
+        <li><b>Deploy</b>. Copy the URL it gives you (like <code>https://ledger-proxy.<i>you</i>.workers.dev</code>).</li>
+        <li>In this tool: CORS proxy → <b>custom</b> → paste <code>https://ledger-proxy.<i>you</i>.workers.dev/?url={url}</code></li>
+      </ol>
+      <p>Cloudflare's free tier is 100,000 requests/day — you will never hit it. This is the most reliable keyless option.</p>
+      <p><b>Or paste your own</b> from your broker terminal, <a href="https://www.tradingview.com" target="_blank" rel="noopener">TradingView</a>, <a href="https://www.screener.in" target="_blank" rel="noopener">screener.in</a> or a <a href="https://chartink.com" target="_blank" rel="noopener">Chartink</a> scan. Every scanned row lands in the paste box so you can inspect and edit it before scoring.</p>
+      <p>The auto-screener's breakout / support / resistance / MACD / higher-high-low reads are rule-based approximations from the candle series — always eyeball the chart before acting.</p>
+      <p><b>Earnings / events</b> (checkbox, Twelve Data only): after the price scan, fetches the next earnings date, the Street EPS estimate and the recent beat rate — only for the <b>top ~40 names scoring ≥65</b> (you don't need an earnings date for a reject). Adds a few minutes. If your plan doesn't include the earnings endpoint it's skipped silently and prices still work.</p>
+
+      <h3>Daily workflow</h3>
+      <ul>
+        <li><b>Pre-open</b> — set the market regime from Nifty + sector action + overnight news.</li>
+        <li><b>First hour</b> — do not chase opening spikes.</li>
+        <li><b>Mid-session</b> — run the Screener; look for breakout + volume + retest.</li>
+        <li><b>Last hour</b> — confirm the move is holding before entering.</li>
+        <li><b>After close</b> — build tomorrow’s watchlist. Cap it at 1–2 A-grade trades a day.</li>
+      </ul>
+    </div>
+  </section>
+</main>
+
+<p class="disclaimer">
+<b>Educational tool — not investment advice.</b> The 10% Ledger applies a fixed, user-defined rule set to market data. When you run a scan it fetches delayed daily price history from a third-party provider (Yahoo Finance via a public CORS proxy, or Twelve Data with your key) — that data can be wrong, stale, or incomplete, and requests may pass through a proxy operator. Your API key, if used, is stored only in your browser. The tool does not know your circumstances, and its scores and position sizes are arithmetic, not recommendations. Verify every level against live price action before acting. Swing trading carries a real risk of loss, including loss exceeding your intended stop during gaps. Consult a SEBI-registered adviser before trading. You are solely responsible for your decisions.
+</p>
+
+<script>
+(function(){
+  "use strict";
+
+  /* ═══════════════════════════════════════════════════════════════════════
+     ▼▼▼  EDIT THESE ONCE, SAVE THE FILE, AND YOU NEVER RE-ENTER THEM  ▼▼▼
+     Keep the values between the quote marks.  Leave "" to skip a setting.
+     (This file lives on your PC — a key here is as safe as the file itself.
+      Don't share the file with the key in it.)
+  ═══════════════════════════════════════════════════════════════════════ */
+  var CONFIG = {
+    twelveDataKey: "c445d46ad171488d92da0daca62f4caa",   // your free key from https://twelvedata.com/pricing
+    fmpKey:        "W9jazBC3lMJhkb52TQfTPybdUViSGnEU",    // Financial Modeling Prep key (free 250/day) — may need a paid plan for .NS
+    corsProxy: "https://ledger.midaas369.workers.dev/?url={url}"
+  };
+  /* ▲▲▲  end of settings  ▲▲▲ ══════════════════════════════════════════ */
+
+  var $ = function(s,r){return (r||document).querySelector(s);};
+  var $$ = function(s,r){return Array.prototype.slice.call((r||document).querySelectorAll(s));};
+  var KEY = "the10ledger.v1";
+
+  var state = {
+    capital: 100000, riskpct: 1, timeframe: "daily", regime: "yellow",
+    theme: null, batchInput: "", watchlist: [], sort:{k:"total",dir:-1},
+    scanSource: "proxy",
+    proxyChoice: "https://api.allorigins.win/raw?url=",
+    proxyCustom: "", apiKey: "", fmpKey: "", chartTF: "daily",
+    universeSize: "200", customUniverse: "", leadingSectors: [],
+    dropForming: true, fetchEvents: false, scanCache: null, hostOverride: false
+  };
+
+  var SAMPLE = [
+    "# cols: SYM,price,EMA20,EMA50,EMA200,RSI,volR,breakout,support,sector,macd,hhhl,resist,probT1,probT10,basePct,baseBars,stage2,RS,setup,trigger,trigWR",
+    "HINDZINC, 627, 598, 560, 505, 69, 2.3, 620, 590, L, 1, 1, 0, 0.58, 0.33, 0.06, 22, 6, 88, VCP, , ",
+    "BEL, 415, 402, 395, 360, 66, 1.9, 409, 391, L, 1, 1, 0, 0.55, 0.31, 0.07, 18, 6, 84, BOB, hammer@1, 0.62",
+    "JINDALSTEL, 1175, 1120, 1090, 1010, 60, 1.4, 1160, 1120, L, 1, 1, 1240, 0.5, 0.27, 0.11, 26, 5, 76, LBB, , ",
+    "MEESHO, 205, 198, 190, 0, 63, 1.4, 200, 191, I, 1, 1, 0, 0.5, 0.26, 0.08, 14, 5, 72, S2P, pin-bar@0, 0.58",
+    "SAIL, 195, 190, 185, 132, 55, 0.9, 201, 188, L, 1, 0, 201, 0.44, 0.22, 0.06, 20, 5, 66, COIL, , ",
+    "NYKAA, 341, 333, 325, 300, 58, 1.3, 339, 328, I, 1, 1, 360, 0.47, 0.24, 0.09, 20, 4, 55, ",
+    "TMB, 892, 878, 870, 845, 55, 1.1, 905, 862, I, 1, 0, 905, 0.44, 0.22, 0.05, 30, 3, 44, ",
+    "PERSISTENT, 6200, 5900, 6050, 5400, 64, 1.5, 6100, 5800, I, 0, 0, 6400, 0.42, 0.2, 0.14, 9, 2, 30, ",
+    "TATAPOWER, 452, 448, 455, 410, 49, 0.9, 465, 435, Lag, 0, 0, 465, 0.3, 0.14, 0, 0, 1, 20, ",
+    "IRCTC, 810, 825, 840, 790, 43, 0.8, 850, 800, Lag, 0, 0, 850, 0.25, 0.11, 0, 0, 0, 12, "
+  ].join("\n");
+
+  /* ---------- persistence ---------- */
+  function load(){
+    var hadSaved = false;
+    try{
+      var raw = localStorage.getItem(KEY);
+      if(raw){ hadSaved = true; var o = JSON.parse(raw); for(var k in o){ if(k in state) state[k] = o[k]; } }
+    }catch(e){}
+    // baked-in settings act as fallbacks so you don't retype them each session
+    if(CONFIG.twelveDataKey && !state.apiKey) state.apiKey = String(CONFIG.twelveDataKey).trim();
+    if(CONFIG.fmpKey && !state.fmpKey) state.fmpKey = String(CONFIG.fmpKey).trim();
+    if(CONFIG.corsProxy && !state.proxyCustom){ state.proxyChoice = "custom"; state.proxyCustom = String(CONFIG.corsProxy).trim(); }
+    if(!hadSaved && CONFIG.corsProxy) state.scanSource = "proxy";
+    else if(!hadSaved && CONFIG.fmpKey) state.scanSource = "fmp";
+  }
+  function save(){
+    try{ localStorage.setItem(KEY, JSON.stringify(state)); }catch(e){}
+  }
+
+  /* ---------- formatting ---------- */
+  function nfmt(n,dp){
+    if(!isFinite(n)) return "–";
+    return Number(n).toLocaleString("en-IN",{maximumFractionDigits:(dp==null?2:dp)});
+  }
+  function inr(n){ return isFinite(n) ? "₹"+Math.round(n).toLocaleString("en-IN") : "–"; }
+  function esc(s){ return String(s).replace(/[&<>"']/g,function(c){
+    return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]; }); }
+
+  /* ---------- scoring ---------- */
+  function scoreStock(d){
+    var tPts=0,tMax=0;
+    if(d.ema20>0){ tMax+=6; if(d.price>d.ema20) tPts+=6; }
+    if(d.ema50>0){ tMax+=5; if(d.price>d.ema50) tPts+=5; }
+    if(d.ema20>0 && d.ema50>0){ tMax+=5; if(d.ema20>d.ema50) tPts+=5; }
+    if(d.ema200>0){ tMax+=4; if(d.price>d.ema200) tPts+=4; }
+    var trend = tMax>0 ? Math.round(tPts*20/tMax) : 0;
+
+    var m=0, r=d.rsi;
+    if(r>=55 && r<=68) m+=10;
+    else if(r>68 && r<=75) m+=7;
+    else if(r>=50 && r<55) m+=6;
+    else if(r>75 && r<=82) m+=4;
+    else if(r>=45 && r<50) m+=3;
+    else m+=1;
+    if(d.macdPos) m+=6;
+    if(d.hhhl) m+=4;
+    var momentum = Math.min(20,m);
+
+    var vr=d.volRatio, volume;
+    if(vr>=2) volume=20; else if(vr>=1.5) volume=15; else if(vr>=1.2) volume=10;
+    else if(vr>=1.0) volume=6; else if(vr>=0.8) volume=3; else volume=0;
+
+    var structure = d.structurePts, sector = d.sectorPts;
+    var total = trend+momentum+volume+structure+sector;
+    return {trend:trend,momentum:momentum,volume:volume,structure:structure,sector:sector,total:total};
+  }
+
+  function deriveStructure(price, breakout, basePct, baseBars, volRatio){
+    var ext = breakout>0 ? (price-breakout)/breakout : 0;
+    if(basePct>0){
+      var bi = baseInfo(basePct, baseBars||10, ext, volRatio||1);
+      if(bi.pts>0) return {pts:bi.pts, label:bi.label};
+    }
+    if(!(breakout>0)) return {pts:14,label:"clean breakout (assumed)"};
+    if(ext>=-0.02 && ext<=0.008) return {pts:20,label:"at breakout / retest zone"};
+    if(ext>0.008 && ext<=0.03) return {pts:15,label:"clean breakout"};
+    if(ext>0.03 && ext<=0.06) return {pts:10,label:"extended "+(ext*100).toFixed(1)+"%"};
+    if(ext>0.06) return {pts:6,label:"over-extended "+(ext*100).toFixed(1)+"%"};
+    if(ext>=-0.05) return {pts:11,label:"coiling below breakout"};
+    return {pts:4,label:"far below breakout"};
+  }
+
+  function computeTrade(d){
+    var entry = d.entryOverride>0 ? d.entryOverride : (d.breakout>0 ? d.breakout : d.price);
+    var stop;
+    if(d.support>0) stop = d.support*(1-0.003);
+    else stop = entry*(1-(state.timeframe==="weekly"?0.05:0.03));
+    var risk = entry-stop;
+    var t5=entry*1.05, t75=entry*1.075, t10=entry*1.10;
+    var rr = risk>0 ? (t10-entry)/risk : 0;
+    return {entry:entry,stop:stop,risk:risk,t5:t5,t75:t75,t10:t10,rr:rr};
+  }
+
+  function regimeMult(){ return state.regime==="green"?1:(state.regime==="yellow"?0.5:0); }
+
+  function positionSize(entry,stop){
+    var perShare = entry-stop;
+    var budget = state.capital*state.riskpct/100;
+    var qty = perShare>0 ? Math.floor(budget/perShare) : 0;
+    var capped=false;
+    if(qty*entry > state.capital){ qty = Math.floor(state.capital/entry); capped=true; }
+    var deploy = qty*entry;
+    var riskAmt = qty*perShare;
+    var reward = qty*(entry*0.10);
+    var regimeQty = Math.floor(qty*regimeMult());
+    return {qty:qty,regimeQty:regimeQty,deploy:deploy,riskAmt:riskAmt,reward:reward,
+            capped:capped,actualRiskPct: state.capital>0 ? riskAmt/state.capital*100 : 0};
+  }
+
+  function verdict(total, rr){
+    if(rr>0 && rr<2) return {label:"Reject — R:R < 2:1", cls:"neg", tier:0};
+    if(total>=90) return {label:"Strong candidate", cls:"pos", tier:5};
+    if(total>=80) return {label:"Buy setup", cls:"pos", tier:4};
+    if(total>=70) return {label:"Watch", cls:"warn", tier:3};
+    if(total>=60) return {label:"Avoid unless exceptional", cls:"warn", tier:2};
+    return {label:"Reject", cls:"neg", tier:1};
+  }
+
+  /* ---------- batch ---------- */
+  function parseBatch(txt){
+    var rows=[];
+    txt.split(/\r?\n/).forEach(function(line){
+      var raw=line.trim();
+      if(!raw || raw.charAt(0)==="#") return;
+      var p = raw.split(/\t|,/).map(function(s){return s.trim();});
+      if(p.length<2) return;
+      if(isNaN(parseFloat(p[1]))) return; // header / junk line
+      var num=function(i){ var v=parseFloat(p[i]); return isFinite(v)?v:0; };
+      var sec=(p[9]||"").toLowerCase(), sectorPts=12, sectorLbl="in-line";
+      if(/^(l|lead|leading|1)$/.test(sec)){ sectorPts=20; sectorLbl="leading"; }
+      else if(/^(lag|lagging|3)/.test(sec)){ sectorPts=4; sectorLbl="lagging"; }
+      var d={ symbol:(p[0]||"?").toUpperCase(),
+        price:num(1), ema20:num(2), ema50:num(3), ema200:num(4),
+        rsi:num(5)||50, volRatio:num(6)||1, breakout:num(7), support:num(8),
+        sectorPts:sectorPts, sectorLbl:sectorLbl };
+      var infMacd = d.ema20>0 && d.ema50>0 && d.price>d.ema20 && d.ema20>d.ema50;
+      var infHhhl = d.ema20>0 && d.ema50>0 && d.price>d.ema20 && d.price>d.ema50 && d.ema20>d.ema50;
+      d.macdPos = (p[10]!=null && p[10]!=="") ? /^(1|y|t|\+)/i.test(p[10]) : infMacd;
+      d.hhhl   = (p[11]!=null && p[11]!=="") ? /^(1|y|t)/i.test(p[11]) : infHhhl;
+      d.resistance = num(12);
+      var pf = function(i){ var v = parseFloat(p[i]); return (p[i]!=null && p[i]!=="" && isFinite(v)) ? v : null; };
+      d.probT1  = pf(13);
+      d.probT10 = pf(14);
+      d.basePct = num(15);
+      d.baseBars = num(16);
+      d.stage2 = num(17);
+      d.rs = pf(18);
+      d.setup = (p[19]||"").trim().toUpperCase();
+      d.trig = (p[20]||"").trim();
+      d.trigWR = pf(21);
+      var st = deriveStructure(d.price, d.breakout, d.basePct, d.baseBars, d.volRatio);
+      d.structurePts=st.pts; d.structureLbl=st.label;
+      rows.push(d);
+    });
+    return rows;
+  }
+
+  function estProb(sc, d){
+    if(d.probT1!=null) return {p:d.probT1, src:"hist", n:d.probN||0};
+    var p = 0.34 + (sc.total-60)*0.006;   // score 60→.34, 80→.46, 100→.58
+    if(d.rsi>78) p -= 0.06;
+    if(d.macdPos) p += 0.02;
+    if(d.hhhl) p += 0.02;
+    return {p: Math.max(0.25, Math.min(0.66, p)), src:"est", n:0};
+  }
+
+  function evaluateRow(d){
+    var sc = scoreStock(d);
+    var tr = computeTrade(d);
+    var v = verdict(sc.total, tr.rr);
+    var ps = positionSize(tr.entry, tr.stop);
+    var pr = estProb(sc, d);
+    var p10 = (d.probT10!=null) ? d.probT10 : Math.max(0.10, pr.p*0.6);
+    var expR = tr.rr>0 ? (p10*tr.rr - (1-p10)) : 0;
+    var actionable = v.tier>=4 && tr.rr>=2 && state.regime!=="red";
+    return {d:d, sc:sc, tr:tr, v:v, ps:ps, prob:pr, p10:p10, expR:expR, actionable:actionable};
+  }
+
+  function getExtra(sym){
+    var c = state.scanCache;
+    if(!c || !c.extra || !c.extra[sym]) return null;
+    var x = c.extra[sym];
+    if(x.eDate){ x.eDays = Math.round((new Date(x.eDate+"T00:00:00") - Date.now())/86400000); }
+    return x;
+  }
+
+  function probCell(pr){
+    if(!pr) return '<span class="dim">–</span>';
+    var pct = Math.round(pr.p*100);
+    var cls = pct>=55?"pos":(pct>=44?"warn":"neg");
+    return '<span class="'+cls+'" title="'+(pr.src==="hist"?("historical follow-through"+(pr.n?", n="+pr.n+" past setups":"")):"score-based estimate")+'">'+pct+'%</span>'+
+      (pr.src==="est"?'<span class="dim">e</span>':'');
+  }
+  function eventCell(ex){
+    if(!ex || ex.eDays==null || isNaN(ex.eDays)) return '<span class="dim">–</span>';
+    var soon = ex.eDays <= (state.timeframe==="weekly"?18:8) && ex.eDays >= 0;
+    var tip = (ex.eDate||"")+(ex.eEst!=null?" · Street EPS "+ex.eEst:"")+(ex.eBeat?" · beat "+ex.eBeat:"");
+    return '<span class="'+(soon?"neg":"")+'" title="'+esc(tip)+'">'+(ex.eDays<0?"—":ex.eDays+"d")+'</span>';
+  }
+  function rowBase(d){
+    var ext = d.breakout>0 ? (d.price - d.breakout)/d.breakout : 0;
+    return baseInfo(d.basePct||0, d.baseBars||0, ext, d.volRatio||1);
+  }
+  function rowSetup(d){
+    if(d.setup && SETUP_LABEL[d.setup]){
+      var cls = (d.setup==="COIL"||d.setup==="S2") ? "warn" : "pos";
+      return {code:d.setup, label:SETUP_LABEL[d.setup], cls:cls, rank:(d.setup==="S2"?1:d.setup==="COIL"?2:3)};
+    }
+    var bi = rowBase(d);
+    return {code:bi.tag, label:bi.label, cls:bi.cls, rank:0};
+  }
+  var TRIG_NAME = {hammer:"🔨 hammer","inv-hammer":"🔨 inv-hammer","bull-engulf":"▲ engulf","pin-bar":"▲ pin bar"};
+  function trigParts(d){
+    if(!d || !d.trig) return null;
+    var m=/^([a-z-]+)@(\d+)/.exec(d.trig);
+    return m ? {kind:m[1], ago:+m[2]} : null;
+  }
+  // a trigger only "counts" if it's fresh (≤2 bars) AND the stock respects the pattern (WR not weak)
+  function freshTrigger(d){
+    var tp = trigParts(d);
+    if(!tp || tp.ago>2) return null;
+    tp.weak = (d.trigWR!=null && d.trigWR < 0.45);
+    return tp;
+  }
+  // confluence grade — how many of the "big winner" qualities line up
+  function setupGrade(d){
+    if(!d.setup) return "";
+    var s2=d.stage2||0, rs=(d.rs!=null?d.rs:0);
+    var core=/^(BOB|S2P|VCP|LBB)$/.test(d.setup);
+    var ft=freshTrigger(d), goodTrig = ft && !ft.weak;
+    var weakTrig = (d.trigWR!=null && d.trigWR < 0.42);        // stock ignores this pattern → a negative
+    if(!weakTrig && core && s2>=6 && rs>=80 && (goodTrig || d.setup==="VCP" || d.setup==="LBB")) return "A+";
+    if(!weakTrig && core && s2>=5 && rs>=70) return "A";
+    if(s2>=5 && rs>=50) return "B";
+    return "C";
+  }
+  function gradeBadge(g){
+    if(!g) return "";
+    var cls = g==="A+"?"pos":(g==="A"?"pos":(g==="B"?"warn":"dim"));
+    return '<b class="'+cls+'" style="font-size:10px;letter-spacing:.3px;margin-right:4px">'+g+'</b>';
+  }
+  function setupCell(d){
+    var si = rowSetup(d);
+    var out = gradeBadge(setupGrade(d)) + '<span class="'+si.cls+'" style="font-size:11px">'+esc(si.label)+'</span>';
+    var tp = trigParts(d);
+    if(tp){
+      var lowWR = d.trigWR!=null && d.trigWR < 0.45;
+      var cls = lowWR ? "neg" : (d.trigWR!=null && d.trigWR>=0.55 ? "pos" : "dim");
+      var wr = d.trigWR!=null ? " · "+Math.round(d.trigWR*100)+"%"+(lowWR?" ✗":"") : "";
+      out += '<div class="'+cls+'" style="font-size:10px" title="reversal candle at the rising MA'+
+        (d.trigWR!=null?" — over this stock's last 2y, "+Math.round(d.trigWR*100)+"% of these tagged +6% before −3% (n="+(d.trigN||"?")+"). Under ~45% means the stock does NOT respect this pattern.":"")+'">'+
+        esc(TRIG_NAME[tp.kind]||tp.kind)+" "+(tp.ago===0?"today":tp.ago+"d")+esc(wr)+'</div>';
+    }
+    return out;
+  }
+  function rsCell(rs){
+    if(rs==null || !isFinite(rs)) return '<span class="dim">–</span>';
+    var cls = rs>=80?"pos":(rs>=55?"warn":"neg");
+    return '<span class="'+cls+'">'+Math.round(rs)+'</span>';
+  }
+
+  function renderScreener(){
+    renderRegimeBanner();
+    var rows = parseBatch($("#batchInput").value);
+    var body = $("#resultsBody"), summary = $("#summary");
+    if(!rows.length){
+      body.innerHTML = '<tr><td colspan="15" class="empty">No rows yet. Run a scan above, or open “Raw data” to paste your own.</td></tr>';
+      summary.innerHTML = "";
+      return;
+    }
+    var evals = rows.map(evaluateRow);
+
+    // sort
+    var k = state.sort.k, dir = state.sort.dir;
+    evals.sort(function(a,b){
+      var av,bv;
+      if(k==="symbol"){ av=a.d.symbol; bv=b.d.symbol; return av<bv?-dir:av>bv?dir:0; }
+      if(k==="grade"){ av=a.v.tier; bv=b.v.tier; }
+      else if(k==="rs"){ av=a.d.rs!=null?a.d.rs:-1; bv=b.d.rs!=null?b.d.rs:-1; }
+      else if(k==="setup"){ av=rowSetup(a.d).rank*100+rowBase(a.d).pts; bv=rowSetup(b.d).rank*100+rowBase(b.d).pts; }
+      else if(k==="prob"){ av=a.prob?a.prob.p:0; bv=b.prob?b.prob.p:0; }
+      else if(k==="support"){ av=a.d.support||0; bv=b.d.support||0; }
+      else if(k==="resist"){ av=a.d.resistance||0; bv=b.d.resistance||0; }
+      else if(k==="entry"){ av=a.tr.entry; bv=b.tr.entry; }
+      else if(k==="stop"){ av=a.tr.stop; bv=b.tr.stop; }
+      else if(k==="t10"){ av=a.tr.t10; bv=b.tr.t10; }
+      else if(k==="rr"){ av=a.tr.rr; bv=b.tr.rr; }
+      else if(k==="qty"){ av=a.ps.regimeQty||a.ps.qty; bv=b.ps.regimeQty||b.ps.qty; }
+      else if(k==="event"){ var xa=getExtra(a.d.symbol), xb=getExtra(b.d.symbol);
+        av=xa&&xa.eDays!=null&&!isNaN(xa.eDays)?xa.eDays:99999; bv=xb&&xb.eDays!=null&&!isNaN(xb.eDays)?xb.eDays:99999; }
+      else { av=a.sc.total; bv=b.sc.total; }
+      return (av-bv)*dir;
+    });
+
+    var onlyAct = $("#onlyActionable").checked;
+    var onlyBrk = $("#onlyBreakout") && $("#onlyBreakout").checked;
+    var onlyS2 = $("#onlyStage2") && $("#onlyStage2").checked;
+    var onlyTrg = $("#onlyTriggered") && $("#onlyTriggered").checked;
+    var shown = evals;
+    if(onlyS2) shown = shown.filter(function(e){ return !!e.d.setup; });
+    if(onlyTrg) shown = shown.filter(function(e){ var t=trigParts(e.d); return t && t.ago<=2; });
+    if(onlyBrk) shown = shown.filter(function(e){ return /^(VCP|tight|base|wide)$/.test(rowBase(e.d).tag); });
+    if(onlyAct) shown = shown.filter(function(e){ return e.actionable; });
+
+    if(!shown.length){
+      body.innerHTML = '<tr><td colspan="15" class="empty">Nothing matches the current filters'+
+        (state.regime==="red"?" — market regime is Red.":".")+'</td></tr>';
+    } else {
+      body.innerHTML = shown.map(function(e){
+        var q = regimeMult()<1 && e.ps.regimeQty>0 ? e.ps.regimeQty : e.ps.qty;
+        var qtxt = state.regime==="red" ? "0" : nfmt(q,0);
+        var ex = getExtra(e.d.symbol);
+        return '<tr class="tier'+e.v.tier+'">'+
+          '<td class="sym">'+esc(e.d.symbol)+'</td>'+
+          '<td class="num">'+e.sc.total+'</td>'+
+          '<td class="num">'+rsCell(e.d.rs)+'</td>'+
+          '<td><span class="pill '+e.v.cls+'">'+esc(e.v.label.replace(/ —.*/,""))+'</span></td>'+
+          '<td>'+setupCell(e.d)+'</td>'+
+          '<td class="num">'+probCell(e.prob)+'</td>'+
+          '<td class="num">'+(e.d.support>0?nfmt(e.d.support):'<span class="dim">–</span>')+'</td>'+
+          '<td class="num">'+(e.d.resistance>0?nfmt(e.d.resistance):'<span class="dim">sky</span>')+'</td>'+
+          '<td class="num">'+nfmt(e.tr.entry)+'</td>'+
+          '<td class="num">'+nfmt(e.tr.stop)+'</td>'+
+          '<td class="num">'+nfmt(e.tr.t10)+'</td>'+
+          '<td class="num">'+(e.tr.rr?e.tr.rr.toFixed(2):"–")+'</td>'+
+          '<td class="num">'+qtxt+'</td>'+
+          '<td class="num">'+eventCell(ex)+'</td>'+
+          '<td><button class="openbtn" data-sym="'+esc(e.d.symbol)+'">Analyze →</button></td>'+
+        '</tr>';
+      }).join("");
+    }
+
+    // summary
+    var buckets = {5:0,4:0,3:0,2:0,1:0,0:0};
+    evals.forEach(function(e){ buckets[e.v.tier]++; });
+    var best = evals.slice().sort(function(a,b){return b.sc.total-a.sc.total;})[0];
+    var act = evals.filter(function(e){return e.actionable;}).length;
+    var brk = evals.filter(function(e){ return /^(VCP|tight|base|wide)$/.test(rowBase(e.d).tag); }).length;
+    var s2n = evals.filter(function(e){ return !!e.d.setup; }).length;
+    var bob = evals.filter(function(e){ return e.d.setup==="BOB"; }).length;
+    var trg = evals.filter(function(e){ var t=trigParts(e.d); return t && t.ago<=2; }).length;
+    var aplus = evals.filter(function(e){ return setupGrade(e.d)==="A+"; }).length;
+    var topRs = evals.slice().filter(function(e){return e.d.rs!=null;}).sort(function(a,b){return b.d.rs-a.d.rs;})[0];
+    summary.innerHTML =
+      '<span class="chip"><b>'+evals.length+'</b> scanned</span>'+
+      '<span class="chip"><b>'+aplus+'</b> A+ setups</span>'+
+      '<span class="chip"><b>'+s2n+'</b> Stage-2'+(bob?' ('+bob+' base-on-base)':'')+'</span>'+
+      '<span class="chip"><b>'+trg+'</b> triggered</span>'+
+      '<span class="chip"><b>'+act+'</b> actionable</span>'+
+      (topRs?'<span class="chip">strongest: <b>'+esc(topRs.d.symbol)+'</b> RS '+topRs.d.rs+'</span>':'')+
+      (best?'<span class="chip">top score: <b>'+esc(best.d.symbol)+'</b> ('+best.sc.total+')</span>':'');
+
+    $$("#resultsBody .openbtn").forEach(function(btn){
+      btn.addEventListener("click", function(){
+        var row = rows.filter(function(r){return r.symbol===btn.getAttribute("data-sym");})[0];
+        if(row){ loadIntoAnalyzer(row); switchTab("analyzer"); }
+      });
+    });
+
+    $$("#resultsTable thead th").forEach(function(th){
+      th.classList.toggle("sorted", th.getAttribute("data-k")===state.sort.k);
+    });
+  }
+
+  function renderRegimeBanner(){
+    var el = $("#regimeBanner");
+    el.className = "regime-banner "+state.regime;
+    var txt = {
+      green: "Green regime — Nifty trending. Act on Buy setups (score ≥80) and above at full size.",
+      yellow: "Yellow regime — Nifty consolidating. Take only A-grade setups (score ≥80), at roughly half size.",
+      red: "Red regime — broad selling. No new longs; manage open trades or sit in cash. Position sizes shown as 0."
+    };
+    el.textContent = txt[state.regime];
+  }
+
+  /* ---------- analyzer ---------- */
+  var aScan = null;   // extra data carried from a scan row: {symbol, probT1, probT10, probN}
+  function loadIntoAnalyzer(d){
+    $("#a_sym").value = d.symbol;
+    $("#a_price").value = d.price||"";
+    $("#a_e20").value = d.ema20||"";
+    $("#a_e50").value = d.ema50||"";
+    $("#a_e200").value = d.ema200||"";
+    $("#a_rsi").value = d.rsi||"";
+    $("#a_vol").value = d.volRatio||"";
+    $("#a_bo").value = d.breakout||"";
+    $("#a_sup").value = d.support||"";
+    $("#a_res").value = d.resistance||"";
+    $("#a_macd").checked = !!d.macdPos;
+    $("#a_hhhl").checked = !!d.hhhl;
+    var st = deriveStructure(d.price, d.breakout, d.basePct, d.baseBars, d.volRatio);
+    var opt = [20,15,11,6,0].reduce(function(a,b){
+      return Math.abs(b-st.pts)<Math.abs(a-st.pts)?b:a; });
+    $("#a_struct").value = String(opt);
+    $("#a_sector").value = String(d.sectorPts||12);
+    $("#a_entry").value = "";
+    aScan = {symbol:d.symbol, probT1:(d.probT1!=null?d.probT1:null), probT10:(d.probT10!=null?d.probT10:null), probN:d.probN||0,
+      basePct:d.basePct||0, baseBars:d.baseBars||0, stage2:d.stage2||0, rs:(d.rs!=null?d.rs:null), setup:d.setup||"",
+      trig:d.trig||"", trigWR:(d.trigWR!=null?d.trigWR:null), trigN:d.trigN||0};
+    runAnalyzer();
+  }
+
+  function readAnalyzer(){
+    var num=function(id){ var v=parseFloat($(id).value); return isFinite(v)?v:0; };
+    var d = {
+      symbol: ($("#a_sym").value||"?").toUpperCase(),
+      price:num("#a_price"), ema20:num("#a_e20"), ema50:num("#a_e50"), ema200:num("#a_e200"),
+      rsi:num("#a_rsi")||50, volRatio:num("#a_vol")||1,
+      breakout:num("#a_bo"), support:num("#a_sup"), resistance:num("#a_res"),
+      entryOverride:num("#a_entry"),
+      structurePts:parseFloat($("#a_struct").value),
+      sectorPts:parseFloat($("#a_sector").value),
+      macdPos:$("#a_macd").checked, hhhl:$("#a_hhhl").checked
+    };
+    if(aScan && aScan.symbol===d.symbol){ d.probT1=aScan.probT1; d.probT10=aScan.probT10; d.probN=aScan.probN; d.basePct=aScan.basePct; d.baseBars=aScan.baseBars; d.stage2=aScan.stage2; d.rs=aScan.rs; d.setup=aScan.setup; d.trig=aScan.trig; d.trigWR=aScan.trigWR; d.trigN=aScan.trigN; }
+    return d;
+  }
+
+  function meter(lbl,val){
+    return '<div class="meter"><span class="lbl">'+lbl+'</span>'+
+      '<span class="track"><span class="fill" style="width:'+(val/20*100)+'%"></span></span>'+
+      '<span class="val">'+val+' / 20</span></div>';
+  }
+
+  function runAnalyzer(){
+    var d = readAnalyzer();
+    var e = evaluateRow(d);
+    var sc = e.sc, tr = e.tr, v = e.v, ps = e.ps;
+    var card = $("#scorecard");
+    var hold = state.timeframe==="weekly" ? "1–3 weeks" : "2–6 trading days";
+    var rrPct = Math.min(tr.rr,5)/5*100;
+    var ex = getExtra(d.symbol);
+    var pctT1 = Math.round(e.prob.p*100), pctT10 = Math.round(e.p10*100);
+    var notes = [];
+    if(tr.rr>0 && tr.rr<2) notes.push({c:"neg", t:"Reward-to-risk is "+tr.rr.toFixed(2)+":1 — below the 2:1 gate. Skip regardless of score, or find a lower-risk entry / tighter stop."});
+    if(ex && ex.eDays!=null && !isNaN(ex.eDays) && ex.eDays>=0 && ex.eDays <= (state.timeframe==="weekly"?18:8))
+      notes.push({c:"neg", t:"Earnings in "+ex.eDays+" days ("+ex.eDate+"). A swing here holds through a binary event — wait until after, or cut size hard."});
+    if(state.regime==="yellow" && ps.qty>0) notes.push({c:"warn", t:"Regime is Yellow — half size. Regime-adjusted position: "+nfmt(ps.regimeQty,0)+" shares (≈"+inr(ps.regimeQty*tr.entry)+"). Only act if score ≥80 and R:R ≥2."});
+    if(state.regime==="red") notes.push({c:"neg", t:"Regime is Red — no new longs. Sizing is informational only."});
+    if(ps.capped) notes.push({c:"warn", t:"Capital-capped: full 1% risk would need more than your capital. Actual risk on "+nfmt(ps.qty,0)+" shares is "+ps.actualRiskPct.toFixed(2)+"%."});
+    if(d.rsi>75) notes.push({c:"warn", t:"RSI "+d.rsi+" is hot — momentum is strong but the entry is chasing. Prefer a retest."});
+    if(d.volRatio<1.5) notes.push({c:"warn", t:"Volume ratio "+d.volRatio+"× is light for a breakout — ideally ≥1.5×, better ≥2×."});
+    var trigDrag = d.trigWR!=null && d.trig && d.trigWR < 0.45;
+    if(e.expR>0.3 && !trigDrag) notes.push({c:"warn", t:"Positive expectancy: about +"+e.expR.toFixed(2)+"R per trade at this probability and R:R (a rough estimate, not a promise)."});
+    else if(e.expR<0 && tr.rr>=2) notes.push({c:"warn", t:"Negative expectancy ("+e.expR.toFixed(2)+"R) — the estimated hit-rate is too low for this R:R. Needs a cleaner setup."});
+    var bi = baseInfo(d.basePct||0, d.baseBars||0, (d.breakout>0?(d.price-d.breakout)/d.breakout:0), d.volRatio||1);
+    if(d.rs!=null && d.rs<50) notes.push({c:"warn", t:"RS rank "+Math.round(d.rs)+" — this stock is lagging the pack over 6 months. The best continuation moves come from RS 80+ leaders; be sceptical of a low-RS name."});
+    if(d.setup==="BOB") notes.push({c:"warn", t:"Base-on-base: stacked tight consolidations with rising lows in a Stage-2 uptrend (the LAURUSLABS staircase). Buy the break of the top base on volume, or a tight pullback into it; stop below the most recent base low. These run hardest when the market regime is Green."});
+    else if(d.setup==="S2P") notes.push({c:"warn", t:"Pullback to a rising EMA in an uptrend. Enter on the first up-close that reclaims the prior day's high off the MA; stop a few % under the MA. Don't pre-empt — wait for the turn."});
+    else if(d.setup==="LBB") notes.push({c:"warn", t:"Long base breakout after a prior advance (the TITAN pattern). A base this long stores a lot of energy — but only take it if the breakout bar closes strong on ≥1.5× volume."});
+    else if(d.setup==="COIL" || d.setup==="S2") notes.push({c:"warn", t:"Stage-2 and quiet — set up but not triggered. Alert just above "+(d.breakout>0?nfmt(d.breakout):"the range high")+" and wait for the breakout candle. No trade yet."});
+    else if(bi.tag==="VCP" || bi.tag==="tight") notes.push({c:"warn", t:"Textbook setup: price is clearing a "+bi.label.replace(/^(VCP|tight break) /,"")+" consolidation. Buy the break or the first tight pullback to the base top; stop just under the base low."});
+    else if(bi.tag==="coil") notes.push({c:"warn", t:"Still inside a tight base — no trade yet. Set an alert just above "+(d.breakout>0?nfmt(d.breakout):"the base top")+" and wait for the breakout candle to close."});
+    var tp = trigParts(d);
+    if(tp){
+      var tName = (TRIG_NAME[tp.kind]||tp.kind).replace("🔨 ","").replace("▲ ","");
+      var agoTxt = tp.ago===0 ? "today" : tp.ago+" bars ago";
+      var wrPct = d.trigWR!=null ? Math.round(d.trigWR*100) : null;
+      if(wrPct!=null && d.trigWR < 0.45){
+        notes.push({c:"neg", t:"Trigger unreliable here: a "+tName+" at the MA printed "+agoTxt+", but over this stock's last 2 years only "+wrPct+"% of these went on to +6% before −3%. "+d.symbol+" does not respect this pattern — the candle is not a reason to buy."});
+      } else if(tp.ago > 2){
+        notes.push({c:"warn", t:"The trigger candle ("+tName+") is "+tp.ago+" bars old and price hasn't followed through — the setup is stalling. Wait for a fresh trigger or drop it."});
+      } else {
+        notes.push({c: (wrPct!=null && d.trigWR>=0.55) ? "warn" : "neg",
+          t:"Trigger: a "+tName+" printed at the rising MA "+agoTxt+(wrPct!=null?" — historically "+wrPct+"% of these hit +6% before −3%"+(d.trigN?" ("+d.trigN+" occurrences)":""):"")+". Enter on the next up-close that takes out that candle's high; stop just under its low."});
+      }
+    } else if(d.setup==="S2P" || d.setup==="COIL"){
+      notes.push({c:"warn", t:"No reversal candle at the MA yet. Watch for a hammer / bullish pin / engulfing bar off the 20 or 50 EMA — that's the trigger to enter."});
+    }
+
+    var evLine = "";
+    if(ex){
+      var bits = [];
+      if(ex.eDate) bits.push("Next earnings "+ex.eDate+(ex.eDays!=null&&!isNaN(ex.eDays)?" ("+ex.eDays+"d)":""));
+      if(ex.eEst!=null) bits.push("Street EPS est ≈ "+ex.eEst);
+      if(ex.eBeat) bits.push("beat "+ex.eBeat+" recent qtrs");
+      if(ex.eSurp!=null) bits.push("last surprise "+(ex.eSurp>0?"+":"")+ex.eSurp+"%");
+      if(bits.length) evLine = '<p class="note">'+esc(bits.join("  ·  "))+'</p>';
+    }
+
+    card.innerHTML =
+      '<h2>Scorecard</h2>'+
+      '<p class="card-sub">'+esc(d.symbol)+' · '+state.timeframe+' swing · expected hold '+hold+'</p>'+
+      '<div class="gradebox"><span class="score">'+sc.total+'<small> / 100</small></span>'+
+        '<span class="verdict '+v.cls+'">'+esc(v.label)+'</span></div>'+
+      meter("Trend", sc.trend)+
+      meter("Momentum", sc.momentum)+
+      meter("Volume", sc.volume)+
+      meter("Structure", sc.structure)+
+      meter("Sector", sc.sector)+
+      '<div class="rr">'+
+        '<div class="rr-top"><span>Reward : Risk</span><b>'+(tr.rr?tr.rr.toFixed(2)+" : 1":"–")+'</b></div>'+
+        '<div class="bar"><i class="'+(tr.rr<2?"bad":"")+'" style="width:'+rrPct+'%"></i><span class="mk"></span></div>'+
+        '<div class="rr-cap">marker = the 2:1 minimum</div>'+
+      '</div>'+
+      '<div class="posgrid">'+
+        (function(){
+          var si=rowSetup(d);
+          return '<div><div class="k">Setup / Stage-2</div><div class="v '+si.cls+'">'+esc(si.label)+
+            '<span class="dim"> '+(d.stage2?d.stage2:0)+'/7</span></div></div>';
+        })()+
+        '<div><div class="k">RS rank (6-mo)</div><div class="v">'+(d.rs!=null?Math.round(d.rs):'<span class="dim">–</span>')+
+          (d.rs!=null?'<span class="dim"> /99</span>':'')+'</div></div>'+
+        '<div><div class="k">Support / Resist</div><div class="v">'+(d.support>0?nfmt(d.support):"–")+' / '+(d.resistance>0?nfmt(d.resistance):"sky")+'</div></div>'+
+        '<div><div class="k">Est. hit-rate +5% / +10%</div><div class="v">'+pctT1+'% / '+pctT10+'%<span class="dim"> '+(e.prob.src==="hist"?("hist"+(e.prob.n?" n="+e.prob.n:"")):"est")+'</span></div></div>'+
+      '</div>'+
+      '<div class="ladder">'+
+        '<div><span class="k">Entry</span><span class="v">'+inr(tr.entry)+'</span></div>'+
+        '<div><span class="k">Stop ('+(((tr.stop-tr.entry)/tr.entry*100).toFixed(1))+'%)</span><span class="v">'+inr(tr.stop)+'</span></div>'+
+        '<div><span class="k">Target 1 · +5% (trim ¼)</span><span class="v pos">'+inr(tr.t5)+'</span></div>'+
+        '<div><span class="k">Target 2 · +7.5% (trim ¼)</span><span class="v pos">'+inr(tr.t75)+'</span></div>'+
+        '<div><span class="k">Target 3 · +10% (exit most)</span><span class="v pos">'+inr(tr.t10)+'</span></div>'+
+      '</div>'+
+      '<div class="posgrid">'+
+        '<div><div class="k">Shares</div><div class="v">'+nfmt(ps.qty,0)+'</div></div>'+
+        '<div><div class="k">Capital deployed</div><div class="v">'+inr(ps.deploy)+'</div></div>'+
+        '<div><div class="k">Risk if stopped</div><div class="v">'+inr(ps.riskAmt)+' · '+ps.actualRiskPct.toFixed(2)+'%</div></div>'+
+        '<div><div class="k">Reward at +10%</div><div class="v">'+inr(ps.reward)+'</div></div>'+
+      '</div>'+
+      evLine+
+      notes.map(function(n){ return '<p class="note '+n.c+'">'+esc(n.t)+'</p>'; }).join("");
+    renderChart(d.symbol);
+  }
+
+  /* ---------- analyzer chart ---------- */
+  var chartCache = {};   // session cache of candle series by symbol
+
+  function currentCfg(){
+    return {
+      proxy: state.proxyChoice==="custom" ? (state.proxyCustom||"").trim() : state.proxyChoice,
+      apiKey: (state.apiKey||"").trim(),
+      fmpKey: (state.fmpKey||"").trim()
+    };
+  }
+  function fetchCandles(sym){
+    var cfg = currentCfg();
+    if(state.scanSource==="twelvedata") return fetchTwelve(sym, cfg);
+    if(state.scanSource==="fmp") return fetchFMP(sym, cfg);
+    return fetchYahoo(sym, cfg);
+  }
+  function chartLegend(tf){
+    return '<div class="cx-legend">'+
+      '<span>'+(tf==="weekly"?"weekly":"daily")+'</span>'+
+      '<span class="k20"><i></i>EMA20</span><span class="k50"><i></i>EMA50</span>'+
+      '<span><i class="kbase"></i>base</span>'+
+      '<span class="kent"><i></i>entry</span><span class="kstp"><i></i>stop</span><span class="ktgt"><i></i>+10%</span>'+
+    '</div>';
+  }
+  // aggregate daily {o,h,l,c,v,d} → weekly (Monday-anchored)
+  function toWeekly(o){
+    var w={o:[],h:[],l:[],c:[],v:[],d:[]}, curKey=null;
+    for(var i=0;i<o.c.length;i++){
+      var dt=new Date(o.d[i]+"T00:00:00Z"), day=dt.getUTCDay();
+      dt.setUTCDate(dt.getUTCDate() + (day===0?-6:1-day));
+      var key=dt.toISOString().slice(0,10);
+      if(key!==curKey){
+        curKey=key;
+        w.o.push(o.o[i]); w.h.push(o.h[i]); w.l.push(o.l[i]); w.c.push(o.c[i]); w.v.push(o.v[i]); w.d.push(o.d[i]);
+      } else {
+        var j=w.c.length-1;
+        if(o.h[i]>w.h[j]) w.h[j]=o.h[i];
+        if(o.l[i]<w.l[j]) w.l[j]=o.l[i];
+        w.c[j]=o.c[i]; w.v[j]+=o.v[i]; w.d[j]=o.d[i];
+      }
+    }
+    return w;
+  }
+  function buildChartSVG(o, opts){
+    var N = opts.weekly ? 90 : 140, full=o.c.length, s=Math.max(0, full-N);
+    var O=o.o.slice(s), H=o.h.slice(s), L=o.l.slice(s), C=o.c.slice(s), V=o.v.slice(s), D=o.d.slice(s);
+    var n=C.length;
+    if(n<20) return '<p class="empty">not enough history to chart</p>';
+    var e20=emaArr(o.c,20).slice(s), e50=emaArr(o.c,50).slice(s), e200=emaArr(o.c,200).slice(s);
+    var bs=detectBase(o.h,o.l,o.c,o.v);
+    var lo=Math.min.apply(null,L), hi=Math.max.apply(null,H);
+    if(opts.stop>0) lo=Math.min(lo,opts.stop);
+    if(opts.support>0) lo=Math.min(lo,opts.support);
+    var span=(hi-lo)||1; lo-=span*0.05; hi+=span*0.05;
+    var W=760,HH=344,PL=6,PR=54,T=8,PB=250,VT=264,VB=326, xw=W-PL-PR;
+    var X=function(i){ return PL + (n<=1?0:i*xw/(n-1)); };
+    var Y=function(p){ return T + (hi-p)/(hi-lo)*(PB-T); };
+    var maxV=Math.max.apply(null,V)||1;
+    var VY=function(v){ return VB-(v/maxV)*(VB-VT); };
+    var cw=Math.max(1.3, xw/n*0.6), f1=function(x){return x.toFixed(1);};
+    var g=[];
+    for(var t=0;t<=4;t++){
+      var pv=hi-(hi-lo)*t/4, yy=Y(pv);
+      g.push('<line x1="'+PL+'" y1="'+f1(yy)+'" x2="'+(W-PR)+'" y2="'+f1(yy)+'" class="cx-grid"/>');
+      g.push('<text x="'+(W-PR+4)+'" y="'+f1(yy+3)+'" class="cx-ylab">'+nfmt(pv,0)+'</text>');
+    }
+    var MON=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+    [0,Math.floor(n/2),n-1].forEach(function(i){
+      if(!D[i]) return;
+      var dt=D[i].split("-"), lab=(+dt[2])+" "+(MON[(+dt[1])-1]||"")+" '"+dt[0].slice(2);
+      g.push('<text x="'+f1(X(i))+'" y="'+(VB+12)+'" class="cx-xlab" text-anchor="'+(i===0?"start":(i===n-1?"end":"middle"))+'">'+esc(lab)+'</text>');
+    });
+    if(bs && bs.widthPct<=0.18){
+      var be=(full-1-2)-s, bstart=be-bs.bars+1;
+      if(be>=1 && bstart<n-1){
+        var bx1=X(Math.max(0,bstart)), bx2=X(Math.min(n-1,be)), by1=Y(bs.hi), by2=Y(bs.lo);
+        g.push('<rect x="'+f1(bx1)+'" y="'+f1(by1)+'" width="'+f1(Math.max(1,bx2-bx1))+'" height="'+f1(Math.max(1,by2-by1))+'" class="cx-base"/>');
+      }
+    }
+    for(var i=0;i<n;i++){
+      var up=C[i]>=O[i], cls=up?"cx-up":"cx-dn", xc=X(i);
+      g.push('<line x1="'+f1(xc)+'" y1="'+f1(Y(H[i]))+'" x2="'+f1(xc)+'" y2="'+f1(Y(L[i]))+'" class="'+cls+' cx-wick"/>');
+      var yo=Y(O[i]), yc=Y(C[i]);
+      g.push('<rect x="'+f1(xc-cw/2)+'" y="'+f1(Math.min(yo,yc))+'" width="'+f1(cw)+'" height="'+f1(Math.max(1,Math.abs(yo-yc)))+'" class="'+cls+'"/>');
+      g.push('<rect x="'+f1(xc-cw/2)+'" y="'+f1(VY(V[i]))+'" width="'+f1(cw)+'" height="'+f1(Math.max(0,VB-VY(V[i])))+'" class="'+cls+' cx-vol"/>');
+    }
+    function poly(arr,cls){
+      var pts=[]; for(var i=0;i<n;i++){ if(arr[i]!=null) pts.push(f1(X(i))+","+f1(Y(arr[i]))); }
+      return pts.length>1 ? '<polyline points="'+pts.join(" ")+'" class="'+cls+'"/>' : '';
+    }
+    g.push(poly(e200,"cx-e200")); g.push(poly(e50,"cx-e50")); g.push(poly(e20,"cx-e20"));
+    if(!opts.weekly && opts.trigAgo>=0){
+      var tgi = n-1-opts.trigAgo;
+      if(tgi>=0 && tgi<n){
+        var tx=X(tgi), ty=Y(L[tgi])+9;
+        g.push('<path d="M'+f1(tx-4)+' '+f1(ty+6)+' L'+f1(tx+4)+' '+f1(ty+6)+' L'+f1(tx)+' '+f1(ty)+' Z" class="cx-trig"/>');
+      }
+    }
+    function hline(p,cls,lab){
+      if(!(p>0)) return "";
+      if(p>hi) return '<text x="'+(W-PR-2)+'" y="'+(T+9)+'" class="cx-flab '+cls+'" text-anchor="end">'+lab+' '+nfmt(p,0)+' ↑</text>';
+      if(p<lo) return '<text x="'+(W-PR-2)+'" y="'+(PB-3)+'" class="cx-flab '+cls+'" text-anchor="end">'+lab+' '+nfmt(p,0)+' ↓</text>';
+      var yy=Y(p);
+      return '<line x1="'+PL+'" y1="'+f1(yy)+'" x2="'+(W-PR)+'" y2="'+f1(yy)+'" class="cx-line '+cls+'"/>'+
+             '<text x="'+PL+'" y="'+f1(yy-2)+'" class="cx-flab '+cls+'">'+lab+' '+nfmt(p,0)+'</text>';
+    }
+    g.push(hline(opts.support,"cx-sup","S"));
+    g.push(hline(opts.resistance,"cx-res","R"));
+    g.push(hline(opts.entry,"cx-ent","Entry"));
+    g.push(hline(opts.stop,"cx-stp","Stop"));
+    g.push(hline(opts.t10,"cx-tgt","+10%"));
+    return '<svg viewBox="0 0 '+W+' '+HH+'" class="cx-svg" preserveAspectRatio="xMidYMid meet" role="img" aria-label="daily price chart for '+esc(opts.symbol||"")+'">'+g.join("")+'</svg>';
+  }
+  function renderChart(sym){
+    var host=$("#chart"); if(!host || !sym) return;
+    var d=readAnalyzer(), e=evaluateRow(d);
+    var tf = state.chartTF==="weekly" ? "weekly" : "daily";
+    var tpx = trigParts(d);
+    var opts={symbol:sym, entry:e.tr.entry, stop:e.tr.stop, t10:e.tr.t10, support:d.support, resistance:d.resistance, weekly: tf==="weekly", trigAgo: tpx? tpx.ago : -1};
+    function draw(o){
+      if(!o || !o.c || o.c.length<20){ host.innerHTML='<p class="empty">chart data unavailable</p>'; return; }
+      var series = tf==="weekly" ? toWeekly(o) : o;
+      if(series.c.length<20){ host.innerHTML='<p class="empty">not enough history for a weekly chart</p>'; return; }
+      host.innerHTML = chartLegend(tf) + buildChartSVG(series, opts);
+      renderHold(sym, o);
+    }
+    if(chartCache[sym]){ draw(chartCache[sym]); return; }
+    var ex=getExtra(sym);
+    if(ex && ex.chart && ex.chart.c && ex.chart.c.length>=30){ chartCache[sym]=ex.chart; draw(ex.chart); return; }
+    if(isHosted && !state.hostOverride){
+      host.innerHTML='<p class="empty">The chart needs the downloaded file — this hosted preview can’t fetch price data.</p>';
+      return;
+    }
+    host.innerHTML='<p class="empty">loading chart…</p>';
+    fetchCandles(sym).then(function(o){
+      var norm={o:o.open||o.close, h:o.high, l:o.low, c:o.close, v:o.volume, d:o.dates};
+      chartCache[sym]=norm; draw(norm);
+    }).catch(function(err){
+      host.innerHTML='<p class="empty">couldn’t load a chart for '+esc(sym)+': '+esc((err&&err.message)||"failed")+
+        '. Run a scan first (charts for the top 30 are kept), or set a working data source.</p>';
+    });
+  }
+  function refreshChartLive(){
+    var sym=($("#a_sym").value||"").toUpperCase();
+    if(!sym) return;
+    delete chartCache[sym];
+    var ex=getExtra(sym); if(ex) delete ex.chart;
+    $("#chart").innerHTML='<p class="empty">fetching fresh candles…</p>';
+    renderChart(sym);
+  }
+
+  /* ---------- hold vs exit: trend health + trail stop + forward distribution ---------- */
+  function trendHealth(c, e20a, e50a, e200a){
+    var n=c.length, p=c[n-1];
+    var e20=e20a[n-1], e50=e50a[n-1], e200=e200a[n-1];
+    var rise20 = e20!=null && e20a[Math.max(0,n-11)]!=null && e20 > e20a[Math.max(0,n-11)];
+    var rise50 = e50!=null && e50a[Math.max(0,n-16)]!=null && e50 > e50a[Math.max(0,n-16)];
+    if(e20!=null && e50!=null){
+      var e200ok = e200!=null;
+      if(p>e20 && e20>e50 && (!e200ok || e50>e200) && rise20) return {state:"intact", cls:"pos", note:"price above a rising 20 EMA, stacked 20>50"+(e200ok?">200":"")};
+      if(p>e50 && (!e200ok || e50>e200) && rise50) return {state:"pausing", cls:"warn", note:"pulled back between the 20 and 50 EMA — normal in an uptrend, but watch the 50"};
+      if(e200ok ? p>e200 : p>e50*0.95) return {state:"at risk", cls:"neg", note:"below the 50 EMA — the swing trend has stalled"};
+      return {state:"broken", cls:"neg", note:"below the "+(e200ok?"200":"50")+" EMA — this is no longer a Stage-2 uptrend"};
+    }
+    return {state:"unknown", cls:"dim", note:"not enough daily history — press ↻ live to fetch a full series"};
+  }
+  function trailStopNow(c,h,l, e20a, e50a, weekly){
+    var n=c.length, p=c[n-1], i;
+    var swBars = weekly?18:10, sw=Infinity;   // daily bars either way
+    for(i=Math.max(0,n-swBars);i<n;i++) if(l[i]<sw) sw=l[i];
+    var maFloor = weekly ? (e50a[n-1]||0)*0.955 : (e20a[n-1]||0)*0.965;
+    var atrMult = weekly?3.5:2.5;
+    var atr = atrPct(h,l,c,20)*p;
+    var atrFloor = p - atrMult*atr;
+    var cands = [sw, maFloor, atrFloor].filter(function(x){ return x>0 && x < p*0.995; });
+    var stop = cands.length ? Math.max.apply(null,cands) : p*0.9;
+    var basis = stop===sw ? "the last "+swBars+"-bar low" : (Math.abs(stop-maFloor)<Math.abs(stop-atrFloor) ? "just under the "+(weekly?"50":"20")+" EMA" : atrMult+"× ATR (chandelier)");
+    return {stop:stop, pct:(p-stop)/p, basis:basis};
+  }
+  // from this stock's own history: in an intact Stage-2 uptrend that has just resumed near the
+  // rising 20 EMA, what did the next ~40 bars do? build a probability distribution.
+  function forwardDist(c,h,l, e20a,e50a,e200a, weekly){
+    var n=c.length, hz=weekly?26:42, i,k, S=[];
+    for(i=55;i<n-hz;i++){
+      if(e20a[i]==null||e50a[i]==null) continue;
+      if(!(c[i]>e20a[i] && e20a[i]>e50a[i])) continue;
+      if(e200a[i]!=null && !(e50a[i]>e200a[i])) continue;
+      if(!(e20a[i] > e20a[i-10])) continue;
+      if(c[i] > e20a[i]*1.12) continue;              // not extended — a fresh resumption
+      var e=c[i], mx=0, dd=false, mxBeforeDD=0;
+      for(k=i+1;k<=i+hz;k++){
+        var up=(h[k]-e)/e; if(up>mx) mx=up;
+        if(!dd && (l[k]-e)/e <= -0.08){ dd=true; mxBeforeDD=mx; }
+      }
+      S.push({mx:mx, fin:(c[Math.min(i+hz,n-1)]-e)/e, ddFirst: dd && mxBeforeDD<0.04});
+    }
+    if(S.length<10) return null;
+    var pGE=function(x){ return S.filter(function(s){return s.mx>=x;}).length/S.length; };
+    var fins=S.map(function(s){return s.fin;}).sort(function(a,b){return a-b;});
+    var mxs=S.map(function(s){return s.mx;}).sort(function(a,b){return a-b;});
+    return {
+      n:S.length,
+      p10:pGE(0.10), p20:pGE(0.20), p30:pGE(0.30), p50:pGE(0.50),
+      median: fins[Math.floor(fins.length/2)],
+      medMx: mxs[Math.floor(mxs.length/2)],       // typical best-case run
+      pDD: S.filter(function(s){return s.ddFirst;}).length/S.length
+    };
+  }
+
+  function renderHold(sym, o){
+    var host=$("#hold"); if(!host) return;
+    // always compute from DAILY bars — the chart's D/W toggle is only a viewing choice,
+    // and 2y of weekly data is too short for a 200-MA or a real distribution.
+    var cc=o.c||o.close, ch=o.h||o.high, cl=o.l||o.low;
+    if(!cc || cc.length<80){ host.innerHTML='<p class="empty">need more daily price history for a projection (press ↻ live)</p>'; return; }
+    var weekly = state.timeframe==="weekly";   // the strategy timeframe, for stop width / horizon
+    var n=cc.length, price=cc[n-1];
+    var e20a=emaArr(cc,20), e50a=emaArr(cc,50), e200a=emaArr(cc,200);
+    var th = trendHealth(cc,e20a,e50a,e200a);
+    var ts = trailStopNow(cc,ch,cl,e20a,e50a,weekly);
+    var fd = forwardDist(cc,ch,cl,e20a,e50a,e200a,false);   // daily-bar horizon (~2 months)
+    var avg = parseFloat(($("#a_avgentry")&&$("#a_avgentry").value)||"")||0;
+    var bo = parseFloat(($("#a_bo")&&$("#a_bo").value)||"")||0;
+    var sup = parseFloat(($("#a_sup")&&$("#a_sup").value)||"")||0;
+    // measured-move (base height) + a history-based typical run target
+    var baseLow = sup>0 ? sup : Math.min.apply(null, cl.slice(-Math.min(cl.length,25)));
+    var mm = bo>0 && baseLow>0 && bo>baseLow ? bo + (bo-baseLow) : 0;
+    var trendT = fd && fd.medMx>0.05 ? price*(1+fd.medMx) : 0;
+
+    var bar=function(p){ var w=Math.round(p*100); return '<span class="hb"><i style="width:'+w+'%"></i></span>'; };
+    var verdict, vcls, vbody;
+    if(th.state==="intact" || th.state==="pausing"){
+      vcls="pos"; verdict="HOLD";
+      var histLine = "";
+      if(fd){
+        histLine = fd.median > 0.05
+          ? " History says the bulk of the move is usually still ahead from a point like this (median +"+Math.round(fd.median*100)+"%)."
+          : (fd.p20 >= 0.35
+            ? " There's meaningful upside on the table historically, though follow-through in "+esc(sym)+" is mixed — trail tight."
+            : " But note: from similar spots, "+esc(sym)+" has historically been a poor continuation name (median "+(fd.median>0?"+":"")+Math.round(fd.median*100)+"%). Hold with a tight trail and don't add.");
+      }
+      vbody="The trend is "+th.state+" ("+th.note+"). Your job now is to <b>trail the stop</b>, not to exit. "+
+        "Move your stop to <b>"+inr(ts.stop)+"</b> ("+(ts.pct*100).toFixed(1)+"% below price, "+ts.basis+"). "+
+        "If price closes below that, you're out. Until then you hold — <b>regardless of your buy price</b>."+histLine;
+    } else {
+      vcls="neg"; verdict="EXIT / TIGHTEN";
+      vbody="The trend is <b>"+th.state+"</b> — "+th.note+". This is a real exit signal (not a P&L feeling). "+
+        "Cut it, or at minimum tighten the stop to "+inr(ts.stop)+" and take the rest off on any bounce into the 20 EMA.";
+    }
+
+    var rows="";
+    if(fd){
+      rows =
+        '<div class="hrow"><span>reaches +10%</span>'+bar(fd.p10)+'<b>'+Math.round(fd.p10*100)+'%</b></div>'+
+        '<div class="hrow"><span>reaches +20%</span>'+bar(fd.p20)+'<b>'+Math.round(fd.p20*100)+'%</b></div>'+
+        '<div class="hrow"><span>reaches +30%</span>'+bar(fd.p30)+'<b>'+Math.round(fd.p30*100)+'%</b></div>'+
+        '<div class="hrow"><span>reaches +50%</span>'+bar(fd.p50)+'<b>'+Math.round(fd.p50*100)+'%</b></div>'+
+        '<div class="hrow dim"><span>drops 8% first (shakeout)</span>'+bar(fd.pDD)+'<b>'+Math.round(fd.pDD*100)+'%</b></div>'+
+        '<p class="hint" style="margin-top:6px">Median outcome over the next ~'+(weekly?"6 months":"2 months")+' from a spot like this: <b class="'+(fd.median>0?"pos":"neg")+'">'+(fd.median>0?"+":"")+Math.round(fd.median*100)+'%</b> · from '+fd.n+' similar past cases in '+esc(sym)+'.</p>';
+    } else {
+      rows = '<p class="hint">Not enough past Stage-2 resumptions in '+esc(sym)+' to build a distribution.</p>';
+    }
+
+    host.innerHTML =
+      '<div class="hverdict '+vcls+'"><b>'+verdict+'</b> — '+vbody+'</div>'+
+      '<div class="posgrid" style="margin-top:12px">'+
+        '<div><div class="k">Trend right now</div><div class="v '+th.cls+'">'+th.state+'</div></div>'+
+        '<div><div class="k">Trail stop to</div><div class="v">'+inr(ts.stop)+' <span class="dim">−'+(ts.pct*100).toFixed(1)+'%</span></div></div>'+
+        (mm?'<div><div class="k">Measured-move target</div><div class="v pos">'+inr(mm)+' <span class="dim">+'+Math.round((mm/price-1)*100)+'%</span></div></div>':'')+
+        (trendT&&trendT>price?'<div><div class="k">Typical run (this stock)</div><div class="v pos">'+inr(trendT)+' <span class="dim">+'+Math.round((trendT/price-1)*100)+'%</span></div></div>':'')+
+      '</div>'+
+      '<h3 style="font-size:13px;margin:14px 0 4px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted)">Still on the table (this stock\'s own history)</h3>'+
+      rows+
+      (avg>0 ? '<p class="note '+((price/avg-1)>=0?"":"warn")+'">For context only: you\'re at '+((price/avg-1)>=0?"+":"")+Math.round((price/avg-1)*100)+'% on this. <b>This number must not drive the decision.</b> A stock at your break-even that is still in an uptrend is a hold (or an add), never a sell.</p>' : '')+
+      '<p class="hint" style="margin-top:8px">Rule: exit on <b>price</b> (the trail stop) or a <b>trend break</b> (close below the 50 EMA on heavy volume) — never because you\'re "finally in profit". That instinct is the single most expensive mistake in swing trading.</p>';
+  }
+
+  /* ---------- watchlist ---------- */
+  function renderWatchlist(){
+    var el = $("#watchlist");
+    if(!state.watchlist.length){ el.innerHTML = '<p class="empty">No saved setups yet.</p>'; return; }
+    el.innerHTML = state.watchlist.map(function(w,i){
+      return '<div class="wl-item">'+
+        '<span class="s">'+esc(w.symbol)+'</span>'+
+        '<span class="pill '+w.cls+'">'+esc(w.verdict)+'</span>'+
+        '<span class="m">score '+w.total+'</span>'+
+        '<span class="m">'+esc(w.tf)+'</span>'+
+        '<span class="m">E '+nfmt(w.entry)+' · SL '+nfmt(w.stop)+' · T '+nfmt(w.t10)+'</span>'+
+        '<span class="m">'+nfmt(w.qty,0)+' sh</span>'+
+        '<span class="m">'+esc(w.date)+'</span>'+
+        '<button class="x" data-i="'+i+'">remove</button>'+
+      '</div>';
+    }).join("");
+    $$("#watchlist .x").forEach(function(b){
+      b.addEventListener("click", function(){
+        state.watchlist.splice(parseInt(b.getAttribute("data-i"),10),1);
+        save(); renderWatchlist();
+      });
+    });
+  }
+
+  function addToWatchlist(){
+    var d = readAnalyzer();
+    var sc = scoreStock(d), tr = computeTrade(d), v = verdict(sc.total, tr.rr), ps = positionSize(tr.entry, tr.stop);
+    var entry = {
+      symbol:d.symbol, total:sc.total, verdict:v.label.replace(/ —.*/,""), cls:v.cls,
+      entry:tr.entry, stop:tr.stop, t10:tr.t10,
+      qty: state.regime==="red"?0:(regimeMult()<1?ps.regimeQty:ps.qty),
+      tf: state.timeframe, date: new Date().toISOString().slice(0,10)
+    };
+    state.watchlist = state.watchlist.filter(function(w){return w.symbol!==entry.symbol;});
+    state.watchlist.unshift(entry);
+    save(); renderWatchlist();
+  }
+
+  /* ---------- auto-screen: universe ---------- */
+  var SECTORS = ["IT","Bank","Financials","Auto","Pharma","FMCG","Consumer","Metal","OilGas","Power","Infra","CapGoods","Chemicals","Telecom","Realty"];
+
+  var UNIVERSE = [
+    "RELIANCE|OilGas","HDFCBANK|Bank","TCS|IT","BHARTIARTL|Telecom","ICICIBANK|Bank",
+    "INFY|IT","SBIN|Bank","HINDUNILVR|FMCG","BAJFINANCE|Financials","ITC|FMCG",
+    "LT|Infra","HCLTECH|IT","KOTAKBANK|Bank","SUNPHARMA|Pharma","MARUTI|Auto",
+    "M&M|Auto","AXISBANK|Bank","NTPC|Power","ULTRACEMCO|Infra","TITAN|Consumer",
+    "ADANIENT|Infra","ONGC|OilGas","POWERGRID|Power","TATAMOTORS|Auto","ASIANPAINT|Consumer",
+    "COALINDIA|OilGas","BAJAJFINSV|Financials","NESTLEIND|FMCG","WIPRO|IT","ADANIPORTS|Infra",
+    "JSWSTEEL|Metal","TATASTEEL|Metal","HDFCLIFE|Financials","SBILIFE|Financials","TECHM|IT",
+    "GRASIM|Infra","HINDALCO|Metal","DRREDDY|Pharma","CIPLA|Pharma","EICHERMOT|Auto",
+    "BAJAJ-AUTO|Auto","BRITANNIA|FMCG","DIVISLAB|Pharma","INDUSINDBK|Bank","APOLLOHOSP|Pharma",
+    "TATACONSUM|FMCG","HEROMOTOCO|Auto","BPCL|OilGas","JIOFIN|Financials","SHRIRAMFIN|Financials",
+    "LTIM|IT","VBL|FMCG","DMART|Consumer","ETERNAL|Consumer","ADANIGREEN|Power",
+    "ADANIENSOL|Power","ADANIPOWER|Power","IOC|OilGas","GAIL|OilGas","PIDILITIND|Chemicals",
+    "DABUR|FMCG","GODREJCP|FMCG","SIEMENS|CapGoods","HAVELLS|CapGoods","AMBUJACEM|Infra",
+    "BANKBARODA|Bank","PNB|Bank","CANBK|Bank","VEDL|Metal","BEL|CapGoods",
+    "HAL|CapGoods","BOSCHLTD|Auto","TVSMOTOR|Auto","CHOLAFIN|Financials","PFC|Financials",
+    "RECLTD|Financials","IRFC|Financials","INDIGO|Consumer","TORNTPHARM|Pharma","ZYDUSLIFE|Pharma",
+    "MANKIND|Pharma","NAUKRI|Consumer","DLF|Realty","LODHA|Realty","GODREJPROP|Realty",
+    "TRENT|Consumer","JINDALSTEL|Metal","SAIL|Metal","NMDC|Metal","JSWENERGY|Power",
+    "TATAPOWER|Power","NHPC|Power","CGPOWER|CapGoods","ABB|CapGoods","POLYCAB|CapGoods",
+    "BHARATFORG|Auto","MOTHERSON|Auto","UNITDSPR|FMCG","COLPAL|FMCG","MARICO|FMCG",
+    "UBL|FMCG","BERGEPAINT|Consumer","INDHOTEL|Consumer","LUPIN|Pharma","AUROPHARMA|Pharma",
+    "ALKEM|Pharma","BIOCON|Pharma","MAXHEALTH|Pharma","FORTIS|Pharma","GLENMARK|Pharma",
+    "LICI|Financials","ICICIGI|Financials","ICICIPRULI|Financials","BAJAJHLDNG|Financials","HDFCAMC|Financials",
+    "MUTHOOTFIN|Financials","SBICARD|Financials","IDFCFIRSTB|Bank","FEDERALBNK|Bank","AUBANK|Bank",
+    "BANDHANBNK|Bank","INDIANB|Bank","UNIONBANK|Bank","YESBANK|Bank","PERSISTENT|IT",
+    "COFORGE|IT","MPHASIS|IT","OFSS|IT","LTTS|IT","KPITTECH|IT",
+    "TATAELXSI|IT","CYIENT|IT","TATACOMM|Telecom","INDUSTOWER|Telecom","IDEA|Telecom",
+    "SUNTV|Telecom","PVRINOX|Consumer","NYKAA|Consumer","PAYTM|Consumer","POLICYBZR|Consumer",
+    "IRCTC|Consumer","JUBLFOOD|Consumer","DIXON|Consumer","VOLTAS|Consumer","CROMPTON|Consumer",
+    "KALYANKJIL|Consumer","PAGEIND|Consumer","BATAINDIA|Consumer","DELHIVERY|Consumer","SRF|Chemicals",
+    "PIIND|Chemicals","DEEPAKNTR|Chemicals","NAVINFLUOR|Chemicals","AARTIIND|Chemicals","ATUL|Chemicals",
+    "TATACHEM|Chemicals","SOLARINDS|Chemicals","COROMANDEL|Chemicals","UPL|Chemicals","LINDEINDIA|Chemicals",
+    "DALBHARAT|Infra","SHREECEM|Infra","JKCEMENT|Infra","ACC|Infra","RAMCOCEM|Infra",
+    "GMRAIRPORT|Infra","IRB|Infra","NCC|Infra","RVNL|Infra","IRCON|Infra",
+    "NBCC|Infra","CONCOR|Infra","CUMMINSIND|CapGoods","THERMAX|CapGoods","BHEL|CapGoods",
+    "BDL|CapGoods","MAZDOCK|CapGoods","COCHINSHIP|CapGoods","BEML|CapGoods","KEI|CapGoods",
+    "KAYNES|CapGoods","AIAENG|CapGoods","APLAPOLLO|Metal","JSL|Metal","HINDZINC|Metal",
+    "NATIONALUM|Metal","HINDCOPPER|Metal","RATNAMANI|Metal","PETRONET|OilGas","IGL|OilGas",
+    "MGL|OilGas","GUJGASLTD|OilGas","OIL|OilGas","HINDPETRO|OilGas","ATGL|OilGas",
+    "CASTROLIND|OilGas","TIINDIA|Auto","SONACOMS|Auto","UNOMINDA|Auto","EXIDEIND|Auto",
+    "BALKRISIND|Auto","MRF|Auto","APOLLOTYRE|Auto","ASHOKLEY|Auto","OBEROIRLTY|Realty",
+    "PRESTIGE|Realty","PHOENIXLTD|Realty","BRIGADE|Realty","M&MFIN|Financials","LICHSGFIN|Financials",
+    "MANAPPURAM|Financials","POONAWALLA|Financials","ABCAPITAL|Financials","PEL|Financials","CAMS|Financials",
+    "BSE|Financials","CDSL|Financials","MCX|Financials","ANGELONE|Financials","KFINTECH|Financials",
+    "IEX|Financials","HUDCO|Financials","PGHH|FMCG","EMAMILTD|FMCG","RADICO|FMCG",
+    "HONAUT|CapGoods","SUPREMEIND|Chemicals","ASTRAL|Chemicals","SYNGENE|Pharma","IPCALAB|Pharma",
+    "LAURUSLABS|Pharma","GRANULES|Pharma","ABBOTINDIA|Pharma","PATANJALI|FMCG","OLECTRA|Auto"
+  ].join("\n");
+
+  var uniSectorMap = null;
+  function buildSectorMap(txt){
+    uniSectorMap = {};
+    txt.split(/\r?\n/).forEach(function(l){
+      var p = l.trim().split(/[|,\t]/);
+      if(p[0]) uniSectorMap[p[0].trim().toUpperCase()] = (p[1]||"").trim();
+    });
+  }
+  function parseUniverse(txt){
+    return txt.split(/\r?\n/).map(function(l){return l.trim();}).filter(Boolean)
+      .map(function(l){ var p=l.split(/[|,\t]/); return {sym:(p[0]||"").trim().toUpperCase(), sector:(p[1]||"").trim()}; })
+      .filter(function(x){ return x.sym; });
+  }
+  function universeText(){ return state.customUniverse && state.customUniverse.trim() ? state.customUniverse : UNIVERSE; }
+
+  /* ---------- auto-screen: indicators ---------- */
+  function emaLast(v,n){
+    if(v.length<n) return 0;
+    var k=2/(n+1), s=0, i;
+    for(i=0;i<n;i++) s+=v[i]; s/=n;
+    for(i=n;i<v.length;i++) s = v[i]*k + s*(1-k);
+    return s;
+  }
+  function emaArr(v,n){
+    var out=[], k=2/(n+1), i, e;
+    if(v.length<n) return v.map(function(){return null;});
+    var s=0; for(i=0;i<n;i++){ s+=v[i]; out.push(null); }
+    e=s/n; out[n-1]=e;
+    for(i=n;i<v.length;i++){ e = v[i]*k + e*(1-k); out.push(e); }
+    return out;
+  }
+  function rsiLast(c,n){
+    n=n||14; if(c.length<n+1) return 50;
+    var g=0,l=0,i,ch;
+    for(i=1;i<=n;i++){ ch=c[i]-c[i-1]; if(ch>=0) g+=ch; else l-=ch; }
+    g/=n; l/=n;
+    for(i=n+1;i<c.length;i++){ ch=c[i]-c[i-1]; g=(g*(n-1)+(ch>0?ch:0))/n; l=(l*(n-1)+(ch<0?-ch:0))/n; }
+    if(l===0) return 100;
+    return 100 - 100/(1+g/l);
+  }
+  function macdPositive(c){
+    if(c.length<35) return false;
+    var e12=emaArr(c,12), e26=emaArr(c,26), macd=[], i;
+    for(i=0;i<c.length;i++){ if(e12[i]!=null && e26[i]!=null) macd.push(e12[i]-e26[i]); }
+    if(macd.length<10) return macd.length ? macd[macd.length-1]>0 : false;
+    var sig=emaArr(macd,9), j=macd.length-1;
+    return sig[j]!=null ? macd[j]>sig[j] : macd[j]>0;
+  }
+  function avgN(v,n){
+    var s=0,c=0,i;
+    for(i=Math.max(0,v.length-n);i<v.length;i++){ s+=v[i]; c++; }
+    return c ? s/c : 0;
+  }
+  function rsiArr(c,n){
+    n=n||14; var out=new Array(c.length).fill(null);
+    if(c.length<n+1) return out;
+    var g=0,l=0,i,ch;
+    for(i=1;i<=n;i++){ ch=c[i]-c[i-1]; if(ch>=0) g+=ch; else l-=ch; }
+    g/=n; l/=n;
+    out[n] = l===0 ? 100 : 100 - 100/(1+g/l);
+    for(i=n+1;i<c.length;i++){
+      ch=c[i]-c[i-1];
+      g=(g*(n-1)+(ch>0?ch:0))/n; l=(l*(n-1)+(ch<0?-ch:0))/n;
+      out[i] = l===0 ? 100 : 100 - 100/(1+g/l);
+    }
+    return out;
+  }
+  function structLevels(h,l,c){
+    var n=c.length, price=c[n-1], i;
+    var from=Math.max(0,n-60), to=Math.max(1,n-6), res=0;
+    for(i=from;i<to;i++){ if(h[i]>res) res=h[i]; }
+    var base=Infinity;
+    for(i=Math.max(0,n-12);i<n;i++){ if(l[i]<base) base=l[i]; }
+    var hiWin=function(a,b){ var m=-Infinity,i; for(i=Math.max(0,n-a);i<Math.max(0,n-b);i++) if(h[i]>m)m=h[i]; return m; };
+    var loWin=function(a,b){ var m=Infinity,i; for(i=Math.max(0,n-a);i<Math.max(0,n-b);i++) if(l[i]<m)m=l[i]; return m; };
+    var hhhl = hiWin(10,0)>=hiWin(32,10) && loWin(12,0)>loWin(34,16);
+    return {breakout: res>0?res:price, support: isFinite(base)?base:price*0.97, hhhl:hhhl};
+  }
+  // nearest swing support below / resistance above, from fractal pivots + rising EMA20
+  function srLevels(h,l,c,e20){
+    var n=c.length, price=c[n-1], w=3, i, k;
+    var lo=[], hi=[], from=Math.max(w, n-150);
+    for(i=from;i<n-w;i++){
+      var isLo=true, isHi=true;
+      for(k=1;k<=w;k++){ if(l[i]>l[i-k]||l[i]>l[i+k]) isLo=false; if(h[i]<h[i-k]||h[i]<h[i+k]) isHi=false; }
+      if(isLo) lo.push(l[i]);
+      if(isHi) hi.push(h[i]);
+    }
+    var support=0;
+    lo.forEach(function(v){ if(v < price*0.997 && v > support) support = v; });
+    if(e20>0 && e20 < price*0.999 && e20 > support) support = e20;
+    if(!support){ var m=Infinity; for(i=Math.max(0,n-20);i<n;i++) if(l[i]<m) m=l[i]; support=m; }
+    var resistance=Infinity;
+    hi.forEach(function(v){ if(v > price*1.003 && v < resistance) resistance = v; });
+    if(!isFinite(resistance)) resistance = 0; // at / near highs — open sky
+    return {support:support, resistance:resistance};
+  }
+  // historical follow-through: from bars in a similar "in-trend" state, how often
+  // did price tag +tgt% before -stop% within `horizon` bars?
+  function histWinRate(h,l,c,e20a,e50a,rsia,tgt,stop,horizon){
+    var n=c.length, wins=0, losses=0, i, j;
+    for(i=60;i<n-horizon;i++){
+      if(e20a[i]==null||e50a[i]==null||rsia[i]==null) continue;
+      if(!(c[i] > e20a[i] && e20a[i] > e50a[i])) continue;
+      if(rsia[i] < 50 || rsia[i] > 74) continue;
+      var e=c[i], up=e*(1+tgt), dn=e*(1-stop), r=0;
+      for(j=i+1;j<=i+horizon;j++){
+        if(l[j] <= dn){ r=-1; break; }
+        if(h[j] >= up){ r=1; break; }
+      }
+      if(r===1) wins++; else if(r===-1) losses++;
+    }
+    var tot=wins+losses;
+    return tot>=8 ? {p:wins/tot, n:tot} : null;
+  }
+  // Detect a tight sideways consolidation "base" that ended a few bars ago.
+  function detectBase(h,l,c,v){
+    var n=c.length, price=c[n-1], lead=2, end=n-1-lead;
+    if(end < 22) return null;
+    var hi=h[end], lo=l[end], bars=1, i;
+    for(i=end-1; i>=Math.max(5, end-55); i--){
+      var nh = hi>h[i]?hi:h[i], nl = lo<l[i]?lo:l[i];
+      var w = (nh-nl)/nl;
+      if(w > 0.20) break;                          // base can't be taller than 20%
+      if(bars>=10 && w > (hi-lo)/lo*2.0) break;    // sudden widening = base started later
+      hi=nh; lo=nl; bars++;
+    }
+    if(bars < 7) return null;
+    var pre = c[Math.max(0, end-bars-18)] || c[0];
+    return {
+      hi:hi, lo:lo, bars:bars,
+      widthPct:(hi-lo)/lo,
+      ext:(price-hi)/hi,
+      priorMove: pre>0 ? (hi-pre)/pre : 0,
+      volNow: v[n-1] / (avgN(v,20) || 1)
+    };
+  }
+  // Classify the consolidation/breakout state — shared by scoring, the table and the analyzer.
+  // ext = (price - baseHigh)/baseHigh ; basePct = base height as a fraction of its low.
+  function baseInfo(basePct, baseBars, ext, volRatio){
+    if(!(basePct>0) || !(baseBars>=6)) return {tag:"", label:"–", pts:0, cls:"dim"};
+    var tight = basePct <= 0.12, vtight = basePct <= 0.075, longB = baseBars >= 10;
+    var wpb = Math.round(basePct*100)+"%×"+baseBars;
+    if(ext >= -0.006 && ext <= 0.05){
+      if(vtight && longB && volRatio >= 1.5) return {tag:"VCP",  label:"VCP "+wpb,         pts:20, cls:"pos"};
+      if(tight  && longB && volRatio >= 1.3) return {tag:"tight",label:"tight break "+wpb, pts:19, cls:"pos"};
+      if(tight  && longB)                    return {tag:"base", label:"base break "+wpb,  pts:15, cls:"warn"};
+      if(longB)                              return {tag:"wide", label:"wide break "+Math.round(basePct*100)+"%", pts:10, cls:"warn"};
+      return {tag:"base", label:"base break "+wpb, pts:12, cls:"warn"};
+    }
+    if(ext > -0.05 && ext < -0.006 && tight && longB)
+      return {tag:"coil", label:"coiling "+wpb, pts:12, cls:"warn"};
+    if(ext > 0.05) return {tag:"ext", label:"past base +"+Math.round(ext*100)+"%", pts:6, cls:"neg"};
+    return {tag:"", label:"–", pts:0, cls:"dim"};
+  }
+  // ATR as a % of price, over the last n bars
+  function atrPct(h,l,c,n){
+    var len=c.length; if(len < n+2) return 0;
+    var s=0, k=0, i;
+    for(i=Math.max(1,len-n); i<len; i++){
+      s += Math.max(h[i]-l[i], Math.abs(h[i]-c[i-1]), Math.abs(l[i]-c[i-1])); k++;
+    }
+    return (k && c[len-1]>0) ? (s/k)/c[len-1] : 0;
+  }
+  // Minervini-style trend-template score 0..7 (is this a Stage-2 uptrend?)
+  function stage2Score(c,h,l,e50,e150,e200,e50a,e200a){
+    var n=c.length, price=c[n-1], t=0, w=Math.min(252,n), i, hi52=-1e9, lo52=1e9;
+    for(i=n-w;i<n;i++){ if(h[i]>hi52)hi52=h[i]; if(l[i]<lo52)lo52=l[i]; }
+    if(price>e50 && price>e200) t++;
+    if(e150>0 ? (e50>e150 && e150>e200) : (e50>e200)) t++;
+    if(e200a[n-1]!=null && e200a[Math.max(0,n-23)]!=null && e200a[n-1] > e200a[Math.max(0,n-23)]) t++;
+    if(e50a[n-1]!=null && e50a[Math.max(0,n-11)]!=null && e50a[n-1] > e50a[Math.max(0,n-11)]) t++;
+    if(price >= lo52*1.25) t++;
+    if(price >= hi52*0.82) t++;
+    if(price>e50) t++;
+    return {score:t, hi52:hi52, lo52:lo52, dist:hi52>0?(hi52-price)/hi52:1};
+  }
+  // base-on-base "staircase": 2+ tight zones with rising lows over the last ~65 bars
+  function stairBases(h,l,c){
+    var n=c.length;
+    function W(a,b){ var hh=-1e9,ll=1e9,i; for(i=Math.max(0,n-a);i<Math.max(1,n-b);i++){ if(h[i]>hh)hh=h[i]; if(l[i]<ll)ll=l[i]; } return {hi:hh,lo:ll,rng:ll>0?(hh-ll)/ll:9}; }
+    var w1=W(16,1), w2=W(38,17), w3=W(64,42);
+    var tight=[w1,w2,w3].filter(function(x){return x.rng<=0.16;}).length;
+    var rising = w3.lo>0 && w3.lo < w2.lo*1.01 && w2.lo < w1.lo*1.01;
+    var netUp = n>66 && c[n-1] > c[n-66]*1.03;
+    return { tightZones:tight, stacked: tight>=2 && rising && netUp };
+  }
+  // one primary "Stage-2 continuation" label + code
+  function continuationSetup(m){
+    if(m.stage2 < 5) return {code:"", label:"–", cls:"dim"};
+    var contracting = m.atrThen>0 && m.atrNow>0 && m.atrNow < m.atrThen*0.85;
+    var nearHi = m.dist52 <= 0.15;
+    var maRef = m.e20rising ? m.e20 : (m.e50rising ? m.e50 : 0);
+    var atMA = maRef>0 && m.price>=maRef*0.97 && m.price<=maRef*1.06 && m.low5<=maRef*1.03 && m.low5>=maRef*0.93;
+    var notExt = m.ext <= 0.03;
+    if(m.stacked && notExt && nearHi)                                 return {code:"BOB", label:"base-on-base"+(contracting?" ⋀":""), cls:"pos"};
+    if(atMA && m.rsi>=38 && m.rsi<=64 && contracting && nearHi)       return {code:"S2P", label:"pullback → "+(m.e20rising?"20":"50")+"EMA", cls:"pos"};
+    if(m.baseBars>=20 && m.basePct>0 && m.basePct<=0.15 && m.ext>-0.03 && m.ext<=0.04) return {code:"LBB", label:"long-base breakout "+m.baseBars+"b", cls:"pos"};
+    if(m.basePct>0 && m.basePct<=0.085 && m.baseBars>=10 && m.ext>=-0.006 && m.ext<=0.04 && m.volNow>=1.4) return {code:"VCP", label:"VCP breakout", cls:"pos"};
+    if(m.basePct>0 && m.basePct<=0.12 && m.ext<-0.006 && m.ext>-0.06 && contracting && nearHi) return {code:"COIL", label:"coiling — near trigger", cls:"warn"};
+    if(nearHi && contracting)                                         return {code:"S2", label:"Stage-2, quiet", cls:"warn"};
+    return {code:"", label:"–", cls:"dim"};
+  }
+  var SETUP_LABEL = {BOB:"base-on-base", S2P:"pullback→MA", LBB:"long-base brk", VCP:"VCP breakout", COIL:"coiling", S2:"Stage-2 quiet"};
+
+  // single-bar reversal / trigger candle at index i (needs i-1 for engulfing)
+  function candleType(o,h,l,c,i){
+    var O=o[i], C=c[i], H=h[i], L=l[i], rng=H-L;
+    if(rng<=0) return "";
+    var body=Math.abs(C-O), up=H-Math.max(O,C), lo=Math.min(O,C)-L;
+    if(body<=rng*0.4 && lo>=body*1.8 && lo>=rng*0.5 && up<=rng*0.22) return "hammer";
+    if(body<=rng*0.4 && up>=body*1.8 && up>=rng*0.5 && lo<=rng*0.22) return "inv-hammer";
+    if(i>0 && c[i-1]<o[i-1] && C>O && C>=o[i-1] && O<=c[i-1] && body>=Math.abs(c[i-1]-o[i-1])*0.9) return "bull-engulf";
+    if(lo>=rng*0.55 && C>=L+rng*0.6 && C>=O) return "pin-bar";
+    return "";
+  }
+  var TRIG_RE = /hammer|inv-hammer|bull-engulf|pin-bar/;
+  // did a bullish trigger candle print in the last `look` bars with its low at a rising 20/50 EMA, in a Stage-2 trend?
+  function triggerAtMA(o,h,l,c,e20a,e50a,st2score,look){
+    var n=c.length, k;
+    for(k=n-1; k>=Math.max(1,n-look); k--){
+      var ct=candleType(o,h,l,c,k);
+      if(!TRIG_RE.test(ct)) continue;
+      var m20=e20a[k], m50=e50a[k];
+      var near = (m20!=null && l[k]<=m20*1.03 && l[k]>=m20*0.945) ||
+                 (m50!=null && l[k]<=m50*1.03 && l[k]>=m50*0.945);
+      if(near && st2score>=4) return {type:ct, ago:n-1-k, reclaimed: c[n-1] > c[k]};
+    }
+    return null;
+  }
+  // historical: after a trigger candle at a rising MA in a Stage-2 trend, did price tag +6% before -3% within horizon?
+  function triggerWinRate(o,h,l,c,e20a,e50a,e200a,horizon){
+    var n=c.length, wins=0, losses=0, i, j;
+    for(i=50;i<n-horizon;i++){
+      if(e50a[i]==null||e200a[i]==null) continue;
+      if(!(c[i]>e50a[i] && e50a[i]>e200a[i])) continue;
+      var ct=candleType(o,h,l,c,i);
+      if(!TRIG_RE.test(ct)) continue;
+      var ma=e20a[i]!=null?e20a[i]:e50a[i];
+      if(!(l[i]<=ma*1.03 && l[i]>=ma*0.94)) continue;
+      var e=c[i], upT=e*1.06, dnT=e*0.97, r=0;
+      for(j=i+1;j<=i+horizon;j++){ if(l[j]<=dnT){r=-1;break;} if(h[j]>=upT){r=1;break;} }
+      if(r===1) wins++; else if(r===-1) losses++;
+    }
+    var tot=wins+losses;
+    return tot>=5 ? {p:wins/tot, n:tot} : null;
+  }
+  function seriesToRow(sym, sector, o, dropForming, weekly){
+    var c=o.close, h=o.high, l=o.low, vol=o.volume, ds=o.dates, op=o.open||o.close;
+    if(dropForming && ds && ds.length){
+      var today = new Date().toISOString().slice(0,10);
+      if(ds[ds.length-1] >= today){ c=c.slice(0,-1); h=h.slice(0,-1); l=l.slice(0,-1); vol=vol.slice(0,-1); op=op.slice(0,-1); ds=ds.slice(0,-1); }
+    }
+    if(!c || c.length<40) throw new Error("thin data");
+    var lv=structLevels(h,l,c);
+    var v20=avgN(vol,20);
+    var r2=function(x){ return x?Math.round(x*100)/100:0; };
+    var price=c[c.length-1];
+    var e20=emaLast(c,20), e50=emaLast(c,50);
+    var sr=srLevels(h,l,c,e20);
+    // consolidation-base detection — when a tight base is found, its top IS the breakout level
+    var bs = detectBase(h,l,c,vol);
+    var breakoutLvl = (bs && bs.widthPct <= 0.16) ? bs.hi : lv.breakout;
+    // structural low as the stop only when 1.5–5.5% below the entry reference
+    var entryRef = breakoutLvl>0 ? breakoutLvl : price;
+    var supPct = (entryRef - sr.support)/entryRef;
+    var support = (supPct >= 0.012 && supPct <= 0.055) ? sr.support : 0;
+    // for a base breakout, the base low is a natural stop if it's not too far
+    if(!support && bs && bs.lo < entryRef){
+      var blPct = (entryRef - bs.lo)/entryRef;
+      if(blPct >= 0.02 && blPct <= 0.09) support = bs.lo;
+    }
+    // historical hit-rates
+    var e20a=emaArr(c,20), e50a=emaArr(c,50), e200a=emaArr(c,200), rsia=rsiArr(c,14);
+    var stopPct = weekly ? 0.05 : 0.03, hz = weekly ? 25 : 12;
+    var w1 = histWinRate(h,l,c,e20a,e50a,rsia, 0.05, stopPct, hz);
+    var w10 = histWinRate(h,l,c,e20a,e50a,rsia, 0.10, stopPct, weekly?40:22);
+    // --- Stage-2 continuation analysis (the "before the big move" screen) ---
+    var e150=emaLast(c,150), e200=emaLast(c,200);
+    var st2 = stage2Score(c,h,l,e50,e150,e200,e50a,e200a);
+    var atrNow = atrPct(h,l,c,14), atrThen = atrPct(h.slice(0,-40), l.slice(0,-40), c.slice(0,-40), 14);
+    var sb = stairBases(h,l,c);
+    var nC=c.length, low5=Math.min.apply(null, l.slice(-5));
+    var e20rise = e20a[nC-1]!=null && e20a[Math.max(0,nC-9)]!=null && e20a[nC-1] > e20a[Math.max(0,nC-9)];
+    var e50rise = e50a[nC-1]!=null && e50a[Math.max(0,nC-13)]!=null && e50a[nC-1] > e50a[Math.max(0,nC-13)];
+    var ret126 = nC>127 ? (price/c[nC-127]-1) : 0;
+    var extLvl = breakoutLvl>0 ? (price-breakoutLvl)/breakoutLvl : 0;
+    var setup = continuationSetup({
+      stage2:st2.score, atrNow:atrNow, atrThen:atrThen,
+      basePct: bs?bs.widthPct:0, baseBars: bs?bs.bars:0, ext:extLvl,
+      rsi:rsiLast(c,14), price:price, e20:e20, e50:e50,
+      e20rising:e20rise, e50rising:e50rise, low5:low5,
+      stacked:sb.stacked, volNow: bs?bs.volNow:(vol[vol.length-1]/(v20||1)), dist52:st2.dist
+    });
+    // trigger candle (hammer / inv-hammer / pin / engulf) at a rising MA — the "go" signal
+    var trg = triggerAtMA(op,h,l,c,e20a,e50a,st2.score, weekly?4:4);
+    var trigWR = triggerWinRate(op,h,l,c,e20a,e50a,e200a, weekly?25:14);
+    // last ~150 bars kept for charting the top-ranked names (rounded to keep localStorage small)
+    var TB = 150, ts = Math.max(0, c.length - TB), rnd = function(x){ return Math.round(x*100)/100; };
+    var tail = {
+      o: op.slice(ts).map(rnd), h: h.slice(ts).map(rnd), l: l.slice(ts).map(rnd),
+      c: c.slice(ts).map(rnd), v: vol.slice(ts).map(function(x){return Math.round(x);}),
+      d: ds.slice(ts)
+    };
+    return {
+      sym:sym, sector:sector, tail:tail,
+      price:r2(price),
+      e20:r2(e20), e50:r2(e50), e200:r2(emaLast(c,200)),
+      rsi:Math.round(rsiLast(c,14)),
+      vr: v20>0 ? r2(vol[vol.length-1]/v20) : 1,
+      breakout:r2(breakoutLvl), support: r2(support),
+      resistance: r2((sr.resistance>0 && sr.resistance > Math.max(price, breakoutLvl)*1.005) ? sr.resistance : 0),
+      hhhl:lv.hhhl, macd:macdPositive(c),
+      basePct: bs ? Math.round(bs.widthPct*1000)/1000 : 0,
+      baseBars: bs ? bs.bars : 0,
+      probT1: w1 ? Math.round(w1.p*100)/100 : null,
+      probT10: w10 ? Math.round(w10.p*100)/100 : null,
+      probN: w1 ? w1.n : (w10 ? w10.n : 0),
+      stage2: st2.score,
+      atrRatio: atrThen>0 ? Math.round(atrNow/atrThen*100)/100 : 0,
+      ret126: Math.round(ret126*1000)/1000,
+      setup: setup.code,
+      trig: trg ? (trg.type+"@"+trg.ago) : "",
+      trigWR: trigWR ? Math.round(trigWR.p*100)/100 : null,
+      trigN: trigWR ? trigWR.n : 0
+    };
+  }
+  function rowToCsv(r, leadingSet){
+    var sec = leadingSet[r.sector] ? "L" : "I";
+    return [r.sym, r.price, r.e20, r.e50, r.e200, r.rsi, r.vr, r.breakout, r.support, sec,
+      r.macd?1:0, r.hhhl?1:0, r.resistance||0, (r.probT1==null?"":r.probT1), (r.probT10==null?"":r.probT10),
+      r.basePct||0, r.baseBars||0, r.stage2||0, (r.rs==null?"":r.rs), (r.setup||""),
+      (r.trig||""), (r.trigWR==null?"":r.trigWR)].join(", ");
+  }
+
+  /* ---------- auto-screen: fetch adapters ---------- */
+  var PROXY_POOL = [
+    "https://api.allorigins.win/raw?url=",
+    "https://api.codetabs.com/v1/proxy/?quest=",
+    "https://thingproxy.freeboard.io/fetch/",
+    "https://corsproxy.io/?url="
+  ];
+  function fetchTimeout(url, ms, userSignal){
+    var ctrl = new AbortController();
+    var timedOut = false;
+    var t = setTimeout(function(){ timedOut = true; ctrl.abort(); }, ms);
+    if(userSignal) userSignal.addEventListener("abort", function(){ ctrl.abort(); }, {once:true});
+    return fetch(url, {signal:ctrl.signal, cache:"no-store", redirect:"follow"}).then(
+      function(r){ clearTimeout(t); return r; },
+      function(e){
+        clearTimeout(t);
+        if(userSignal && userSignal.aborted){ var a=new Error("cancelled"); a.cancelled=true; throw a; }
+        if(timedOut) throw new Error("timeout");
+        throw e;
+      }
+    );
+  }
+  function wrapProxy(base, target){
+    if(base.indexOf("{url}")>=0) return base.replace("{url}", encodeURIComponent(target));
+    if(/thingproxy/.test(base)) return base + target;
+    return base + encodeURIComponent(target);
+  }
+  function yahooUrl(sym){
+    return "https://query1.finance.yahoo.com/v8/finance/chart/" + encodeURIComponent(sym + ".NS") + "?range=2y&interval=1d";
+  }
+  function parseYahoo(txt){
+    var j; try{ j = JSON.parse(txt); }catch(e){ throw new Error("bad response"); }
+    var r = j && j.chart && j.chart.result && j.chart.result[0];
+    if(!r){ throw new Error((j&&j.chart&&j.chart.error&&j.chart.error.description) || "no data"); }
+    var q = r.indicators && r.indicators.quote && r.indicators.quote[0];
+    if(!q) throw new Error("no quote data");
+    var out = {open:[], close:[], high:[], low:[], volume:[], dates:[]};
+    (r.timestamp||[]).forEach(function(ts,i){
+      if(q.close[i]==null) return;
+      out.close.push(q.close[i]);
+      out.open.push(q.open && q.open[i]!=null ? q.open[i] : q.close[i]);
+      out.high.push(q.high && q.high[i]!=null ? q.high[i] : q.close[i]);
+      out.low.push(q.low && q.low[i]!=null ? q.low[i] : q.close[i]);
+      out.volume.push(q.volume && q.volume[i]!=null ? q.volume[i] : 0);
+      out.dates.push(new Date(ts*1000).toISOString().slice(0,10));
+    });
+    if(out.close.length<40) throw new Error("thin data");
+    return out;
+  }
+  function probeProxy(userSignal){
+    // race the user's choice + the pool in parallel; first to return valid Yahoo JSON wins
+    var chosen = state.proxyChoice==="custom" ? state.proxyCustom.trim() : state.proxyChoice;
+    var list = [chosen].concat(PROXY_POOL.filter(function(p){ return p!==chosen; })).filter(Boolean);
+    setStatus("finding a working proxy…", true);
+    return new Promise(function(resolve, reject){
+      var pending = list.length, settled = false;
+      list.forEach(function(base){
+        fetchTimeout(wrapProxy(base, yahooUrl("RELIANCE")), 11000, userSignal)
+          .then(function(res){ if(!res.ok) throw new Error("HTTP "+res.status); return res.text(); })
+          .then(function(txt){ parseYahoo(txt); if(!settled){ settled = true; resolve(base); } })
+          .catch(function(e){
+            if(e && e.cancelled && !settled){ settled = true; reject(e); return; }
+            if(--pending === 0 && !settled){ settled = true; reject(new Error("no working proxy")); }
+          });
+      });
+    });
+  }
+  function fetchYahoo(sym, cfg, signal){
+    return fetchTimeout(wrapProxy(cfg.proxy, yahooUrl(sym)), 18000, signal)
+      .then(function(res){ if(!res.ok) throw new Error("HTTP "+res.status); return res.text(); })
+      .then(parseYahoo);
+  }
+  function tdGet(url, signal){
+    return fetchTimeout(url, 20000, signal).then(function(r){
+      return r.text().then(function(txt){
+        var j; try{ j = JSON.parse(txt); }
+        catch(e){ throw new Error("non-JSON reply (HTTP "+r.status+"): "+txt.slice(0,80)); }
+        if(j && (j.status==="error" || (typeof j.code==="number" && j.code>=400))){
+          var e = new Error(j.message || ("error "+j.code)); e.code = j.code; throw e;
+        }
+        return j;
+      });
+    });
+  }
+  function tdSeries(j){
+    var vals = (j.values||[]).slice().reverse();
+    if(!vals.length) throw new Error("empty series");
+    var out={open:[],close:[],high:[],low:[],volume:[],dates:[]};
+    vals.forEach(function(v){
+      out.close.push(parseFloat(v.close));
+      out.open.push(parseFloat(v.open)||parseFloat(v.close));
+      out.high.push(parseFloat(v.high));
+      out.low.push(parseFloat(v.low));
+      out.volume.push(parseFloat(v.volume)||0);
+      out.dates.push((v.datetime||"").slice(0,10));
+    });
+    return out;
+  }
+  function probeTwelve(cfg, signal){
+    window.__tdTimes = (window.__tdTimes || []).concat(Date.now());
+    return tdGet("https://api.twelvedata.com/time_series?symbol=RELIANCE&exchange=NSE&interval=1day&outputsize=5&apikey="+
+      encodeURIComponent(cfg.apiKey), signal)
+      .then(function(j){ if(!(j.values && j.values.length)) throw new Error("key accepted but NSE returned no data — your plan may not cover Indian stocks"); return true; });
+  }
+  function fetchTwelve(sym, cfg, signal){
+    var base = "https://api.twelvedata.com/time_series?symbol="+encodeURIComponent(sym)+
+      "&interval=1day&outputsize=400&apikey="+encodeURIComponent(cfg.apiKey);
+    return tdGet(base+"&exchange=NSE", signal).then(tdSeries, function(e){
+      if(/not found|not available|no data|param|exchange|symbol/i.test(e.message||"")){
+        return tdGet(base+"&mic_code=XNSE", signal).then(tdSeries, function(){
+          return tdGet(base, signal).then(tdSeries);
+        });
+      }
+      throw e;
+    });
+  }
+  // ---- Financial Modeling Prep (current "stable" API) ----
+  function fmpParse(j){
+    var hist = Array.isArray(j) ? j : (j && (j.historical || j.results || null));
+    if(!hist || !hist.length) throw new Error((j && (j["Error Message"] || j.message)) || "no rows");
+    var a = hist.slice().sort(function(x,y){ return (x.date||"") < (y.date||"") ? -1 : 1; }); // ascending
+    var out={open:[],close:[],high:[],low:[],volume:[],dates:[]};
+    a.forEach(function(v){
+      out.close.push(+v.close); out.open.push(+v.open || +v.close); out.high.push(+v.high); out.low.push(+v.low);
+      out.volume.push(+v.volume||0); out.dates.push((v.date||"").slice(0,10));
+    });
+    if(out.close.length<40) throw new Error("only "+out.close.length+" bars");
+    return out;
+  }
+  function fmpGet(sym, cfg, signal){
+    var from = new Date(Date.now()-740*86400000).toISOString().slice(0,10);
+    var url = "https://financialmodelingprep.com/stable/historical-price-eod/full?symbol="+
+      encodeURIComponent(sym+".NS")+"&from="+from+"&apikey="+encodeURIComponent(cfg.fmpKey);
+    return fetchTimeout(url, 18000, signal).then(function(r){
+      return r.text().then(function(t){
+        var j; try{ j = JSON.parse(t); }catch(e){ throw new Error("non-JSON reply (HTTP "+r.status+"): "+t.slice(0,60)); }
+        var em = (j && !Array.isArray(j) && (j["Error Message"] || j.message)) || "";
+        if(/legacy|exclusive|not available on your|premium|special endpoint|prior august|subscription/i.test(em) || r.status===402 || r.status===403){
+          var e = new Error("plan: "+(em || "HTTP "+r.status+" — not on your FMP plan")); e.plan = true; throw e;
+        }
+        if(em){ var e3 = new Error(em); e3.code = r.status; throw e3; }
+        return j;
+      });
+    });
+  }
+  function probeFMP(cfg, signal){
+    return fmpGet("RELIANCE", cfg, signal).then(fmpParse).then(function(){ return true; });
+  }
+  function fetchFMP(sym, cfg, signal){
+    return fmpGet(sym, cfg, signal).then(fmpParse);
+  }
+  function fetchEarnings(sym, cfg, signal){
+    var url = "https://api.twelvedata.com/earnings?symbol="+encodeURIComponent(sym)+
+      "&exchange=NSE&apikey="+encodeURIComponent(cfg.apiKey);
+    return tdGet(url, signal)
+      .then(function(j){
+        var arr = j && (j.earnings || j.data || (Array.isArray(j)?j:null));
+        if(!arr || !arr.length) return null;
+        arr = arr.slice().sort(function(a,b){ return (a.date||"") < (b.date||"") ? -1 : 1; });
+        var today = new Date().toISOString().slice(0,10);
+        var next = null, past = [];
+        arr.forEach(function(x){ if(!x.date) return; if(x.date >= today){ if(!next) next = x; } else past.push(x); });
+        var last4 = past.slice(-4);
+        var beats = last4.filter(function(x){ return (parseFloat(x.surprise_prc!=null?x.surprise_prc:x.surprise)||0) > 0; }).length;
+        var ls = past.length ? parseFloat(past[past.length-1].surprise_prc!=null?past[past.length-1].surprise_prc:past[past.length-1].surprise) : NaN;
+        return {
+          eDate: next ? next.date : null,
+          eEst: (next && next.eps_estimate!=null && next.eps_estimate!=="") ? parseFloat(next.eps_estimate) : null,
+          eSurp: isFinite(ls) ? Math.round(ls*10)/10 : null,
+          eBeat: last4.length ? (beats+"/"+last4.length) : null
+        };
+      });
+  }
+
+  /* ---------- auto-screen: host guard + orchestration ---------- */
+  var isHosted = (location.protocol==="https:" || location.protocol==="http:") &&
+    location.hostname && !/^(localhost|127\.|0\.0\.0\.0|\[::1\]|.+\.local)$/.test(location.hostname);
+  var scanAbort = null;
+
+  function setStatus(txt, busy){
+    var el=$("#scanStatus"); el.textContent=txt; el.classList.toggle("busy", !!busy);
+  }
+  function setProg(done,total){
+    var p=$("#scanProgress"); p.hidden = !(total>0 && done<total);
+    p.querySelector("i").style.width = total? (done/total*100)+"%" : "0";
+  }
+  function scanMetaFromCache(){
+    var c=state.scanCache; if(!c){ $("#scanMeta").textContent=""; return; }
+    var when = c.at ? new Date(c.at).toLocaleString("en-IN",{hour:"2-digit",minute:"2-digit",day:"2-digit",month:"short"}) : c.date;
+    $("#scanMeta").textContent = "· last scan "+when+" · "+c.ok+" ok"+(c.failed&&c.failed.length?" / "+c.failed.length+" failed":"");
+    $("#rescanBtn").hidden = false;
+  }
+  function applyLeadingSectors(){
+    if(!uniSectorMap) buildSectorMap(universeText());
+    var leadingSet={}; (state.leadingSectors||[]).forEach(function(s){ leadingSet[s]=1; });
+    var lines = $("#batchInput").value.split(/\r?\n/).map(function(line){
+      var raw=line.trim();
+      if(!raw || raw.charAt(0)==="#") return line;
+      var p = raw.split(/,/).map(function(s){return s.trim();});
+      if(p.length<7 || isNaN(parseFloat(p[1]))) return line;
+      var sec = uniSectorMap[p[0].toUpperCase()];
+      if(!sec) return line;
+      p[9] = leadingSet[sec] ? "L" : "I";
+      return p.join(", ");
+    });
+    var v = lines.join("\n");
+    $("#batchInput").value = v; state.batchInput = v; save();
+  }
+
+  function renderSectorChips(){
+    var el=$("#sectorChips"); if(!el) return;
+    var set = state.leadingSectors||[];
+    el.innerHTML = SECTORS.map(function(s){
+      var on = set.indexOf(s)>=0;
+      return '<label class="chip-ck'+(on?" on":"")+'"><input type="checkbox" value="'+s+'"'+(on?" checked":"")+'>'+s+'</label>';
+    }).join("");
+    $("#secCount").textContent = set.length ? "· "+set.length+" leading" : "· none set (all neutral)";
+    $$("#sectorChips input").forEach(function(cb){
+      cb.addEventListener("change", function(){
+        var cur = (state.leadingSectors||[]).slice();
+        var ix = cur.indexOf(cb.value);
+        if(cb.checked && ix<0) cur.push(cb.value);
+        if(!cb.checked && ix>=0) cur.splice(ix,1);
+        state.leadingSectors = cur; save();
+        renderSectorChips();
+        applyLeadingSectors();
+        renderScreener();
+      });
+    });
+  }
+
+  function scanUIRunning(on){
+    $("#scanBtn").hidden = on;
+    $("#scanCancelBtn").hidden = !on;
+  }
+
+  function startScan(force){
+    $("#scanErrline").textContent = "";
+    if(isHosted && !state.hostOverride){
+      $("#scanErrline").textContent = "Auto-scan is blocked in the hosted version. Open the downloaded HTML file, or click “try anyway” above.";
+      return;
+    }
+    buildSectorMap(universeText());
+    var uni = parseUniverse(universeText());
+    if(state.universeSize!=="custom"){
+      var lim = parseInt(state.universeSize,10);
+      if(isFinite(lim)) uni = uni.slice(0, lim);
+    }
+    if(!uni.length){ $("#scanErrline").textContent = "Universe list is empty."; return; }
+
+    var today = new Date().toISOString().slice(0,10);
+    if(!force && state.scanCache && state.scanCache.date===today && state.scanCache.csv){
+      $("#batchInput").value = state.scanCache.csv;
+      state.batchInput = state.scanCache.csv; save();
+      applyLeadingSectors(); renderScreener();
+      setStatus("cached", false);
+      $("#scanErrline").textContent = "Showing today's cached scan — press “Force refresh” to re-fetch.";
+      return;
+    }
+
+    var cfg = {
+      proxy: state.proxyChoice==="custom" ? state.proxyCustom.trim() : state.proxyChoice,
+      apiKey: (state.apiKey||"").trim(),
+      fmpKey: (state.fmpKey||"").trim()
+    };
+    if(state.scanSource==="twelvedata" && !cfg.apiKey){ $("#scanErrline").textContent = "Enter your Twelve Data API key first."; return; }
+    if(state.scanSource==="fmp" && !cfg.fmpKey){ $("#scanErrline").textContent = "Enter your Financial Modeling Prep key first."; return; }
+    if(state.scanSource==="proxy" && !cfg.proxy){ $("#scanErrline").textContent = "Choose a proxy or paste your Cloudflare Worker URL."; return; }
+
+    var isTD = state.scanSource==="twelvedata";
+    var isFMP = state.scanSource==="fmp";
+    var ownWorker = state.scanSource==="proxy" && state.proxyChoice==="custom";
+    var fetcher = isTD ? fetchTwelve : (isFMP ? fetchFMP : fetchYahoo);
+    var conc = isTD ? 1 : (isFMP ? 3 : (ownWorker ? 6 : 2));
+
+    var wantEvents = state.fetchEvents && isTD;
+    scanAbort = new AbortController();
+    scanUIRunning(true);
+    var ok=[], failMap={}, extra={}, done=0, total=uni.length, lastStart=0, retried={};
+    setProg(0,total);
+
+    // Twelve Data free tier: 8 API credits / rolling minute. We hold to 6 to leave
+    // headroom (their window is strict and the probe + clock skew eat into it).
+    var TD_PER_MIN = 6;
+    window.__tdTimes = window.__tdTimes || [];
+    function tdGate(){
+      if(!isTD || scanAbort.signal.aborted) return Promise.resolve();
+      var now = Date.now();
+      window.__tdTimes = window.__tdTimes.filter(function(t){ return now - t < 60000; });
+      if(window.__tdTimes.length < TD_PER_MIN){ window.__tdTimes.push(now); return Promise.resolve(); }
+      var waitMs = 60000 - (now - window.__tdTimes[0]) + 400;
+      var secs = Math.ceil(waitMs/1000);
+      setStatus(done+" / "+total+" · minute limit, waiting "+secs+"s", true);
+      return new Promise(function(r){ setTimeout(r, waitMs); }).then(tdGate);
+    }
+
+    function runList(items, c){
+      var queue = items.slice();
+      function pump(){
+        if(scanAbort.signal.aborted) return Promise.resolve();
+        var item = queue.shift();
+        if(!item) return Promise.resolve();
+        var preWait = (isTD || ownWorker) ? 0 : Math.max(0, 400 - (Date.now()-lastStart));
+        return new Promise(function(r){ setTimeout(r, preWait); })
+          .then(function(){ return tdGate(); })
+          .then(function(){
+          if(scanAbort.signal.aborted) return;
+          lastStart = Date.now();
+          return fetcher(item.sym, cfg, scanAbort.signal).then(function(o){
+            try{ ok.push(seriesToRow(item.sym, item.sector, o, state.dropForming!==false, state.timeframe==="weekly")); delete failMap[item.sym]; }
+            catch(e){ failMap[item.sym] = e.message; }
+          }, function(e){
+            if(e && e.cancelled) throw e;
+            var msg = (e && e.message) || "failed";
+            var rateLimited = (e && String(e.code)==="429") || /run out|api credits|current minute|\blimit\b|too many/i.test(msg);
+            if(rateLimited && isTD && !retried[item.sym]){
+              retried[item.sym]=1; queue.push(item);
+              window.__tdTimes = [];                 // force a full cooldown
+              setStatus("hit the minute limit — cooling down 30s", true);
+              return new Promise(function(r){ setTimeout(r, 30000); });
+            }
+            failMap[item.sym] = msg;
+          }).then(function(){
+            var fc = Object.keys(failMap).length;
+            done = ok.length + fc;
+            setStatus(done+" / "+total+(fc?" · "+fc+" to retry":""), true);
+            setProg(done,total);
+          }).then(pump);
+        });
+      }
+      var runners=[]; for(var i=0;i<c;i++) runners.push(pump());
+      return Promise.all(runners);
+    }
+
+    var ready;
+    if(state.scanSource==="proxy"){
+      setStatus("finding a working proxy…", true);
+      ready = probeProxy(scanAbort.signal).then(function(base){
+        cfg.proxy = base;
+        setStatus("proxy: "+((base.match(/\/\/([^/?]+)/)||[])[1]||base), true);
+      });
+    } else if(state.scanSource==="twelvedata"){
+      setStatus("checking API key…", true);
+      ready = probeTwelve(cfg, scanAbort.signal).catch(function(e){
+        if(e && e.cancelled) throw e;
+        var pe = new Error(e && e.message || "key check failed"); pe.tdProbe = true; throw pe;
+      });
+    } else if(state.scanSource==="fmp"){
+      setStatus("checking API key…", true);
+      ready = probeFMP(cfg, scanAbort.signal).catch(function(e){
+        if(e && e.cancelled) throw e;
+        var pe = new Error(e && e.message || "key check failed"); pe.fmpProbe = true; throw pe;
+      });
+    } else {
+      ready = Promise.resolve();
+    }
+
+    function runEarnings(){
+      // only for names worth trading — score ≥ 65 (Watch and better), top 40
+      var lead = {}; (state.leadingSectors||[]).forEach(function(x){ lead[x]=1; });
+      var scored = ok.map(function(r){
+        var d = {price:r.price, ema20:r.e20, ema50:r.e50, ema200:r.e200, rsi:r.rsi, volRatio:r.vr,
+          macdPos:r.macd, hhhl:r.hhhl,
+          structurePts: deriveStructure(r.price, r.breakout).pts,
+          sectorPts: lead[r.sector] ? 20 : 12};
+        return {sym:r.sym, s:scoreStock(d).total};
+      }).filter(function(x){ return x.s>=65; }).sort(function(a,b){ return b.s-a.s; }).slice(0,40);
+      var syms = scored.map(function(x){ return x.sym; });
+      if(!syms.length) return Promise.resolve();
+      var i = 0, evFail = 0;
+      function step(){
+        if(scanAbort.signal.aborted || i>=syms.length) return Promise.resolve();
+        var sym = syms[i++];
+        return tdGate().then(function(){
+          if(scanAbort.signal.aborted) return;
+          setStatus("events "+i+" / "+syms.length, true);
+          return fetchEarnings(sym, cfg, scanAbort.signal)
+            .then(function(ev){ if(ev) extra[sym] = ev; }, function(e){
+              if(e && e.cancelled) throw e;
+              evFail++;
+              if(evFail===1 && /404|not found|not available|access|plan|upgrade/i.test(e.message||"")){
+                // endpoint not on this plan — stop hammering
+                i = syms.length;
+                $("#scanErrline").textContent = "Earnings data isn't available on your Twelve Data plan (\""+(e.message||"").slice(0,80)+"\") — prices scanned fine, event column left blank.";
+              }
+            })
+            .then(step);
+        });
+      }
+      return step();
+    }
+
+    ready.then(function(){
+      setStatus("0 / "+total, true);
+      return runList(uni, conc);
+    }).then(function(){
+      var stragglers = uni.filter(function(u){ return failMap[u.sym]; });
+      if(!stragglers.length || scanAbort.signal.aborted) return;
+      setStatus("retry pass · "+stragglers.length+" left", true);
+      return runList(stragglers, 1);
+    }).then(function(){
+      if(wantEvents && ok.length && !scanAbort.signal.aborted) return runEarnings();
+    }).then(function(){ finish(false); }, function(e){
+      if(e && e.cancelled){ finish(true); }
+      else {
+        scanUIRunning(false); setStatus("failed", false); setProg(0,0);
+        var msg = (e && e.message) || String(e);
+        var workerLine = "Set up your own free Cloudflare Worker (Playbook tab → “Your own proxy”) — it proxies Yahoo's NSE data, no key, no limits. That's the reliable path now.";
+        if(e && e.message==="no working proxy"){
+          $("#scanErrline").innerHTML = "No public proxy is responding (almost all are dead as of Aug 2026). "+esc(workerLine);
+        } else if(e && e.tdProbe){
+          var hint;
+          if(/credit|per minute|per day|429|\blimit\b/i.test(msg)) hint = "Rate/quota limit — free tier is 8/min, 800/day. Wait a minute, use a smaller universe.";
+          else if(/grow|venture|upgrade|paid|starting with the/i.test(msg)) hint = "Confirmed: Twelve Data's free plan does NOT include NSE — RELIANCE needs the paid Grow plan. "+workerLine;
+          else if(/apikey|api key|401|invalid|incorrect|not specified/i.test(msg)) hint = "The key isn't accepted — recheck it (no quotes, no spaces).";
+          else hint = workerLine;
+          $("#scanErrline").innerHTML = 'Twelve Data replied: <b>“'+esc(msg)+'”</b><br>'+esc(hint);
+        } else if(e && e.fmpProbe){
+          var fh;
+          if(/plan|403|exclusive|premium|special|legacy|upgrade/i.test(msg)) fh = "FMP's free plan doesn't include NSE (.NS) history. "+workerLine;
+          else if(/invalid api key|401/i.test(msg)) fh = "The key isn't accepted — recheck it.";
+          else if(/limit|429|too many/i.test(msg)) fh = "You've used today's 250 free calls. Try tomorrow, or use the Worker route.";
+          else fh = workerLine;
+          $("#scanErrline").innerHTML = 'Financial Modeling Prep replied: <b>“'+esc(msg)+'”</b><br>'+esc(fh);
+        } else {
+          $("#scanErrline").textContent = "Scan could not start: "+msg;
+        }
+      }
+    });
+
+    function finish(aborted){
+      scanUIRunning(false);
+      setProg(total,total);
+      ok.sort(function(a,b){ return b.price-a.price; });
+      var failed = Object.keys(failMap);
+      var leadingSet={}; (state.leadingSectors||[]).forEach(function(x){ leadingSet[x]=1; });
+      var srcName = state.scanSource==="twelvedata" ? "Twelve Data"
+        : state.scanSource==="fmp" ? "FMP"
+        : "Yahoo/"+((String(cfg.proxy||"").match(/\/\/([^/?]+)/)||[])[1]||"proxy");
+      // relative-strength rank (0..99) from the 6-month return across everything scanned
+      var withRet = ok.filter(function(r){ return typeof r.ret126==="number" && isFinite(r.ret126); });
+      withRet.slice().sort(function(a,b){ return a.ret126-b.ret126; })
+        .forEach(function(r,i,arr){ r.rs = arr.length>1 ? Math.round(i/(arr.length-1)*99) : 50; });
+      ok.forEach(function(r){ if(r.rs==null) r.rs = 50; });
+      var head = "# NSE auto-scan "+today+" · "+srcName+" · "+ok.length+" ok / "+failed.length+" failed"+(aborted?" (stopped early)":"");
+      var csv = head+"\n"+ok.map(function(r){ return rowToCsv(r, leadingSet); }).join("\n");
+      $("#batchInput").value = csv; state.batchInput = csv;
+      // keep charts for the top ~30 by score so the Analyzer can draw them with no extra fetch
+      var topByScore = ok.map(function(r){
+        var dd = {price:r.price, ema20:r.e20, ema50:r.e50, ema200:r.e200, rsi:r.rsi, volRatio:r.vr, macdPos:r.macd, hhhl:r.hhhl,
+          structurePts: deriveStructure(r.price, r.breakout, r.basePct, r.baseBars, r.vr).pts,
+          sectorPts: leadingSet[r.sector] ? 20 : 12};
+        return {r:r, s:scoreStock(dd).total};
+      }).sort(function(a,b){ return b.s-a.s; }).slice(0,30);
+      topByScore.forEach(function(x){
+        if(x.r.tail){ (extra[x.r.sym] = extra[x.r.sym] || {}).chart = x.r.tail; }
+      });
+      if(ok.length){
+        state.scanCache = {date:today, csv:csv, ok:ok.length, failed:failed, source:state.scanSource,
+          extra: Object.keys(extra).length ? extra : (state.scanCache && state.scanCache.extra || null),
+          at:new Date().toISOString()};
+      }
+      save();
+      renderScreener();
+      setStatus(aborted?"stopped":"done", false);
+      scanMetaFromCache();
+      if(!ok.length){
+        $("#scanErrline").innerHTML = "Nothing fetched — every request failed. "+
+          (state.scanSource==="proxy"
+            ? "Free proxies are unreliable right now; get a free <a href=\"https://twelvedata.com/pricing\" target=\"_blank\" rel=\"noopener\">Twelve Data key</a> and switch source."
+            : "Check the API key, or your daily quota (800 calls) may be used up.");
+      } else if(failed.length){
+        $("#scanErrline").textContent = failed.length+" not fetched (already retried once): "+
+          failed.slice(0,18).join(", ")+(failed.length>18?" …":"")+
+          "  ·  “Force refresh” to re-scan all, or switch data source for these.";
+      }
+    }
+  }
+
+  function initScanUI(){
+    buildSectorMap(universeText());
+    $("#universeEdit").value = universeText();
+    $("#uniCount").textContent = parseUniverse(universeText()).length;
+    $("#scanSource").value = state.scanSource;
+    $("#proxyChoice").value = state.proxyChoice;
+    $("#proxyCustom").value = state.proxyCustom;
+    $("#apiKey").value = state.apiKey;
+    $("#fmpKey").value = state.fmpKey || "";
+    $("#universeSize").value = state.universeSize;
+    $("#dropForming").checked = state.dropForming!==false;
+    $("#fetchEvents").checked = !!state.fetchEvents;
+    renderSectorChips();
+    syncSourceUI();
+
+    $("#scanHostNote").innerHTML = isHosted
+      ? '<span class="scan-host">Auto-scan needs the <b>downloaded HTML file</b> — the hosted preview blocks outside network requests. '+
+        (state.hostOverride ? 'Override on.' : '<a href="#" id="hostTry">try anyway</a>')+'</span>'
+      : 'Pulls ~2 years of daily candles per stock and computes EMA / RSI / MACD / volume on your machine; results cache for the day. '+
+        '<b>The public no-key proxies are almost all dead now</b> — for a scan that actually works, either get a free '+
+        '<a href="https://twelvedata.com/pricing" target="_blank" rel="noopener">Twelve Data key</a> (pick “Twelve Data” as source) '+
+        'or deploy your own free Cloudflare Worker proxy (steps in the Playbook tab → “Your own proxy”).';
+    var ht = $("#hostTry");
+    if(ht) ht.addEventListener("click", function(e){ e.preventDefault(); state.hostOverride=true; save(); initScanUI(); });
+
+    if(state.scanCache) scanMetaFromCache();
+
+    $("#scanSource").addEventListener("change", function(){ state.scanSource=this.value; save(); syncSourceUI(); });
+    $("#proxyChoice").addEventListener("change", function(){ state.proxyChoice=this.value; save(); syncSourceUI(); });
+    $("#proxyCustom").addEventListener("input", function(){ state.proxyCustom=this.value; save(); });
+    $("#apiKey").addEventListener("input", function(){ state.apiKey=this.value; save(); });
+    $("#fmpKey").addEventListener("input", function(){ state.fmpKey=this.value; save(); });
+    $("#dropForming").addEventListener("change", function(){ state.dropForming=this.checked; save(); });
+    $("#fetchEvents").addEventListener("change", function(){ state.fetchEvents=this.checked; save(); syncSourceUI(); });
+    $("#universeSize").addEventListener("change", function(){
+      state.universeSize=this.value; save();
+      if(this.value==="custom") $("#universeEditBox").open = true;
+      syncSourceUI();
+    });
+    $("#universeEdit").addEventListener("input", function(){
+      state.customUniverse = this.value;
+      if(this.value.trim()===UNIVERSE.trim()) state.customUniverse = "";
+      save();
+      buildSectorMap(universeText());
+      $("#uniCount").textContent = parseUniverse(universeText()).length;
+    });
+    $("#scanBtn").addEventListener("click", function(){ startScan(false); });
+    $("#rescanBtn").addEventListener("click", function(){ startScan(true); });
+    $("#scanCancelBtn").addEventListener("click", function(){ if(scanAbort) scanAbort.abort(); setStatus("stopping…", false); });
+  }
+  function syncSourceUI(){
+    var src = state.scanSource;
+    $("#proxyWrap").hidden = src!=="proxy";
+    $("#proxyCustomWrap").hidden = !(src==="proxy" && state.proxyChoice==="custom");
+    $("#apiKeyWrap").hidden = src!=="twelvedata";
+    $("#fmpKeyWrap").hidden = src!=="fmp";
+    $("#fetchEvents").disabled = src!=="twelvedata";
+    var evLbl = $("#fetchEvents").closest("label");
+    if(evLbl) evLbl.style.opacity = src!=="twelvedata" ? ".5" : "";
+    var n = state.universeSize==="custom" ? parseUniverse(universeText()).length
+          : Math.min(parseInt(state.universeSize,10)||200, parseUniverse(universeText()).length);
+    if(src==="twelvedata"){
+      var calls = n + (state.fetchEvents ? Math.min(40, n) : 0);
+      $("#scanMeta").textContent = "· TD throttled to 6/min → ~"+Math.ceil(calls/6)+" min for "+n+" names"+
+        (state.fetchEvents?" + events (top ~40)":"")+" — note: free tier has NO NSE data";
+    } else if(src==="fmp"){
+      $("#scanMeta").textContent = "· FMP free = 250 calls/day → one "+n+"-name scan fits; ~"+Math.ceil(n/3)+"s if .NS is on your plan";
+    } else if(src==="proxy" && state.proxyChoice==="custom" && state.proxyCustom){
+      $("#scanMeta").textContent = "· your own proxy/Worker → ~"+Math.max(15,Math.ceil(n/6))+"s for "+n+" names, no limits";
+    } else if(!state.scanCache){
+      $("#scanMeta").textContent = "";
+    }
+  }
+
+  /* ---------- tabs / theme / controls ---------- */
+  function switchTab(name){
+    $$("#tabs button").forEach(function(b){ b.classList.toggle("active", b.getAttribute("data-tab")===name); });
+    ["screener","analyzer","playbook"].forEach(function(t){ $("#tab-"+t).hidden = (t!==name); });
+  }
+
+  function applyTheme(){
+    if(state.theme) document.documentElement.setAttribute("data-theme", state.theme);
+    else document.documentElement.removeAttribute("data-theme");
+  }
+  function toggleTheme(){
+    var cur = state.theme;
+    if(!cur){
+      var sysDark = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
+      cur = sysDark ? "dark" : "light";
+    }
+    state.theme = cur==="dark" ? "light" : "dark";
+    applyTheme(); save();
+  }
+
+  function setSeg(groupId, val, key, after){
+    $$("#"+groupId+" button").forEach(function(b){
+      b.setAttribute("aria-pressed", String(b.getAttribute("data-v")===val));
+    });
+    state[key] = val; save();
+    if(after) after();
+  }
+
+  function readNums(){
+    var c = parseFloat($("#capital").value.replace(/[^0-9.]/g,""));
+    var r = parseFloat($("#riskpct").value.replace(/[^0-9.]/g,""));
+    state.capital = isFinite(c)&&c>0 ? c : 100000;
+    state.riskpct = isFinite(r)&&r>0 ? r : 1;
+    save();
+  }
+
+  /* ---------- init ---------- */
+  function init(){
+    load();
+    applyTheme();
+    $("#capital").value = state.capital;
+    $("#riskpct").value = state.riskpct;
+    $("#batchInput").value = state.batchInput || SAMPLE;
+    setSeg("timeframe", state.timeframe, "timeframe");
+    setSeg("regime", state.regime, "regime");
+    renderWatchlist();
+    initScanUI();
+    renderScreener();
+
+    $("#tabs").addEventListener("click", function(e){
+      var b = e.target.closest("button"); if(b) switchTab(b.getAttribute("data-tab"));
+    });
+    $("#themeBtn").addEventListener("click", toggleTheme);
+    $("#scoreBtn").addEventListener("click", function(){ state.batchInput = $("#batchInput").value; save(); renderScreener(); });
+    $("#batchInput").addEventListener("change", function(){ state.batchInput = $("#batchInput").value; save(); });
+    $("#sampleBtn").addEventListener("click", function(){ $("#batchInput").value = SAMPLE; state.batchInput = SAMPLE; save(); renderScreener(); });
+    $("#clearBtn").addEventListener("click", function(){ $("#batchInput").value = ""; state.batchInput = ""; save(); renderScreener(); });
+    $("#onlyActionable").addEventListener("change", renderScreener);
+    $("#onlyBreakout").addEventListener("change", renderScreener);
+    $("#onlyStage2").addEventListener("change", renderScreener);
+    $("#onlyTriggered").addEventListener("change", renderScreener);
+    $("#analyzeBtn").addEventListener("click", runAnalyzer);
+    $("#addWatchBtn").addEventListener("click", addToWatchlist);
+    $("#chartRefresh").addEventListener("click", refreshChartLive);
+    $("#a_avgentry").addEventListener("input", function(){
+      var sym=($("#a_sym").value||"").toUpperCase();
+      if(sym && chartCache[sym]) renderHold(sym, chartCache[sym]);
+    });
+    setSeg("chartTF", state.chartTF, "chartTF");
+    $$("#chartTF button").forEach(function(b){
+      b.addEventListener("click", function(){
+        setSeg("chartTF", b.getAttribute("data-v"), "chartTF", function(){
+          var sym=($("#a_sym").value||"").toUpperCase();
+          if(sym) renderChart(sym);
+        });
+      });
+    });
+
+    ["capital","riskpct"].forEach(function(id){
+      $("#"+id).addEventListener("input", function(){ readNums(); renderScreener(); });
+    });
+    $$("#timeframe button").forEach(function(b){
+      b.addEventListener("click", function(){ setSeg("timeframe", b.getAttribute("data-v"), "timeframe", renderScreener); });
+    });
+    $$("#regime button").forEach(function(b){
+      b.addEventListener("click", function(){ setSeg("regime", b.getAttribute("data-v"), "regime", renderScreener); });
+    });
+    $$("#resultsTable thead th").forEach(function(th){
+      th.addEventListener("click", function(){
+        var k = th.getAttribute("data-k"); if(k==="open") return;
+        if(state.sort.k===k) state.sort.dir *= -1;
+        else state.sort = {k:k, dir: k==="symbol"?1:-1};
+        save(); renderScreener();
+      });
+    });
+  }
+
+  if(document.readyState==="loading") document.addEventListener("DOMContentLoaded", init);
+  else init();
+})();
+</script>
+</body>
+</html>
