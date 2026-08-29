@@ -229,6 +229,8 @@ details.sub textarea{width:100%;min-height:116px;margin-top:8px;background:var(-
 .cx-flab.cx-ent{fill:var(--ink)} .cx-flab.cx-stp{fill:var(--neg)} .cx-flab.cx-tgt{fill:var(--pos)}
 .cx-flab.cx-sup{fill:var(--pos)} .cx-flab.cx-res{fill:var(--neg)}
 .cx-trig{fill:var(--accent);stroke:var(--accent)}
+.cx-fib{stroke:var(--warn);stroke-width:1;stroke-dasharray:1 4;opacity:.55}
+.cx-flab.cx-fiblab{fill:var(--warn);opacity:.7}
 
 /* hold vs exit */
 .hverdict{border-radius:8px;padding:11px 13px;font-size:13px;line-height:1.55}
@@ -347,6 +349,9 @@ details.sub textarea{width:100%;min-height:116px;margin-top:8px;background:var(-
         <label for="dropForming" style="flex-direction:row;align-items:center;gap:7px;text-transform:none;letter-spacing:0;font-size:12.5px;color:var(--ink-soft)">
           <input type="checkbox" id="dropForming" checked style="width:auto"> Ignore today's forming candle
         </label>
+        <label for="fetchResults" style="flex-direction:row;align-items:center;gap:7px;text-transform:none;letter-spacing:0;font-size:12.5px;color:var(--ink-soft)" title="Also pulls each stock's last ~5 quarterly results from Yahoo (revenue / profit / EPS) and grades the latest quarter's YoY growth. Roughly doubles the scan time — one extra request per stock.">
+          <input type="checkbox" id="fetchResults" checked style="width:auto"> Fetch latest quarterly results
+        </label>
       </div>
 
       <details class="sub" id="sectorBox">
@@ -376,6 +381,7 @@ details.sub textarea{width:100%;min-height:116px;margin-top:8px;background:var(-
         <label class="chk"><input type="checkbox" id="onlyStage2"> Stage-2</label>
         <label class="chk" style="margin-left:0"><input type="checkbox" id="onlyTriggered"> Triggered</label>
         <label class="chk" style="margin-left:0"><input type="checkbox" id="onlyBreakout"> Breakouts</label>
+        <label class="chk" style="margin-left:0"><input type="checkbox" id="onlyResults" title="Only stocks whose latest quarter shows growing profit and sales"> Strong results</label>
         <label class="chk" style="margin-left:0"><input type="checkbox" id="onlyActionable"> Actionable</label>
       </div>
       <div class="summary" id="summary" aria-live="polite"></div>
@@ -396,7 +402,7 @@ details.sub textarea{width:100%;min-height:116px;margin-top:8px;background:var(-
               <th data-k="t10">+10%</th>
               <th data-k="rr">R:R</th>
               <th data-k="qty">Qty</th>
-              <th data-k="event" title="Trading days until next earnings / event">Event</th>
+              <th data-k="results" title="Latest reported quarter — YoY growth in profit (EPS) and sales. ★ = profit +25%+ and sales growing; ▼ = profit or sales shrinking. Hover a cell for the numbers.">Results</th>
               <th data-k="open"></th>
             </tr>
           </thead>
@@ -405,12 +411,12 @@ details.sub textarea{width:100%;min-height:116px;margin-top:8px;background:var(-
           </tbody>
         </table>
       </div>
-      <p class="hint" style="margin-top:10px"><b>RS</b> = 6-month relative-strength rank (0–99) vs everything scanned — the single best "something is happening here" tell; want 80+. <b>Setup</b> names the Stage-2 continuation pattern: <code>base-on-base</code> (stacked tight bases, higher lows — the LAURUSLABS staircase), <code>pullback→MA</code> (uptrend resting on a rising EMA), <code>long-base brk</code>, <code>VCP breakout</code>, <code>coiling</code> (tight, near trigger, not out yet). Use <b>"Stage-2 setups"</b> to see only these. * <b>Prob</b> = historical follow-through rate (not a forecast). <b>Support / Resist</b> = nearest swing levels. <b>Event</b> = earnings inside the holding window.</p>
+      <p class="hint" style="margin-top:10px"><b>RS</b> = 6-month relative-strength rank (0–99) vs everything scanned — the single best "something is happening here" tell; want 80+. <b>Setup</b> names the Stage-2 continuation pattern: <code>base-on-base</code> (stacked tight bases, higher lows — the LAURUSLABS staircase), <code>pullback→MA</code> (uptrend resting on a rising EMA), <code>long-base brk</code>, <code>VCP breakout</code>, <code>coiling</code> (tight, near trigger, not out yet). Use <b>"Stage-2 setups"</b> to see only these. * <b>Prob</b> = historical follow-through rate (not a forecast). <b>Support / Resist</b> = nearest swing levels. <b>Results</b> = latest reported quarter's YoY profit &amp; sales growth (from Yahoo) — ★ strong, ▲ growing, · flat, ▼ shrinking; the number shown is profit/EPS YoY, hover for sales.</p>
 
       <details class="sub" id="rawBox">
         <summary>Raw data — paste your own or edit the scan output</summary>
         <p class="hint">One stock per line, comma or tab separated. First 6 fields required. Edit any row and press “Score all”.</p>
-        <code class="cols">SYM, price, EMA20, EMA50, EMA200, RSI, volR, breakout, support, sector, macd, hhhl, resist, probT1, probT10, basePct, baseBars, stage2, RS, setup, trigger(e.g. hammer@1), trigWR(0-1)</code>
+        <code class="cols">SYM, price, EMA20, EMA50, EMA200, RSI, volR, breakout, support, sector, macd, hhhl, resist, probT1, probT10, basePct, baseBars, stage2, RS, setup, trigger, trigWR, athPct, blueSky(1/0), revYoY, profYoY, epsYoY, qDate</code>
         <textarea id="batchInput" spellcheck="false" aria-label="Stock data input"></textarea>
         <div class="row-actions">
           <button class="primary" id="scoreBtn">Score all</button>
@@ -612,6 +618,31 @@ details.sub textarea{width:100%;min-height:116px;margin-top:8px;background:var(-
       <p>The tool now detects this. When a trigger candle has printed at the rising MA in the last few bars, the <b>Setup cell shows it</b> (e.g. <code>pullback→MA · 🔨 hammer today · 58%</code>). The <b>58%</b> is a genuine cross-check: how often, over this stock's own last 2 years, a trigger candle at a rising MA in a Stage-2 trend was followed by price tagging +6% before −3%. Use the <b>"Triggered"</b> filter to see only names where the candle has just fired — those are the "buy tomorrow" candidates. On the chart, the trigger bar is marked with a small ▲.</p>
       <p>Your instinct is right that the move usually starts on one of these candles — but <b>the candle without the context is a coin-flip</b>. It only carries an edge when it prints at a <i>rising</i> MA, in a Stage-2 leader (RS 80+), inside a tight base. That's why it's a confirmation of the setup, not a setup on its own.</p>
 
+      <h3>The DarvaX method — mapped into the tool</h3>
+      <p>The DarvaX author runs a specific, narrow version of exactly this pattern. Every rule he uses is either already in the screen or has now been added. Here is his method, item by item, and where it lives here:</p>
+      <table>
+        <tr><th>DarvaX rule</th><th>In the tool</th></tr>
+        <tr><td><b>All-time-high / "uncharted territory"</b> — price above every prior high, no overhead supply</td><td>New <b>ATH</b> badge on the symbol + the <b>at ATH</b> chip in the summary bar. Raw field <code>blueSky</code>. On the chart there is no resistance line above price ("sky").</td></tr>
+        <tr><td><b>"High Dry Fry"</b> — stock thrusts +20–50% on huge volume, corrects −10–20% from the peak, then prints a cluster of tiny "baby candles", then breaks out of that mini-base</td><td>New setup code <b>HDF</b> (<code>High Dry Fry</code>) in the Setup cell. Detected by <code>highDryFry()</code>: a prior thrust of 18–90% on ≥1.3× volume, a 6–32% correction, a base of very small-range bars, and price now within −1.5%…+6% of the base high. Shows first in the Setup ranking; grades <b>A+</b> when Stage-2 ≥ 5 and RS ≥ 75.</td></tr>
+        <tr><td><b>Superb quarterly numbers</b> — profit &amp; sales growing hard, ideally accelerating</td><td><b>Now screened.</b> The scan pulls each stock's last ~5 quarters from Yahoo (revenue / net income / diluted EPS) and grades the latest quarter's <b>YoY</b> growth into the <b>Results</b> column: ★ strong (profit +25%+ &amp; sales growing), ▲ growing, · flat, ▼ shrinking. Raw fields <code>revYoY</code> / <code>profYoY</code> / <code>epsYoY</code> / <code>qDate</code>. A ▼ (contracting earnings) <b>blocks the A+ grade</b> — DarvaX never buys a new-high breakout on falling profit. Filter: <b>Strong results</b>. Toggle: <b>Fetch latest quarterly results</b> (on by default; roughly doubles scan time). Turn it off to skip.</td></tr>
+        <tr><td><b>Low float + gigantic multi-year volumes</b></td><td><b>Still not screenable here</b> — the tool has no float or shares-outstanding data. The volume <i>surge</i> is captured (volRatio, the HDF volume test) but the multi-year "gigantic volume" context is not. Check free float and the delivery-volume trend on screener.in / trendlyne before entering.</td></tr>
+        <tr><td><b>Darvas box + VCP + Fibonacci</b></td><td>Darvas box = <code>detectBase</code> / <code>stairBases</code>. VCP = the <code>VCP</code> setup code. Fibonacci = new <code>fibLevels()</code>: the Analyzer's "DarvaX read" states the current retracement and the chart draws the 38.2 / 50 / 61.8% lines.</td></tr>
+        <tr><td><b>Fib retracement zones</b> — 23.6–38.2% = trend very strong; 50–61.8% "golden zone" = accumulate favourites; deeper = broken</td><td>Analyzer note: "shallow — very strong" / "golden zone — accumulate" / "deep — weakening" / "full retrace — broken", from <code>fibZone</code>.</td></tr>
+        <tr><td><b>Trigger candles</b> — bullish kicker, inside bar (esp. weekly / monthly), bullish engulfing, hammer, Tasuki, morning star, 123, double-bottom</td><td>Candle detection gained <b>kicker</b> (⚡) and <b>inside-bar</b> (▫). Hammer / inverted-hammer / bullish-engulfing / pin-bar were already there. All feed the <b>trigger</b> badge and the <b>Triggered</b> filter, and the per-stock historical reliability %.</td></tr>
+        <tr><td><b>Entry</b> — buy-stop above the previous day's high</td><td>Analyzer entry = breakout / prior-bar high; the "DarvaX read" note spells out the buy-stop-above-yesterday's-high instruction for HDF names.</td></tr>
+        <tr><td><b>Stop</b> — 1% below entry; then exit on a daily <i>close</i> below the 5 / 10 / 20 / 200 EMA ("DCB" — Daily Close Below), depending on your horizon</td><td>Sizing already risks 1% of capital. The <b>Hold vs Exit</b> panel's trailing stop and its "close below the 50-EMA on volume" signal are the same idea; the EMA ladder (5 / 10 / 20 / 200) is described here — pick the one that matches your holding period.</td></tr>
+        <tr><td><b>Capital ÷ 10</b> per position; <b>never average down</b>; higher timeframe = higher reliability</td><td>House rules — set your position size so no single name is more than ~10% of capital, and the tool never suggests adding to a loser. The D/W chart toggle and weekly scan cover the "trade the weekly" preference.</td></tr>
+      </table>
+      <p><b>Is he really getting 20–100% in days/weeks, repeatedly?</b> Some of it is real and some of it is how it's being counted:</p>
+      <ul>
+        <li><b>The pattern genuinely produces violent moves</b> — a low-float small-cap at a new high with a supply vacuum above it and a fresh volume thrust can add 30–60% in a few weeks. That's not a trick; it's what thin floats do when demand shows up and there are no trapped sellers overhead.</li>
+        <li><b>Selection / survivorship bias</b> — you see the ones that worked. A screen like his throws off many candidates; the losers get stopped out at −1 to −5% and are never posted. The winners are screenshotted. The honest scorecard is "many small losses, occasional very large winner" — the average trade is positive only if you actually cut the losers at 1% and actually hold the winners.</li>
+        <li><b>Bull-market regime</b> — this style only works when the broader market is trending. In a correction, ATH breakouts fail in bulk. The posts cluster in strong markets.</li>
+        <li><b>Low-float = two-edged</b> — the same thinness that makes them fly makes them gap down just as hard, and makes them targets for pump groups. Slippage on entry and exit is real. Position size (his capital ÷ 10) is doing a lot of the risk control.</li>
+        <li><b>Compounding math</b> — "12 trades at +9% each turns 20L into 56L" is arithmetically true and psychologically misleading; it assumes no losing trades between the winners, which never happens.</li>
+      </ul>
+      <p><b>What to actually do with it here:</b> Scan (with <b>Fetch latest quarterly results</b> on), then look for <b>Setup = HDF</b> or the <b>ATH</b> badge with <b>RS ≥ 80</b>, <b>Stage-2 ≥ 5</b>, a <b>Results</b> badge of ▲ or ★, and a fresh <b>trigger</b>. Open the chart, confirm the thrust → shallow correction → tiny-candle base shape by eye, check the Fib retracement is shallow or in the golden zone. The tool now grades the last <i>reported</i> quarter for you — you still verify free float and that the result is clean (not one-off / other-income) on screener.in. Enter on a buy-stop above the prior day's high, stop 1% below, and let the Hold vs Exit panel — not your P&L — tell you when to leave.</p>
+
       <h3>The extra columns</h3>
       <ul>
         <li><b>Base</b> — the consolidation the stock is breaking out of, shown as <i>width % × bars</i>. The scanner walks back from a few bars ago and measures how tight and how long the sideways range was, then checks where price sits relative to the top of it:
@@ -626,7 +657,7 @@ details.sub textarea{width:100%;min-height:116px;margin-top:8px;background:var(-
         <li><b>Prob*</b> — estimated chance of tagging the first target (+5%) before the stop. For a scanned stock it's a <b>historical follow-through rate</b>: how often, over the last 2 years, this stock reached +5% before −stop% within the holding window when it was in a similar state (price above rising EMAs, RSI 50–74). A trailing <b>e</b> means there wasn't enough history and it fell back to a score-based estimate. It is a base rate, not a forecast.</li>
         <li><b>Support / Resist</b> — the nearest swing pivot below and above price (fractal highs/lows plus the rising 20-EMA). “sky” = price is at/near its highs with no overhead pivot.</li>
         <li><b>Expectancy</b> (Analyzer) — <code>P(+10%) × R:R − (1 − P(+10%))</code>, in units of R (your 1% risk). Positive = the setup pays over many repetitions; it says nothing about the next single trade.</li>
-        <li><b>Event</b> — days to the next earnings date. Currently shows “–” (the earnings feed needed a paid data plan and has been removed). Check earnings dates on your broker or screener.in before entering — never hold a swing through a result you can't predict.</li>
+        <li><b>Results</b> — the latest reported quarter's <b>year-on-year</b> growth. The scan pulls ~5 quarters of revenue / net income / diluted EPS from Yahoo's fundamentals feed (through the same proxy) and matches the current quarter to the one ~a year earlier (Yahoo occasionally skips a quarter, so it date-matches rather than counting back 4). The badge grades it — <b>★</b> strong (profit +25%+ YoY and sales growing), <b>▲</b> growing, <b>·</b> flat, <b>▼</b> shrinking, <b>–</b> no data — and the number shown is profit/EPS YoY; hover for the sales figure. A ▼ blocks the A+ grade. This is <i>trailing</i> data (the last <i>reported</i> quarter) — it is not a forecast and it doesn't tell you when the next result is due, so still check the earnings <i>date</i> on your broker / screener.in and never hold a swing through a result you can't predict. Turn the whole thing off with the <b>Fetch latest quarterly results</b> checkbox if you want a faster scan.</li>
       </ul>
       <p>All four are decision <i>support</i>, not signals. The score, the 2:1 gate and the regime still decide the trade.</p>
 
@@ -664,7 +695,7 @@ details.sub textarea{width:100%;min-height:116px;margin-top:8px;background:var(-
         <li>Paste <code>https://ledger-proxy.<i>you</i>.workers.dev/?url={url}</code> into the <b>Worker / proxy URL</b> field on the Screener tab. (Keep the literal <code>{url}</code> — the tool swaps it per request.) It's saved in your browser.</li>
         <li>Test it works: open <code>&lt;your-url&gt;/?url=https://query1.finance.yahoo.com/v8/finance/chart/RELIANCE.NS</code> in a browser tab — you should see JSON.</li>
       </ol>
-      <p>Cloudflare's free tier is 100,000 requests/day — you will never hit it. A Nifty-200 scan takes ~30 seconds.</p>
+      <p>Cloudflare's free tier is 100,000 requests/day — you will never hit it. A Nifty-200 scan takes ~30 seconds for prices, ~60 with <b>Fetch latest quarterly results</b> on (it makes a second request per stock to Yahoo's <code>fundamentals-timeseries</code> feed — the pass-through Worker above handles it with no changes). If the results feed ever stops responding the scan gives up on it after a dozen misses and finishes on prices alone.</p>
       <p><b>Or paste your own data</b> from your broker terminal, <a href="https://www.tradingview.com" target="_blank" rel="noopener">TradingView</a>, <a href="https://www.screener.in" target="_blank" rel="noopener">screener.in</a> or a <a href="https://chartink.com" target="_blank" rel="noopener">Chartink</a> scan into the “Raw data” box.</p>
       <p>The auto-screener's breakout / support / resistance / MACD / higher-high-low reads are rule-based approximations from the candle series — always eyeball the chart before acting.</p>
 
@@ -708,21 +739,21 @@ details.sub textarea{width:100%;min-height:116px;margin-top:8px;background:var(-
     proxyChoice: "custom",
     proxyCustom: "", apiKey: "", fmpKey: "", chartTF: "daily",
     universeSize: "200", customUniverse: "", leadingSectors: [],
-    dropForming: true, fetchEvents: false, scanCache: null, hostOverride: false
+    dropForming: true, fetchEvents: false, fetchResults: true, scanCache: null, hostOverride: false
   };
 
   var SAMPLE = [
-    "# cols: SYM,price,EMA20,EMA50,EMA200,RSI,volR,breakout,support,sector,macd,hhhl,resist,probT1,probT10,basePct,baseBars,stage2,RS,setup,trigger,trigWR",
-    "HINDZINC, 627, 598, 560, 505, 69, 2.3, 620, 590, L, 1, 1, 0, 0.58, 0.33, 0.06, 22, 6, 88, VCP, , ",
-    "BEL, 415, 402, 395, 360, 66, 1.9, 409, 391, L, 1, 1, 0, 0.55, 0.31, 0.07, 18, 6, 84, BOB, hammer@1, 0.62",
-    "JINDALSTEL, 1175, 1120, 1090, 1010, 60, 1.4, 1160, 1120, L, 1, 1, 1240, 0.5, 0.27, 0.11, 26, 5, 76, LBB, , ",
-    "MEESHO, 205, 198, 190, 0, 63, 1.4, 200, 191, I, 1, 1, 0, 0.5, 0.26, 0.08, 14, 5, 72, S2P, pin-bar@0, 0.58",
-    "SAIL, 195, 190, 185, 132, 55, 0.9, 201, 188, L, 1, 0, 201, 0.44, 0.22, 0.06, 20, 5, 66, COIL, , ",
-    "NYKAA, 341, 333, 325, 300, 58, 1.3, 339, 328, I, 1, 1, 360, 0.47, 0.24, 0.09, 20, 4, 55, ",
-    "TMB, 892, 878, 870, 845, 55, 1.1, 905, 862, I, 1, 0, 905, 0.44, 0.22, 0.05, 30, 3, 44, ",
-    "PERSISTENT, 6200, 5900, 6050, 5400, 64, 1.5, 6100, 5800, I, 0, 0, 6400, 0.42, 0.2, 0.14, 9, 2, 30, ",
-    "TATAPOWER, 452, 448, 455, 410, 49, 0.9, 465, 435, Lag, 0, 0, 465, 0.3, 0.14, 0, 0, 1, 20, ",
-    "IRCTC, 810, 825, 840, 790, 43, 0.8, 850, 800, Lag, 0, 0, 850, 0.25, 0.11, 0, 0, 0, 12, "
+    "# cols: SYM,price,EMA20,EMA50,EMA200,RSI,volR,breakout,support,sector,macd,hhhl,resist,probT1,probT10,basePct,baseBars,stage2,RS,setup,trigger,trigWR,athPct,blueSky,revYoY,profYoY,epsYoY,qDate",
+    "HINDZINC, 627, 598, 560, 505, 69, 2.3, 620, 606, L, 1, 1, 0, 0.58, 0.33, 0.06, 22, 6, 88, HDF, inside-bar@0, 0.61, 0.01, 1, 0.19, 0.34, 0.31, 2026-06-30",
+    "BEL, 415, 402, 395, 360, 66, 1.9, 409, 391, L, 1, 1, 0, 0.55, 0.31, 0.07, 18, 6, 84, BOB, hammer@1, 0.62, 0.03, 1, 0.21, 0.28, 0.27, 2026-06-30",
+    "JINDALSTEL, 1175, 1120, 1090, 1010, 60, 1.4, 1160, 1120, L, 1, 1, 1240, 0.5, 0.27, 0.11, 26, 5, 76, LBB, , , 0.11, 0, 0.08, 0.12, 0.1, 2026-06-30",
+    "MEESHO, 205, 198, 190, 0, 63, 1.4, 200, 191, I, 1, 1, 0, 0.5, 0.26, 0.08, 14, 5, 72, S2P, pin-bar@0, 0.58, 0.05, 0, 0.33, 99, 99, 2026-06-30",
+    "SAIL, 195, 190, 185, 132, 55, 0.9, 201, 188, L, 1, 0, 201, 0.44, 0.22, 0.06, 20, 5, 66, COIL, , , 0.14, 0, -0.04, -0.22, -0.21, 2026-06-30",
+    "NYKAA, 341, 333, 325, 300, 58, 1.3, 339, 328, I, 1, 1, 360, 0.47, 0.24, 0.09, 20, 4, 55, , , , 0.16, 0, 0.24, 0.55, 0.5, 2026-06-30",
+    "TMB, 892, 878, 870, 845, 55, 1.1, 905, 862, I, 1, 0, 905, 0.44, 0.22, 0.05, 30, 3, 44, , , , 0.09, 0, 0.06, 0.03, 0.02, 2026-06-30",
+    "PERSISTENT, 6200, 5900, 6050, 5400, 64, 1.5, 6100, 5800, I, 0, 0, 6400, 0.42, 0.2, 0.14, 9, 2, 30, , , , 0.13, 0, 0.18, 0.22, 0.2, 2026-06-30",
+    "TATAPOWER, 452, 448, 455, 410, 49, 0.9, 465, 435, Lag, 0, 0, 465, 0.3, 0.14, 0, 0, 1, 20, , , , 0.22, 0, 0.05, -0.08, -0.09, 2026-06-30",
+    "IRCTC, 810, 825, 840, 790, 43, 0.8, 850, 800, Lag, 0, 0, 850, 0.25, 0.11, 0, 0, 0, 12, , , , 0.35, 0, 0.02, -0.03, -0.04, 2026-06-30"
   ].join("\n");
 
   /* ---------- persistence ---------- */
@@ -861,6 +892,12 @@ details.sub textarea{width:100%;min-height:116px;margin-top:8px;background:var(-
       d.setup = (p[19]||"").trim().toUpperCase();
       d.trig = (p[20]||"").trim();
       d.trigWR = pf(21);
+      d.athPct = pf(22);
+      d.blueSky = num(23);
+      d.revYoY = pf(24);
+      d.profYoY = pf(25);
+      d.epsYoY = pf(26);
+      d.qDate = (p[27]||"").trim();
       var st = deriveStructure(d.price, d.breakout, d.basePct, d.baseBars, d.volRatio);
       d.structurePts=st.pts; d.structureLbl=st.label;
       rows.push(d);
@@ -914,15 +951,49 @@ details.sub textarea{width:100%;min-height:116px;margin-top:8px;background:var(-
     var ext = d.breakout>0 ? (d.price - d.breakout)/d.breakout : 0;
     return baseInfo(d.basePct||0, d.baseBars||0, ext, d.volRatio||1);
   }
+  // --- latest quarterly result: grade the most recent reported quarter's YoY growth ---
+  // profit uses EPS YoY when available (share-count-adjusted), else net-income YoY.
+  // growth values of 4 are the "loss → profit" turnaround sentinel from parseFund.
+  function resultGrade(d){
+    var pr = (d.epsYoY!=null ? d.epsYoY : (d.profYoY!=null ? d.profYoY : null));
+    var rv = (d.revYoY!=null ? d.revYoY : null);
+    if(pr==null && rv==null) return {code:"?", label:"no data", cls:"dim"};
+    if((pr!=null && pr < -0.005) || (rv!=null && rv < -0.03)) return {code:"weak", label:"shrinking", cls:"neg"};
+    if((pr!=null && pr >= 0.25) && (rv==null || rv >= 0.10)) return {code:"superb", label:"strong growth", cls:"pos"};
+    if((pr!=null && pr >= 0.10) && (rv==null || rv >= 0.03)) return {code:"good", label:"growing", cls:"pos"};
+    return {code:"flat", label:"flat", cls:"warn"};
+  }
+  function pctTxt(x){
+    if(x==null) return "n/a";
+    if(x>=90) return "loss→profit";
+    return (x>=0?"+":"")+Math.round(x*100)+"%";
+  }
+  // sortable strength: weak < no-data < flat < growing < strong, tie-broken by profit YoY
+  function resultRank(d){
+    var base = {weak:-1, "?":0, flat:1, good:2, superb:3}[resultGrade(d).code] || 0;
+    var pr = (d.epsYoY!=null ? d.epsYoY : (d.profYoY!=null ? d.profYoY : 0));
+    return base*10 + Math.max(-3, Math.min(6, pr));
+  }
+  function resultCell(d){
+    var g = resultGrade(d);
+    if(g.code==="?") return '<span class="dim" title="Yahoo has no recent quarterly data for this ticker — check screener.in">–</span>';
+    var pr = (d.epsYoY!=null ? d.epsYoY : d.profYoY);
+    var mark = g.code==="superb" ? "★" : g.code==="weak" ? "▼" : g.code==="good" ? "▲" : "·";
+    var tip = "Latest quarter" + (d.qDate?" (ended "+d.qDate+")":"") +
+      "  ·  profit " + pctTxt(pr) + " YoY  ·  sales " + pctTxt(d.revYoY) + " YoY";
+    return '<span class="'+g.cls+'" title="'+esc(tip)+'" style="font-size:11px;white-space:nowrap">'+mark+' '+pctTxt(pr)+'</span>';
+  }
+
   function rowSetup(d){
     if(d.setup && SETUP_LABEL[d.setup]){
       var cls = (d.setup==="COIL"||d.setup==="S2") ? "warn" : "pos";
-      return {code:d.setup, label:SETUP_LABEL[d.setup], cls:cls, rank:(d.setup==="S2"?1:d.setup==="COIL"?2:3)};
+      var lab = SETUP_LABEL[d.setup] + (d.blueSky ? " · ATH" : "");
+      return {code:d.setup, label:lab, cls:cls, rank:(d.setup==="HDF"?4:d.setup==="S2"?1:d.setup==="COIL"?2:3)};
     }
     var bi = rowBase(d);
-    return {code:bi.tag, label:bi.label, cls:bi.cls, rank:0};
+    return {code:bi.tag, label:bi.label + (d.blueSky?" · ATH":""), cls:bi.cls, rank:0};
   }
-  var TRIG_NAME = {hammer:"🔨 hammer","inv-hammer":"🔨 inv-hammer","bull-engulf":"▲ engulf","pin-bar":"▲ pin bar"};
+  var TRIG_NAME = {hammer:"🔨 hammer","inv-hammer":"🔨 inv-hammer","bull-engulf":"▲ engulf","pin-bar":"▲ pin bar","kicker":"⚡ kicker","inside-bar":"▫ inside bar"};
   function trigParts(d){
     if(!d || !d.trig) return null;
     var m=/^([a-z-]+)@(\d+)/.exec(d.trig);
@@ -939,10 +1010,12 @@ details.sub textarea{width:100%;min-height:116px;margin-top:8px;background:var(-
   function setupGrade(d){
     if(!d.setup) return "";
     var s2=d.stage2||0, rs=(d.rs!=null?d.rs:0);
-    var core=/^(BOB|S2P|VCP|LBB)$/.test(d.setup);
+    var core=/^(HDF|BOB|S2P|VCP|LBB)$/.test(d.setup);
     var ft=freshTrigger(d), goodTrig = ft && !ft.weak;
     var weakTrig = (d.trigWR!=null && d.trigWR < 0.42);        // stock ignores this pattern → a negative
-    if(!weakTrig && core && s2>=6 && rs>=80 && (goodTrig || d.setup==="VCP" || d.setup==="LBB")) return "A+";
+    var weakRes = resultGrade(d).code==="weak";                // last quarter's profit/sales contracting → block A+
+    if(!weakTrig && !weakRes && d.setup==="HDF" && s2>=5 && rs>=75) return "A+";   // the DarvaX signature — its own bar
+    if(!weakTrig && !weakRes && core && s2>=6 && rs>=80 && (goodTrig || d.setup==="VCP" || d.setup==="LBB")) return "A+";
     if(!weakTrig && core && s2>=5 && rs>=70) return "A";
     if(s2>=5 && rs>=50) return "B";
     return "C";
@@ -999,8 +1072,7 @@ details.sub textarea{width:100%;min-height:116px;margin-top:8px;background:var(-
       else if(k==="t10"){ av=a.tr.t10; bv=b.tr.t10; }
       else if(k==="rr"){ av=a.tr.rr; bv=b.tr.rr; }
       else if(k==="qty"){ av=a.ps.regimeQty||a.ps.qty; bv=b.ps.regimeQty||b.ps.qty; }
-      else if(k==="event"){ var xa=getExtra(a.d.symbol), xb=getExtra(b.d.symbol);
-        av=xa&&xa.eDays!=null&&!isNaN(xa.eDays)?xa.eDays:99999; bv=xb&&xb.eDays!=null&&!isNaN(xb.eDays)?xb.eDays:99999; }
+      else if(k==="results"){ av=resultRank(a.d); bv=resultRank(b.d); }
       else { av=a.sc.total; bv=b.sc.total; }
       return (av-bv)*dir;
     });
@@ -1009,10 +1081,12 @@ details.sub textarea{width:100%;min-height:116px;margin-top:8px;background:var(-
     var onlyBrk = $("#onlyBreakout") && $("#onlyBreakout").checked;
     var onlyS2 = $("#onlyStage2") && $("#onlyStage2").checked;
     var onlyTrg = $("#onlyTriggered") && $("#onlyTriggered").checked;
+    var onlyRes = $("#onlyResults") && $("#onlyResults").checked;
     var shown = evals;
     if(onlyS2) shown = shown.filter(function(e){ return !!e.d.setup; });
     if(onlyTrg) shown = shown.filter(function(e){ var t=trigParts(e.d); return t && t.ago<=2; });
     if(onlyBrk) shown = shown.filter(function(e){ return /^(VCP|tight|base|wide)$/.test(rowBase(e.d).tag); });
+    if(onlyRes) shown = shown.filter(function(e){ var c=resultGrade(e.d).code; return c==="good" || c==="superb"; });
     if(onlyAct) shown = shown.filter(function(e){ return e.actionable; });
 
     if(!shown.length){
@@ -1024,7 +1098,7 @@ details.sub textarea{width:100%;min-height:116px;margin-top:8px;background:var(-
         var qtxt = state.regime==="red" ? "0" : nfmt(q,0);
         var ex = getExtra(e.d.symbol);
         return '<tr class="tier'+e.v.tier+'">'+
-          '<td class="sym">'+esc(e.d.symbol)+'</td>'+
+          '<td class="sym">'+esc(e.d.symbol)+(e.d.blueSky?' <span class="pos" title="uncharted territory — price above all prior highs, no overhead supply" style="font-size:9px">ATH</span>':'')+'</td>'+
           '<td class="num">'+e.sc.total+'</td>'+
           '<td class="num">'+rsCell(e.d.rs)+'</td>'+
           '<td><span class="pill '+e.v.cls+'">'+esc(e.v.label.replace(/ —.*/,""))+'</span></td>'+
@@ -1037,7 +1111,7 @@ details.sub textarea{width:100%;min-height:116px;margin-top:8px;background:var(-
           '<td class="num">'+nfmt(e.tr.t10)+'</td>'+
           '<td class="num">'+(e.tr.rr?e.tr.rr.toFixed(2):"–")+'</td>'+
           '<td class="num">'+qtxt+'</td>'+
-          '<td class="num">'+eventCell(ex)+'</td>'+
+          '<td class="num">'+resultCell(e.d)+'</td>'+
           '<td><button class="openbtn" data-sym="'+esc(e.d.symbol)+'">Analyze →</button></td>'+
         '</tr>';
       }).join("");
@@ -1050,15 +1124,20 @@ details.sub textarea{width:100%;min-height:116px;margin-top:8px;background:var(-
     var act = evals.filter(function(e){return e.actionable;}).length;
     var brk = evals.filter(function(e){ return /^(VCP|tight|base|wide)$/.test(rowBase(e.d).tag); }).length;
     var s2n = evals.filter(function(e){ return !!e.d.setup; }).length;
-    var bob = evals.filter(function(e){ return e.d.setup==="BOB"; }).length;
+    var hdf = evals.filter(function(e){ return e.d.setup==="HDF"; }).length;
+    var ath = evals.filter(function(e){ return e.d.blueSky; }).length;
     var trg = evals.filter(function(e){ var t=trigParts(e.d); return t && t.ago<=2; }).length;
+    var strongRes = evals.filter(function(e){ var c=resultGrade(e.d).code; return c==="good" || c==="superb"; }).length;
+    var weakRes = evals.filter(function(e){ return resultGrade(e.d).code==="weak"; }).length;
     var aplus = evals.filter(function(e){ return setupGrade(e.d)==="A+"; }).length;
     var topRs = evals.slice().filter(function(e){return e.d.rs!=null;}).sort(function(a,b){return b.d.rs-a.d.rs;})[0];
     summary.innerHTML =
       '<span class="chip"><b>'+evals.length+'</b> scanned</span>'+
       '<span class="chip"><b>'+aplus+'</b> A+ setups</span>'+
-      '<span class="chip"><b>'+s2n+'</b> Stage-2'+(bob?' ('+bob+' base-on-base)':'')+'</span>'+
+      '<span class="chip"><b>'+s2n+'</b> Stage-2'+(hdf?' ('+hdf+' High Dry Fry)':'')+'</span>'+
+      '<span class="chip"><b>'+ath+'</b> at ATH</span>'+
       '<span class="chip"><b>'+trg+'</b> triggered</span>'+
+      '<span class="chip"><b>'+strongRes+'</b> strong results'+(weakRes?' · '+weakRes+' shrinking':'')+'</span>'+
       '<span class="chip"><b>'+act+'</b> actionable</span>'+
       (topRs?'<span class="chip">strongest: <b>'+esc(topRs.d.symbol)+'</b> RS '+topRs.d.rs+'</span>':'')+
       (best?'<span class="chip">top score: <b>'+esc(best.d.symbol)+'</b> ('+best.sc.total+')</span>':'');
@@ -1109,7 +1188,9 @@ details.sub textarea{width:100%;min-height:116px;margin-top:8px;background:var(-
     $("#a_entry").value = "";
     aScan = {symbol:d.symbol, probT1:(d.probT1!=null?d.probT1:null), probT10:(d.probT10!=null?d.probT10:null), probN:d.probN||0,
       basePct:d.basePct||0, baseBars:d.baseBars||0, stage2:d.stage2||0, rs:(d.rs!=null?d.rs:null), setup:d.setup||"",
-      trig:d.trig||"", trigWR:(d.trigWR!=null?d.trigWR:null), trigN:d.trigN||0};
+      trig:d.trig||"", trigWR:(d.trigWR!=null?d.trigWR:null), trigN:d.trigN||0,
+      blueSky:d.blueSky||0, athPct:(d.athPct!=null?d.athPct:null), fibZone:d.fibZone||"", fibRetr:(d.fibRetr!=null?d.fibRetr:null),
+      revYoY:(d.revYoY!=null?d.revYoY:null), profYoY:(d.profYoY!=null?d.profYoY:null), epsYoY:(d.epsYoY!=null?d.epsYoY:null), qDate:d.qDate||""};
     runAnalyzer();
   }
 
@@ -1125,7 +1206,8 @@ details.sub textarea{width:100%;min-height:116px;margin-top:8px;background:var(-
       sectorPts:parseFloat($("#a_sector").value),
       macdPos:$("#a_macd").checked, hhhl:$("#a_hhhl").checked
     };
-    if(aScan && aScan.symbol===d.symbol){ d.probT1=aScan.probT1; d.probT10=aScan.probT10; d.probN=aScan.probN; d.basePct=aScan.basePct; d.baseBars=aScan.baseBars; d.stage2=aScan.stage2; d.rs=aScan.rs; d.setup=aScan.setup; d.trig=aScan.trig; d.trigWR=aScan.trigWR; d.trigN=aScan.trigN; }
+    if(aScan && aScan.symbol===d.symbol){ d.probT1=aScan.probT1; d.probT10=aScan.probT10; d.probN=aScan.probN; d.basePct=aScan.basePct; d.baseBars=aScan.baseBars; d.stage2=aScan.stage2; d.rs=aScan.rs; d.setup=aScan.setup; d.trig=aScan.trig; d.trigWR=aScan.trigWR; d.trigN=aScan.trigN; d.blueSky=aScan.blueSky; d.athPct=aScan.athPct; d.fibZone=aScan.fibZone; d.fibRetr=aScan.fibRetr;
+      d.revYoY=aScan.revYoY; d.profYoY=aScan.profYoY; d.epsYoY=aScan.epsYoY; d.qDate=aScan.qDate; }
     return d;
   }
 
@@ -1178,7 +1260,38 @@ details.sub textarea{width:100%;min-height:116px;margin-top:8px;background:var(-
           t:"Trigger: a "+tName+" printed at the rising MA "+agoTxt+(wrPct!=null?" — historically "+wrPct+"% of these hit +6% before −3%"+(d.trigN?" ("+d.trigN+" occurrences)":""):"")+". Enter on the next up-close that takes out that candle's high; stop just under its low."});
       }
     } else if(d.setup==="S2P" || d.setup==="COIL"){
-      notes.push({c:"warn", t:"No reversal candle at the MA yet. Watch for a hammer / bullish pin / engulfing bar off the 20 or 50 EMA — that's the trigger to enter."});
+      notes.push({c:"warn", t:"No reversal candle at the MA yet. Watch for a hammer / bullish pin / engulfing / kicker bar off the 20 or 50 EMA — that's the trigger to enter."});
+    }
+    // --- DarvaX read ---
+    if(d.setup==="HDF"){
+      notes.push({c:"warn", t:"DarvaX “High Dry Fry”: this stock made a big thrust on volume, corrected, then coiled into a cluster of small candles — and is now clearing that base. This is the setup that produces DarvaX's 40–100% moves. Entry: a buy-stop above yesterday's high; stop 1% below the entry (or below the base low). Add on the way up, never on the way down."});
+    }
+    if(d.blueSky){
+      notes.push({c:"warn", t:"Uncharted territory — price is above every prior high, no overhead supply. This is a Darvas core requirement: there is nobody trapped above waiting to sell into the rally."});
+    }
+    if(d.fibZone){
+      var fc = /shallow/.test(d.fibZone) ? "warn" : (/golden/.test(d.fibZone) ? "warn" : (/deep|broken/.test(d.fibZone) ? "neg" : "warn"));
+      notes.push({c:fc, t:"Fibonacci: the pullback from the last swing high is "+(d.fibRetr!=null?Math.round(d.fibRetr*100)+"% — ":"")+d.fibZone+". "+
+        (/shallow/.test(d.fibZone) ? "A shallow (23–38%) pullback = strong hands holding; the trend usually resumes." :
+         /golden/.test(d.fibZone) ? "The 50–61.8% golden zone is where you accumulate a favourite in a market shake-out — but wait for a reversal candle." :
+         /deep|broken/.test(d.fibZone) ? "A retrace this deep means the leg is in doubt — don't buy it as a continuation." :
+         "At the highs — the breakout, not the pullback, is the trade.")});
+    }
+    // latest reported quarter — the "superb quarterly numbers" check DarvaX / CANSLIM demand
+    var rg = resultGrade(d);
+    if(rg.code!=="?"){
+      var prTxt = pctTxt(d.epsYoY!=null?d.epsYoY:d.profYoY), rvTxt = pctTxt(d.revYoY);
+      var qTag = d.qDate ? " (quarter ended "+d.qDate+")" : "";
+      if(rg.code==="weak")
+        notes.push({c:"neg", t:"Latest results"+qTag+": profit "+prTxt+" YoY, sales "+rvTxt+" YoY — earnings are contracting. DarvaX only buys superb quarterly numbers; price at new highs on shrinking profit is a blow-off risk, not an accumulation base. This blocks the A+ grade."});
+      else if(rg.code==="superb")
+        notes.push({c:"warn", t:"Latest results"+qTag+": profit "+prTxt+" YoY, sales "+rvTxt+" YoY — strong growth. This is the fundamental leg DarvaX / CANSLIM want under a breakout. Still confirm the float is low and the result is clean (not one-off / other-income) on screener.in."});
+      else if(rg.code==="good")
+        notes.push({c:"warn", t:"Latest results"+qTag+": profit "+prTxt+" YoY, sales "+rvTxt+" YoY — growing, but the biggest DarvaX movers usually show +30%+ profit growth. Acceptable, not exceptional."});
+      else
+        notes.push({c:"warn", t:"Latest results"+qTag+": profit "+prTxt+" YoY, sales "+rvTxt+" YoY — roughly flat. No fundamental tailwind; this trade rests entirely on the chart."});
+    } else if(state.fetchResults!==false){
+      notes.push({c:"warn", t:"No quarterly-result data for "+d.symbol+" (Yahoo didn't return it). Check the last two quarters' sales & profit growth on screener.in before entering."});
     }
 
     var evLine = "";
@@ -1189,6 +1302,13 @@ details.sub textarea{width:100%;min-height:116px;margin-top:8px;background:var(-
       if(ex.eBeat) bits.push("beat "+ex.eBeat+" recent qtrs");
       if(ex.eSurp!=null) bits.push("last surprise "+(ex.eSurp>0?"+":"")+ex.eSurp+"%");
       if(bits.length) evLine = '<p class="note">'+esc(bits.join("  ·  "))+'</p>';
+    }
+    var resLine = "";
+    if(rg.code!=="?"){
+      resLine = '<p class="note"><b class="'+rg.cls+'">Latest results — '+rg.label+'</b>'+
+        (d.qDate?' <span class="dim">(Q ended '+esc(d.qDate)+')</span>':'')+'<br>'+
+        'Profit '+esc(pctTxt(d.epsYoY!=null?d.epsYoY:d.profYoY))+' YoY'+
+        (d.epsYoY!=null?' (EPS)':'')+'  ·  Sales '+esc(pctTxt(d.revYoY))+' YoY</p>';
     }
 
     card.innerHTML =
@@ -1230,6 +1350,7 @@ details.sub textarea{width:100%;min-height:116px;margin-top:8px;background:var(-
         '<div><div class="k">Risk if stopped</div><div class="v">'+inr(ps.riskAmt)+' · '+ps.actualRiskPct.toFixed(2)+'%</div></div>'+
         '<div><div class="k">Reward at +10%</div><div class="v">'+inr(ps.reward)+'</div></div>'+
       '</div>'+
+      resLine+
       evLine+
       notes.map(function(n){ return '<p class="note '+n.c+'">'+esc(n.t)+'</p>'; }).join("");
     renderChart(d.symbol);
@@ -1340,6 +1461,17 @@ details.sub textarea{width:100%;min-height:116px;margin-top:8px;background:var(-
       var yy=Y(p);
       return '<line x1="'+PL+'" y1="'+f1(yy)+'" x2="'+(W-PR)+'" y2="'+f1(yy)+'" class="cx-line '+cls+'"/>'+
              '<text x="'+PL+'" y="'+f1(yy-2)+'" class="cx-flab '+cls+'">'+lab+' '+nfmt(p,0)+'</text>';
+    }
+    // Fibonacci retracement of the last swing (drawn when price has pulled back a bit)
+    var fb = fibLevels(o.h||o.close, o.l||o.close, o.c||o.close);
+    if(fb && fb.retr > 0.04 && fb.retr < 1.05){
+      [["0.382",fb.p382],["0.5",fb.p50],["0.618",fb.p618]].forEach(function(p){
+        if(p[1]>lo && p[1]<hi){
+          var yy=Y(p[1]);
+          g.push('<line x1="'+PL+'" y1="'+f1(yy)+'" x2="'+(W-PR)+'" y2="'+f1(yy)+'" class="cx-fib"/>'+
+                 '<text x="'+(W-PR-2)+'" y="'+f1(yy-2)+'" class="cx-flab cx-fiblab" text-anchor="end">fib '+p[0]+'</text>');
+        }
+      });
     }
     g.push(hline(opts.support,"cx-sup","S"));
     g.push(hline(opts.resistance,"cx-res","R"));
@@ -1790,7 +1922,55 @@ details.sub textarea{width:100%;min-height:116px;margin-top:8px;background:var(-
     var netUp = n>66 && c[n-1] > c[n-66]*1.03;
     return { tightZones:tight, stacked: tight>=2 && rising && netUp };
   }
-  // one primary "Stage-2 continuation" label + code
+  // Uncharted territory — price at / near the highest high of the whole fetched series,
+  // and above every prior close. (Darvas: no overhead supply.)
+  function blueSky(h,c){
+    var n=c.length, price=c[n-1], hh=-1e9, i;
+    for(i=0;i<n-2;i++) if(h[i]>hh) hh=h[i];
+    var priorClose=-1e9; for(i=0;i<n-3;i++) if(c[i]>priorClose) priorClose=c[i];
+    return { athPct: hh>0 ? (hh-price)/hh : 1, newHigh: price >= hh*0.985, above: price > priorClose };
+  }
+  // DarvaX "High Dry Fry": a +18-60% thrust on volume → a 7-30% correction →
+  // a tight cluster of small "baby" candles → breaking out of that cluster.
+  function highDryFry(h,l,c,v,bs){
+    if(!bs || bs.bars < 6) return null;
+    var n=c.length, price=c[n-1], baseStartIdx = n-1-2-bs.bars;
+    if(baseStartIdx < 35) return null;
+    var from = Math.max(0, baseStartIdx-45), preLo=1e9, preLoI=from, i;
+    for(i=from;i<baseStartIdx;i++){ if(l[i]<preLo){ preLo=l[i]; preLoI=i; } }
+    var thrustHi=-1e9; for(i=preLoI;i<=baseStartIdx+2;i++){ if(h[i]>thrustHi) thrustHi=h[i]; }
+    var thrust = preLo>0 ? (thrustHi-preLo)/preLo : 0;
+    var correction = thrustHi>0 ? (thrustHi - bs.lo)/thrustHi : 0;
+    // "baby candles": avg true range of the base bars, as % of price
+    var rsum=0, rc=0; for(i=Math.max(0,n-1-bs.bars);i<n-1;i++){ rsum += (h[i]-l[i])/(c[i]||1); rc++; }
+    var babyRange = rc? rsum/rc : 1;
+    var vThrust=0, vc=0; for(i=preLoI;i<=baseStartIdx;i++){ vThrust+=v[i]; vc++; }
+    var vBefore = avgN(v.slice(0,Math.max(1,preLoI)), 30) || 1;
+    var volSurge = vc? (vThrust/vc)/vBefore : 1;
+    var breakingOut = (price - bs.hi)/bs.hi >= -0.015 && (price - bs.hi)/bs.hi <= 0.06;
+    return {
+      thrust:thrust, correction:correction, babyRange:babyRange, volSurge:volSurge, bars:bs.bars,
+      hi:bs.hi, lo:bs.lo,
+      ok: thrust>=0.18 && thrust<=0.9 && correction>=0.06 && correction<=0.32 &&
+          babyRange <= 0.05 && volSurge >= 1.3 && breakingOut
+    };
+  }
+  // Fibonacci retracement of the most recent swing (low → high), + a depth zone
+  function fibLevels(h,l,c){
+    var n=c.length, price=c[n-1], look=Math.min(n,110), i;
+    var lo=1e9, loI=n-look; for(i=n-look;i<n-3;i++){ if(l[i]<lo){ lo=l[i]; loI=i; } }
+    var hi=-1e9, hiI=loI; for(i=loI;i<n;i++){ if(h[i]>hi){ hi=h[i]; hiI=i; } }
+    if(!(hi>lo) || hiI<=loI) return null;
+    var leg=hi-lo, retr=(hi-price)/leg;
+    var zone = retr<=0.03 ? "at highs"
+      : retr<=0.40 ? "shallow — very strong"
+      : retr<=0.66 ? "golden zone — accumulate"
+      : retr<=0.92 ? "deep — weakening"
+      : "full retrace — broken";
+    return { retr:retr, zone:zone, hi:hi, lo:lo,
+      p236: hi-leg*0.236, p382: hi-leg*0.382, p50: hi-leg*0.5, p618: hi-leg*0.618 };
+  }
+  // one primary setup label + code
   function continuationSetup(m){
     if(m.stage2 < 5) return {code:"", label:"–", cls:"dim"};
     var contracting = m.atrThen>0 && m.atrNow>0 && m.atrNow < m.atrThen*0.85;
@@ -1798,28 +1978,32 @@ details.sub textarea{width:100%;min-height:116px;margin-top:8px;background:var(-
     var maRef = m.e20rising ? m.e20 : (m.e50rising ? m.e50 : 0);
     var atMA = maRef>0 && m.price>=maRef*0.97 && m.price<=maRef*1.06 && m.low5<=maRef*1.03 && m.low5>=maRef*0.93;
     var notExt = m.ext <= 0.03;
-    if(m.stacked && notExt && nearHi)                                 return {code:"BOB", label:"base-on-base"+(contracting?" ⋀":""), cls:"pos"};
+    if(m.hdf)                                                         return {code:"HDF", label:"High Dry Fry"+(m.newHigh?" · ATH":""), cls:"pos"};
+    if(m.stacked && notExt && nearHi)                                 return {code:"BOB", label:"base-on-base"+(contracting?" ⋀":"")+(m.newHigh?" · ATH":""), cls:"pos"};
     if(atMA && m.rsi>=38 && m.rsi<=64 && contracting && nearHi)       return {code:"S2P", label:"pullback → "+(m.e20rising?"20":"50")+"EMA", cls:"pos"};
     if(m.baseBars>=20 && m.basePct>0 && m.basePct<=0.15 && m.ext>-0.03 && m.ext<=0.04) return {code:"LBB", label:"long-base breakout "+m.baseBars+"b", cls:"pos"};
-    if(m.basePct>0 && m.basePct<=0.085 && m.baseBars>=10 && m.ext>=-0.006 && m.ext<=0.04 && m.volNow>=1.4) return {code:"VCP", label:"VCP breakout", cls:"pos"};
+    if(m.basePct>0 && m.basePct<=0.085 && m.baseBars>=10 && m.ext>=-0.006 && m.ext<=0.04 && m.volNow>=1.4) return {code:"VCP", label:"VCP breakout"+(m.newHigh?" · ATH":""), cls:"pos"};
     if(m.basePct>0 && m.basePct<=0.12 && m.ext<-0.006 && m.ext>-0.06 && contracting && nearHi) return {code:"COIL", label:"coiling — near trigger", cls:"warn"};
     if(nearHi && contracting)                                         return {code:"S2", label:"Stage-2, quiet", cls:"warn"};
     return {code:"", label:"–", cls:"dim"};
   }
-  var SETUP_LABEL = {BOB:"base-on-base", S2P:"pullback→MA", LBB:"long-base brk", VCP:"VCP breakout", COIL:"coiling", S2:"Stage-2 quiet"};
+  var SETUP_LABEL = {HDF:"High Dry Fry", BOB:"base-on-base", S2P:"pullback→MA", LBB:"long-base brk", VCP:"VCP breakout", COIL:"coiling", S2:"Stage-2 quiet"};
 
   // single-bar reversal / trigger candle at index i (needs i-1 for engulfing)
   function candleType(o,h,l,c,i){
     var O=o[i], C=c[i], H=h[i], L=l[i], rng=H-L;
     if(rng<=0) return "";
     var body=Math.abs(C-O), up=H-Math.max(O,C), lo=Math.min(O,C)-L;
+    // bullish kicker — prior red candle, this one gaps up over the prior open, closes strong (DarvaX loves this)
+    if(i>0 && c[i-1]<o[i-1] && O >= o[i-1]*1.001 && C>O && body>=rng*0.55) return "kicker";
     if(body<=rng*0.4 && lo>=body*1.8 && lo>=rng*0.5 && up<=rng*0.22) return "hammer";
     if(body<=rng*0.4 && up>=body*1.8 && up>=rng*0.5 && lo<=rng*0.22) return "inv-hammer";
     if(i>0 && c[i-1]<o[i-1] && C>O && C>=o[i-1] && O<=c[i-1] && body>=Math.abs(c[i-1]-o[i-1])*0.9) return "bull-engulf";
     if(lo>=rng*0.55 && C>=L+rng*0.6 && C>=O) return "pin-bar";
+    if(i>0 && H <= h[i-1] && L >= l[i-1]) return "inside-bar";
     return "";
   }
-  var TRIG_RE = /hammer|inv-hammer|bull-engulf|pin-bar/;
+  var TRIG_RE = /hammer|inv-hammer|bull-engulf|pin-bar|kicker/;
   // did a bullish trigger candle print in the last `look` bars with its low at a rising 20/50 EMA, in a Stage-2 trend?
   function triggerAtMA(o,h,l,c,e20a,e50a,st2score,look){
     var n=c.length, k;
@@ -1890,12 +2074,17 @@ details.sub textarea{width:100%;min-height:116px;margin-top:8px;background:var(-
     var e50rise = e50a[nC-1]!=null && e50a[Math.max(0,nC-13)]!=null && e50a[nC-1] > e50a[Math.max(0,nC-13)];
     var ret126 = nC>127 ? (price/c[nC-127]-1) : 0;
     var extLvl = breakoutLvl>0 ? (price-breakoutLvl)/breakoutLvl : 0;
+    // --- DarvaX additions: blue-sky / uncharted, High Dry Fry, Fibonacci depth ---
+    var bsky = blueSky(h,c);
+    var hdf = highDryFry(h,l,c,vol,bs);
+    var fib = fibLevels(h,l,c);
     var setup = continuationSetup({
       stage2:st2.score, atrNow:atrNow, atrThen:atrThen,
       basePct: bs?bs.widthPct:0, baseBars: bs?bs.bars:0, ext:extLvl,
       rsi:rsiLast(c,14), price:price, e20:e20, e50:e50,
       e20rising:e20rise, e50rising:e50rise, low5:low5,
-      stacked:sb.stacked, volNow: bs?bs.volNow:(vol[vol.length-1]/(v20||1)), dist52:st2.dist
+      stacked:sb.stacked, volNow: bs?bs.volNow:(vol[vol.length-1]/(v20||1)), dist52:st2.dist,
+      hdf: hdf && hdf.ok, newHigh: bsky.newHigh && bsky.above
     });
     // trigger candle (hammer / inv-hammer / pin / engulf) at a rising MA — the "go" signal
     var trg = triggerAtMA(op,h,l,c,e20a,e50a,st2.score, weekly?4:4);
@@ -1927,7 +2116,12 @@ details.sub textarea{width:100%;min-height:116px;margin-top:8px;background:var(-
       setup: setup.code,
       trig: trg ? (trg.type+"@"+trg.ago) : "",
       trigWR: trigWR ? Math.round(trigWR.p*100)/100 : null,
-      trigN: trigWR ? trigWR.n : 0
+      trigN: trigWR ? trigWR.n : 0,
+      athPct: Math.round(bsky.athPct*1000)/1000,
+      blueSky: (bsky.newHigh && bsky.above) ? 1 : 0,
+      fibZone: fib ? fib.zone : "",
+      fibRetr: fib ? Math.round(fib.retr*100)/100 : null,
+      revYoY: null, profYoY: null, epsYoY: null, qDate: ""   // filled in later by applyFund() if results are fetched
     };
   }
   function rowToCsv(r, leadingSet){
@@ -1935,7 +2129,8 @@ details.sub textarea{width:100%;min-height:116px;margin-top:8px;background:var(-
     return [r.sym, r.price, r.e20, r.e50, r.e200, r.rsi, r.vr, r.breakout, r.support, sec,
       r.macd?1:0, r.hhhl?1:0, r.resistance||0, (r.probT1==null?"":r.probT1), (r.probT10==null?"":r.probT10),
       r.basePct||0, r.baseBars||0, r.stage2||0, (r.rs==null?"":r.rs), (r.setup||""),
-      (r.trig||""), (r.trigWR==null?"":r.trigWR)].join(", ");
+      (r.trig||""), (r.trigWR==null?"":r.trigWR), (r.athPct==null?"":r.athPct), (r.blueSky||0),
+      (r.revYoY==null?"":r.revYoY), (r.profYoY==null?"":r.profYoY), (r.epsYoY==null?"":r.epsYoY), (r.qDate||"")].join(", ");
   }
 
   /* ---------- auto-screen: fetch adapters ---------- */
@@ -2009,6 +2204,75 @@ details.sub textarea{width:100%;min-height:116px;margin-top:8px;background:var(-
     return fetchTimeout(wrapProxy(cfg.proxy, yahooUrl(sym)), 18000, signal)
       .then(function(res){ if(!res.ok) throw new Error("HTTP "+res.status); return res.text(); })
       .then(parseYahoo);
+  }
+
+  /* ---------- latest quarterly results (Yahoo fundamentals-timeseries) ---------- */
+  function fundUrl(sym){
+    var now = Math.floor(Date.now()/1000), t = encodeURIComponent(sym + ".NS");
+    return "https://query1.finance.yahoo.com/ws/fundamentals-timeseries/v1/finance/timeseries/" + t +
+      "?symbol=" + t +
+      "&type=quarterlyTotalRevenue,quarterlyNetIncome,quarterlyDilutedEPS" +
+      "&period1=1483228800&period2=" + now;
+  }
+  var FUND_TURNAROUND = 99;   // sentinel: swung from a YoY loss to a profit
+  function fundGrowth(cur, prev){
+    if(cur==null || prev==null) return null;
+    if(prev > 0) return Math.max(-0.99, Math.min(9, (cur - prev) / prev));   // clamp absurd ratios off a tiny base
+    if(prev <= 0 && cur > 0) return FUND_TURNAROUND;                          // loss → profit turnaround
+    if(prev < 0 && cur < 0) return (Math.abs(prev) - Math.abs(cur)) / Math.abs(prev);  // smaller loss = less-negative = positive
+    return null;
+  }
+  // YoY: match the latest quarter to the entry ~365d earlier (Yahoo sometimes drops a quarter,
+  // so index-back-4 is unreliable). Returns null when there's no quarter within ~8 weeks of a year ago.
+  function fundYoY(arr){
+    if(!arr || arr.length < 2) return null;
+    var cur = arr[arr.length-1], curT = Date.parse(cur.d);
+    if(!isFinite(curT)) return null;
+    var want = curT - 365*86400000, best = null, err = 1e15;
+    for(var i=0;i<arr.length-1;i++){
+      var e = Math.abs(Date.parse(arr[i].d) - want);
+      if(e < err){ err = e; best = arr[i]; }
+    }
+    if(!best || err > 56*86400000) return null;
+    return fundGrowth(cur.v, best.v);
+  }
+  function parseFund(txt){
+    var j; try{ j = JSON.parse(txt); }catch(e){ return null; }
+    var res = j && j.timeseries && j.timeseries.result;
+    if(!res || !res.length) return null;
+    function series(type){
+      var s = null;
+      res.forEach(function(x){ if(x && x.meta && x.meta.type && x.meta.type[0]===type) s = x; });
+      if(!s || !s[type]) return [];
+      return s[type].map(function(row){
+        return (row && row.reportedValue && row.reportedValue.raw!=null && row.asOfDate)
+          ? {d: row.asOfDate, v: row.reportedValue.raw} : null;
+      }).filter(Boolean);
+    }
+    var rev = series("quarterlyTotalRevenue"),
+        ni  = series("quarterlyNetIncome"),
+        eps = series("quarterlyDilutedEPS");
+    if(rev.length < 2 && ni.length < 2 && eps.length < 2) return null;
+    var last = ni[ni.length-1] || rev[rev.length-1] || eps[eps.length-1] || {};
+    return {
+      qDate:  last.d || "",
+      revYoY: fundYoY(rev),
+      profYoY: fundYoY(ni),
+      epsYoY: fundYoY(eps)
+    };
+  }
+  function fetchFundamentals(sym, cfg, signal){
+    return fetchTimeout(wrapProxy(cfg.proxy, fundUrl(sym)), 15000, signal)
+      .then(function(res){ if(!res.ok) throw new Error("HTTP "+res.status); return res.text(); })
+      .then(parseFund);
+  }
+  function applyFund(row, f){
+    if(!f) return;
+    var r3 = function(x){ return x==null ? null : Math.round(x*1000)/1000; };
+    row.revYoY = r3(f.revYoY);
+    row.profYoY = r3(f.profYoY);
+    row.epsYoY = r3(f.epsYoY);
+    row.qDate = f.qDate || "";
   }
   function tdGet(url, signal){
     return fetchTimeout(url, 20000, signal).then(function(r){
@@ -2212,6 +2476,8 @@ details.sub textarea{width:100%;min-height:116px;margin-top:8px;background:var(-
     var conc = isTD ? 1 : (isFMP ? 3 : (ownWorker ? 6 : 2));
 
     var wantEvents = state.fetchEvents && isTD;
+    var wantResults = !isTD && !isFMP && state.fetchResults!==false;   // pull quarterly results via the same proxy
+    var resFail = 0;
     scanAbort = new AbortController();
     scanUIRunning(true);
     var ok=[], failMap={}, extra={}, done=0, total=uni.length, lastStart=0, retried={};
@@ -2245,8 +2511,14 @@ details.sub textarea{width:100%;min-height:116px;margin-top:8px;background:var(-
           if(scanAbort.signal.aborted) return;
           lastStart = Date.now();
           return fetcher(item.sym, cfg, scanAbort.signal).then(function(o){
-            try{ ok.push(seriesToRow(item.sym, item.sector, o, state.dropForming!==false, state.timeframe==="weekly")); delete failMap[item.sym]; }
+            var row = null;
+            try{ row = seriesToRow(item.sym, item.sector, o, state.dropForming!==false, state.timeframe==="weekly"); ok.push(row); delete failMap[item.sym]; }
             catch(e){ failMap[item.sym] = e.message; }
+            // best-effort: latest quarterly results via the same proxy (never fails the price row)
+            if(row && wantResults && !scanAbort.signal.aborted && resFail < 12){
+              return fetchFundamentals(item.sym, cfg, scanAbort.signal)
+                .then(function(f){ applyFund(row, f); }, function(){ resFail++; });
+            }
           }, function(e){
             if(e && e.cancelled) throw e;
             var msg = (e && e.message) || "failed";
@@ -2405,6 +2677,7 @@ details.sub textarea{width:100%;min-height:116px;margin-top:8px;background:var(-
     $("#proxyCustom").value = state.proxyCustom;
     $("#universeSize").value = state.universeSize;
     $("#dropForming").checked = state.dropForming!==false;
+    if($("#fetchResults")) $("#fetchResults").checked = state.fetchResults!==false;
     renderSectorChips();
     syncSourceUI();
 
@@ -2420,6 +2693,7 @@ details.sub textarea{width:100%;min-height:116px;margin-top:8px;background:var(-
     $("#proxyChoice").addEventListener("change", function(){ state.proxyChoice=this.value; save(); syncSourceUI(); });
     $("#proxyCustom").addEventListener("input", function(){ state.proxyCustom=this.value; save(); syncSourceUI(); });
     $("#dropForming").addEventListener("change", function(){ state.dropForming=this.checked; save(); });
+    if($("#fetchResults")) $("#fetchResults").addEventListener("change", function(){ state.fetchResults=this.checked; save(); });
     $("#universeSize").addEventListener("change", function(){
       state.universeSize=this.value; save();
       if(this.value==="custom") $("#universeEditBox").open = true;
@@ -2441,7 +2715,8 @@ details.sub textarea{width:100%;min-height:116px;margin-top:8px;background:var(-
     var n = state.universeSize==="custom" ? parseUniverse(universeText()).length
           : Math.min(parseInt(state.universeSize,10)||200, parseUniverse(universeText()).length);
     if(state.proxyChoice==="custom" && state.proxyCustom){
-      $("#scanMeta").textContent = "· your own Worker/proxy → ~"+Math.max(15,Math.ceil(n/6))+"s for "+n+" names, no limits";
+      var secs = Math.max(15, Math.ceil(n/6)) * (state.fetchResults!==false ? 2 : 1);
+      $("#scanMeta").textContent = "· your own Worker/proxy → ~"+secs+"s for "+n+" names"+(state.fetchResults!==false?" (incl. quarterly results)":"")+", no limits";
     } else if(!state.scanCache){
       $("#scanMeta").textContent = "";
     }
@@ -2508,6 +2783,7 @@ details.sub textarea{width:100%;min-height:116px;margin-top:8px;background:var(-
     $("#onlyBreakout").addEventListener("change", renderScreener);
     $("#onlyStage2").addEventListener("change", renderScreener);
     $("#onlyTriggered").addEventListener("change", renderScreener);
+    if($("#onlyResults")) $("#onlyResults").addEventListener("change", renderScreener);
     $("#analyzeBtn").addEventListener("click", runAnalyzer);
     $("#addWatchBtn").addEventListener("click", addToWatchlist);
     $("#chartRefresh").addEventListener("click", refreshChartLive);
