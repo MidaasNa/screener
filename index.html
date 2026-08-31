@@ -402,7 +402,7 @@ details.sub textarea{width:100%;min-height:116px;margin-top:8px;background:var(-
               <th data-k="t10">+10%</th>
               <th data-k="rr">R:R</th>
               <th data-k="qty">Qty</th>
-              <th data-k="results" title="Latest reported quarter — YoY growth in profit (EPS) and sales. ★ = profit +25%+ and sales growing; ▼ = profit or sales shrinking. Hover a cell for the numbers.">Results</th>
+              <th data-k="results" title="Latest reported quarter — YoY growth in profit (EPS) and sales. ★ = profit +25%+ and sales growing; ▼ = profit or sales shrinking. Also shows how long ago it was reported, and ⚠ when the next result is due soon (with the market-expectation lean). Hover a cell for detail.">Results</th>
               <th data-k="open"></th>
             </tr>
           </thead>
@@ -411,12 +411,12 @@ details.sub textarea{width:100%;min-height:116px;margin-top:8px;background:var(-
           </tbody>
         </table>
       </div>
-      <p class="hint" style="margin-top:10px"><b>RS</b> = 6-month relative-strength rank (0–99) vs everything scanned — the single best "something is happening here" tell; want 80+. <b>Setup</b> names the Stage-2 continuation pattern: <code>base-on-base</code> (stacked tight bases, higher lows — the LAURUSLABS staircase), <code>pullback→MA</code> (uptrend resting on a rising EMA), <code>long-base brk</code>, <code>VCP breakout</code>, <code>coiling</code> (tight, near trigger, not out yet). Use <b>"Stage-2 setups"</b> to see only these. * <b>Prob</b> = historical follow-through rate (not a forecast). <b>Support / Resist</b> = nearest swing levels. <b>Results</b> = latest reported quarter's YoY profit &amp; sales growth (from Yahoo) — ★ strong, ▲ growing, · flat, ▼ shrinking; the number shown is profit/EPS YoY, hover for sales.</p>
+      <p class="hint" style="margin-top:10px"><b>RS</b> = 6-month relative-strength rank (0–99) vs everything scanned — the single best "something is happening here" tell; want 80+. <b>Setup</b> names the Stage-2 continuation pattern: <code>base-on-base</code> (stacked tight bases, higher lows — the LAURUSLABS staircase), <code>pullback→MA</code> (uptrend resting on a rising EMA), <code>long-base brk</code>, <code>VCP breakout</code>, <code>coiling</code> (tight, near trigger, not out yet). Use <b>"Stage-2 setups"</b> to see only these. * <b>Prob</b> = historical follow-through rate (not a forecast). <b>Support / Resist</b> = nearest swing levels. <b>Results</b> = latest reported quarter's YoY profit &amp; sales growth (from Yahoo) — ★ strong, ▲ growing, · flat, ▼ shrinking; the number shown is profit/EPS YoY, hover for sales. It also shows roughly how long ago the result landed, and <b>⚠ result ~Nd</b> when the next quarterly result is estimated to be due soon — hover that for whether the market looks positioned for a beat or a miss (earnings trajectory + how the stock is trading into the print).</p>
 
       <details class="sub" id="rawBox">
         <summary>Raw data — paste your own or edit the scan output</summary>
         <p class="hint">One stock per line, comma or tab separated. First 6 fields required. Edit any row and press “Score all”.</p>
-        <code class="cols">SYM, price, EMA20, EMA50, EMA200, RSI, volR, breakout, support, sector, macd, hhhl, resist, probT1, probT10, basePct, baseBars, stage2, RS, setup, trigger, trigWR, athPct, blueSky(1/0), revYoY, profYoY, epsYoY, qDate</code>
+        <code class="cols">SYM, price, EMA20, EMA50, EMA200, RSI, volR, breakout, support, sector, macd, hhhl, resist, probT1, probT10, basePct, baseBars, stage2, RS, setup, trigger, trigWR, athPct, blueSky(1/0), revYoY, profYoY, epsYoY, qDate, profYoYPrev, ttmYoY</code>
         <textarea id="batchInput" spellcheck="false" aria-label="Stock data input"></textarea>
         <div class="row-actions">
           <button class="primary" id="scoreBtn">Score all</button>
@@ -657,7 +657,13 @@ details.sub textarea{width:100%;min-height:116px;margin-top:8px;background:var(-
         <li><b>Prob*</b> — estimated chance of tagging the first target (+5%) before the stop. For a scanned stock it's a <b>historical follow-through rate</b>: how often, over the last 2 years, this stock reached +5% before −stop% within the holding window when it was in a similar state (price above rising EMAs, RSI 50–74). A trailing <b>e</b> means there wasn't enough history and it fell back to a score-based estimate. It is a base rate, not a forecast.</li>
         <li><b>Support / Resist</b> — the nearest swing pivot below and above price (fractal highs/lows plus the rising 20-EMA). “sky” = price is at/near its highs with no overhead pivot.</li>
         <li><b>Expectancy</b> (Analyzer) — <code>P(+10%) × R:R − (1 − P(+10%))</code>, in units of R (your 1% risk). Positive = the setup pays over many repetitions; it says nothing about the next single trade.</li>
-        <li><b>Results</b> — the latest reported quarter's <b>year-on-year</b> growth. The scan pulls ~5 quarters of revenue / net income / diluted EPS from Yahoo's fundamentals feed (through the same proxy) and matches the current quarter to the one ~a year earlier (Yahoo occasionally skips a quarter, so it date-matches rather than counting back 4). The badge grades it — <b>★</b> strong (profit +25%+ YoY and sales growing), <b>▲</b> growing, <b>·</b> flat, <b>▼</b> shrinking, <b>–</b> no data — and the number shown is profit/EPS YoY; hover for the sales figure. A ▼ blocks the A+ grade. This is <i>trailing</i> data (the last <i>reported</i> quarter) — it is not a forecast and it doesn't tell you when the next result is due, so still check the earnings <i>date</i> on your broker / screener.in and never hold a swing through a result you can't predict. Turn the whole thing off with the <b>Fetch latest quarterly results</b> checkbox if you want a faster scan.</li>
+        <li><b>Results</b> — the latest reported quarter's <b>year-on-year</b> growth. The scan pulls ~5 quarters of revenue / net income / diluted EPS from Yahoo's fundamentals feed (through the same proxy) and matches the current quarter to the one ~a year earlier (Yahoo occasionally skips a quarter, so it date-matches rather than counting back 4). The badge grades it — <b>★</b> strong (profit +25%+ YoY and sales growing), <b>▲</b> growing, <b>·</b> flat, <b>▼</b> shrinking, <b>–</b> no data — and the number shown is profit/EPS YoY; hover for the sales figure. A ▼ blocks the A+ grade.
+          <ul>
+            <li><b>Timing.</b> Yahoo only gives the quarter-<i>end</i> date, not the announcement date — so the tool estimates: NSE companies must file within ~45 days of quarter-end (SEBI LODR), and it adds ~40 days. The cell shows roughly how long ago that was (<code>· 3w</code>), and the Analyzer names the estimated report month. The <b>exact</b> date is on screener.in / your broker — this is a guide, not a calendar.</li>
+            <li><b>Next result due.</b> When the estimate puts the next quarterly result within ~3 weeks, the cell shows <b>⚠ result ~Nd</b> and the summary bar shows <b>N result due</b>. A swing entry then holds through a binary event — the playbook says wait until after, or size down hard.</li>
+            <li><b>Market expectation</b> (shown on the ⚠ hover and in the Analyzer). With no analyst-estimate feed available for NSE, the tool infers the lean from two things it <i>can</i> see: the <b>earnings trajectory</b> — is YoY profit growth accelerating or fading quarter to quarter, and what is trailing-12-month profit doing — and <b>how the stock is trading into the print</b> — a Stage-2 leader at new highs with RS 80+ is the market positioning for a beat; a name breaking down with weak RS is bracing for a miss. Output: <i>positive / leaning positive / neutral / leaning negative / negative</i>. It is a read on positioning, not a prediction of the number.</li>
+          </ul>
+          Turn the whole feed off with the <b>Fetch latest quarterly results</b> checkbox for a faster scan.</li>
       </ul>
       <p>All four are decision <i>support</i>, not signals. The score, the 2:1 gate and the regime still decide the trade.</p>
 
@@ -743,17 +749,17 @@ details.sub textarea{width:100%;min-height:116px;margin-top:8px;background:var(-
   };
 
   var SAMPLE = [
-    "# cols: SYM,price,EMA20,EMA50,EMA200,RSI,volR,breakout,support,sector,macd,hhhl,resist,probT1,probT10,basePct,baseBars,stage2,RS,setup,trigger,trigWR,athPct,blueSky,revYoY,profYoY,epsYoY,qDate",
-    "HINDZINC, 627, 598, 560, 505, 69, 2.3, 620, 606, L, 1, 1, 0, 0.58, 0.33, 0.06, 22, 6, 88, HDF, inside-bar@0, 0.61, 0.01, 1, 0.19, 0.34, 0.31, 2026-06-30",
-    "BEL, 415, 402, 395, 360, 66, 1.9, 409, 391, L, 1, 1, 0, 0.55, 0.31, 0.07, 18, 6, 84, BOB, hammer@1, 0.62, 0.03, 1, 0.21, 0.28, 0.27, 2026-06-30",
-    "JINDALSTEL, 1175, 1120, 1090, 1010, 60, 1.4, 1160, 1120, L, 1, 1, 1240, 0.5, 0.27, 0.11, 26, 5, 76, LBB, , , 0.11, 0, 0.08, 0.12, 0.1, 2026-06-30",
-    "MEESHO, 205, 198, 190, 0, 63, 1.4, 200, 191, I, 1, 1, 0, 0.5, 0.26, 0.08, 14, 5, 72, S2P, pin-bar@0, 0.58, 0.05, 0, 0.33, 99, 99, 2026-06-30",
-    "SAIL, 195, 190, 185, 132, 55, 0.9, 201, 188, L, 1, 0, 201, 0.44, 0.22, 0.06, 20, 5, 66, COIL, , , 0.14, 0, -0.04, -0.22, -0.21, 2026-06-30",
-    "NYKAA, 341, 333, 325, 300, 58, 1.3, 339, 328, I, 1, 1, 360, 0.47, 0.24, 0.09, 20, 4, 55, , , , 0.16, 0, 0.24, 0.55, 0.5, 2026-06-30",
-    "TMB, 892, 878, 870, 845, 55, 1.1, 905, 862, I, 1, 0, 905, 0.44, 0.22, 0.05, 30, 3, 44, , , , 0.09, 0, 0.06, 0.03, 0.02, 2026-06-30",
-    "PERSISTENT, 6200, 5900, 6050, 5400, 64, 1.5, 6100, 5800, I, 0, 0, 6400, 0.42, 0.2, 0.14, 9, 2, 30, , , , 0.13, 0, 0.18, 0.22, 0.2, 2026-06-30",
-    "TATAPOWER, 452, 448, 455, 410, 49, 0.9, 465, 435, Lag, 0, 0, 465, 0.3, 0.14, 0, 0, 1, 20, , , , 0.22, 0, 0.05, -0.08, -0.09, 2026-06-30",
-    "IRCTC, 810, 825, 840, 790, 43, 0.8, 850, 800, Lag, 0, 0, 850, 0.25, 0.11, 0, 0, 0, 12, , , , 0.35, 0, 0.02, -0.03, -0.04, 2026-06-30"
+    "# cols: SYM,price,EMA20,EMA50,EMA200,RSI,volR,breakout,support,sector,macd,hhhl,resist,probT1,probT10,basePct,baseBars,stage2,RS,setup,trigger,trigWR,athPct,blueSky,revYoY,profYoY,epsYoY,qDate,profYoYPrev,ttmYoY",
+    "HINDZINC, 627, 598, 560, 505, 69, 2.3, 620, 606, L, 1, 1, 0, 0.58, 0.33, 0.06, 22, 6, 88, HDF, inside-bar@0, 0.61, 0.01, 1, 0.19, 0.34, 0.31, 2026-06-30, 0.26, 0.3",
+    "BEL, 415, 402, 395, 360, 66, 1.9, 409, 391, L, 1, 1, 0, 0.55, 0.31, 0.07, 18, 6, 84, BOB, hammer@1, 0.62, 0.03, 1, 0.21, 0.28, 0.27, 2026-06-30, 0.33, 0.24",
+    "JINDALSTEL, 1175, 1120, 1090, 1010, 60, 1.4, 1160, 1120, L, 1, 1, 1240, 0.5, 0.27, 0.11, 26, 5, 76, LBB, , , 0.11, 0, 0.08, 0.12, 0.1, 2026-03-31, 0.21, 0.1",
+    "MEESHO, 205, 198, 190, 0, 63, 1.4, 200, 191, I, 1, 1, 0, 0.5, 0.26, 0.08, 14, 5, 72, S2P, pin-bar@0, 0.58, 0.05, 0, 0.33, 99, 99, 2026-06-30, , ",
+    "SAIL, 195, 190, 185, 132, 55, 0.9, 201, 188, L, 1, 0, 201, 0.44, 0.22, 0.06, 20, 5, 66, COIL, , , 0.14, 0, -0.04, -0.22, -0.21, 2026-06-30, -0.1, -0.15",
+    "NYKAA, 341, 333, 325, 300, 58, 1.3, 339, 328, I, 1, 1, 360, 0.47, 0.24, 0.09, 20, 4, 55, , , , 0.16, 0, 0.24, 0.55, 0.5, 2026-06-30, 0.4, 0.48",
+    "TMB, 892, 878, 870, 845, 55, 1.1, 905, 862, I, 1, 0, 905, 0.44, 0.22, 0.05, 30, 3, 44, , , , 0.09, 0, 0.06, 0.03, 0.02, 2026-06-30, 0.05, 0.04",
+    "PERSISTENT, 6200, 5900, 6050, 5400, 64, 1.5, 6100, 5800, I, 0, 0, 6400, 0.42, 0.2, 0.14, 9, 2, 30, , , , 0.13, 0, 0.18, 0.22, 0.2, 2026-06-30, 0.19, 0.21",
+    "TATAPOWER, 452, 448, 455, 410, 49, 0.9, 465, 435, Lag, 0, 0, 465, 0.3, 0.14, 0, 0, 1, 20, , , , 0.22, 0, 0.05, -0.08, -0.09, 2026-06-30, 0.02, -0.03",
+    "IRCTC, 810, 825, 840, 790, 43, 0.8, 850, 800, Lag, 0, 0, 850, 0.25, 0.11, 0, 0, 0, 12, , , , 0.35, 0, 0.02, -0.03, -0.04, 2026-06-30, 0, -0.02"
   ].join("\n");
 
   /* ---------- persistence ---------- */
@@ -898,6 +904,8 @@ details.sub textarea{width:100%;min-height:116px;margin-top:8px;background:var(-
       d.profYoY = pf(25);
       d.epsYoY = pf(26);
       d.qDate = (p[27]||"").trim();
+      d.profYoYPrev = pf(28);
+      d.ttmYoY = pf(29);
       var st = deriveStructure(d.price, d.breakout, d.basePct, d.baseBars, d.volRatio);
       d.structurePts=st.pts; d.structureLbl=st.label;
       rows.push(d);
@@ -981,7 +989,74 @@ details.sub textarea{width:100%;min-height:116px;margin-top:8px;background:var(-
     var mark = g.code==="superb" ? "★" : g.code==="weak" ? "▼" : g.code==="good" ? "▲" : "·";
     var tip = "Latest quarter" + (d.qDate?" (ended "+d.qDate+")":"") +
       "  ·  profit " + pctTxt(pr) + " YoY  ·  sales " + pctTxt(d.revYoY) + " YoY";
-    return '<span class="'+g.cls+'" title="'+esc(tip)+'" style="font-size:11px;white-space:nowrap">'+mark+' '+pctTxt(pr)+'</span>';
+    var t = resultTiming(d.qDate);
+    var extra = "";
+    if(t){
+      tip += "  ·  reported ≈ " + t.repTxt + " (est.)  ·  next ≈ " + t.nextTxt + " (est.)";
+      var ex = resultExpectation(d);
+      if(t.dueSoon){
+        var ecls = (ex && /negative/.test(ex.lean)) ? "neg" : (ex && /positive/.test(ex.lean)) ? "pos" : "warn";
+        var dueTxt = /\d/.test(t.toNextTxt) ? "~"+t.toNextTxt : t.toNextTxt;
+        tip += "  —  NEXT RESULT DUE " + dueTxt + (ex ? "; market expectation " + ex.lean : "");
+        extra = ' <span class="'+ecls+'" title="'+esc(tip)+'" style="font-size:10px">⚠ result '+dueTxt+'</span>';
+      } else {
+        extra = ' <span class="dim" style="font-size:10px" title="'+esc(tip)+'">· '+t.agoTxt+'</span>';
+      }
+    }
+    return '<span class="'+g.cls+'" title="'+esc(tip)+'" style="font-size:11px;white-space:nowrap">'+mark+' '+pctTxt(pr)+'</span>'+extra;
+  }
+
+  // ---- when the last result landed / when the next one is due (estimated from the quarter-end) ----
+  // Indian companies must file quarterly results within ~45 days of quarter-end (SEBI LODR); ~25–45 typical.
+  function resultTiming(qDate){
+    if(!qDate) return null;
+    var q = new Date(qDate + "T00:00:00");
+    if(isNaN(q.getTime())) return null;
+    var LAG = 40 * 86400000;
+    var reported = new Date(q.getTime() + LAG);
+    var nextQ = new Date(q.getTime()); nextQ.setMonth(nextQ.getMonth() + 3);
+    var nextRep = new Date(nextQ.getTime() + LAG);
+    var now = new Date(); now.setHours(0,0,0,0);
+    var agoDays = Math.round((now - reported) / 86400000);
+    var toNext = Math.round((nextRep - now) / 86400000);
+    var MON = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+    var fmt = function(dt){ return MON[dt.getMonth()] + " " + dt.getFullYear(); };
+    return {
+      reported: reported, nextRep: nextRep, agoDays: agoDays, toNext: toNext,
+      dueSoon: toNext <= 21 && toNext >= -25,
+      repTxt: fmt(reported), nextTxt: fmt(nextRep),
+      agoTxt: agoDays < 0 ? "just now" : agoDays < 14 ? agoDays + "d ago" : Math.round(agoDays/7) + "w ago",
+      toNextTxt: toNext <= -7 ? "overdue" : toNext <= 3 ? "any day" : toNext < 14 ? toNext + "d" : Math.round(toNext/7) + "w"
+    };
+  }
+
+  // ---- if a result is expected soon, is the market positioned for a beat or a miss? ----
+  // fundamental leg = the earnings-growth trajectory (level + acceleration, incl. TTM);
+  // price leg = how the stock is trading into the print (Stage-2 / RS / new highs).
+  function resultExpectation(d){
+    var g = (d.epsYoY!=null ? d.epsYoY : (d.profYoY!=null ? d.profYoY : (d.ttmYoY!=null ? d.ttmYoY : null)));
+    var accel = (d.profYoY!=null && d.profYoYPrev!=null) ? d.profYoY - d.profYoYPrev : null;
+    var fund = 0, fbits = [];
+    if(g!=null){
+      fund += g>=0.25?2 : g>=0.10?1 : g>=0?0 : g>=-0.10?-1 : -2;
+      fbits.push("profit "+pctTxt(g)+" YoY");
+    }
+    if(d.ttmYoY!=null && d.ttmYoY!==g){ fund += d.ttmYoY>=0.15?1 : d.ttmYoY<0?-1:0; fbits.push("TTM "+pctTxt(d.ttmYoY)); }
+    if(accel!=null){
+      fund += accel>=0.05?1 : accel<=-0.10?-1 : 0;
+      fbits.push(accel>=0.05?"accelerating" : accel<=-0.10?"decelerating" : "steady");
+    }
+    var s2 = d.stage2||0, rs = (d.rs!=null ? d.rs : 50), price = 0, pbits = [];
+    if(s2>=5 && rs>=75){ price += 2; pbits.push("Stage-2 leader, RS "+Math.round(rs)); }
+    else if(s2>=4 && rs>=60){ price += 1; pbits.push("uptrend, RS "+Math.round(rs)); }
+    else if(s2<=2 || rs<40){ price -= 2; pbits.push("weak trend, RS "+Math.round(rs)); }
+    else if(rs<50){ price -= 1; pbits.push("lagging, RS "+Math.round(rs)); }
+    if(d.blueSky){ price += 1; pbits.push("at all-time highs"); }
+    var score = fund + price;
+    var lean = score>=3 ? "positive" : score>=1 ? "leaning positive"
+             : score<=-3 ? "negative" : score<=-1 ? "leaning negative" : "neutral";
+    return { score:score, fund:fund, price:price, lean:lean,
+             reason: (fbits.join(", ") || "no earnings trend") + "; price " + (pbits.join(", ") || "mid-trend") };
   }
 
   function rowSetup(d){
@@ -1129,6 +1204,7 @@ details.sub textarea{width:100%;min-height:116px;margin-top:8px;background:var(-
     var trg = evals.filter(function(e){ var t=trigParts(e.d); return t && t.ago<=2; }).length;
     var strongRes = evals.filter(function(e){ var c=resultGrade(e.d).code; return c==="good" || c==="superb"; }).length;
     var weakRes = evals.filter(function(e){ return resultGrade(e.d).code==="weak"; }).length;
+    var dueRes = evals.filter(function(e){ var t=resultTiming(e.d.qDate); return t && t.dueSoon; }).length;
     var aplus = evals.filter(function(e){ return setupGrade(e.d)==="A+"; }).length;
     var topRs = evals.slice().filter(function(e){return e.d.rs!=null;}).sort(function(a,b){return b.d.rs-a.d.rs;})[0];
     summary.innerHTML =
@@ -1137,7 +1213,7 @@ details.sub textarea{width:100%;min-height:116px;margin-top:8px;background:var(-
       '<span class="chip"><b>'+s2n+'</b> Stage-2'+(hdf?' ('+hdf+' High Dry Fry)':'')+'</span>'+
       '<span class="chip"><b>'+ath+'</b> at ATH</span>'+
       '<span class="chip"><b>'+trg+'</b> triggered</span>'+
-      '<span class="chip"><b>'+strongRes+'</b> strong results'+(weakRes?' · '+weakRes+' shrinking':'')+'</span>'+
+      '<span class="chip"><b>'+strongRes+'</b> strong results'+(weakRes?' · '+weakRes+' shrinking':'')+(dueRes?' · <span class="warn">'+dueRes+' result due</span>':'')+'</span>'+
       '<span class="chip"><b>'+act+'</b> actionable</span>'+
       (topRs?'<span class="chip">strongest: <b>'+esc(topRs.d.symbol)+'</b> RS '+topRs.d.rs+'</span>':'')+
       (best?'<span class="chip">top score: <b>'+esc(best.d.symbol)+'</b> ('+best.sc.total+')</span>':'');
@@ -1190,7 +1266,8 @@ details.sub textarea{width:100%;min-height:116px;margin-top:8px;background:var(-
       basePct:d.basePct||0, baseBars:d.baseBars||0, stage2:d.stage2||0, rs:(d.rs!=null?d.rs:null), setup:d.setup||"",
       trig:d.trig||"", trigWR:(d.trigWR!=null?d.trigWR:null), trigN:d.trigN||0,
       blueSky:d.blueSky||0, athPct:(d.athPct!=null?d.athPct:null), fibZone:d.fibZone||"", fibRetr:(d.fibRetr!=null?d.fibRetr:null),
-      revYoY:(d.revYoY!=null?d.revYoY:null), profYoY:(d.profYoY!=null?d.profYoY:null), epsYoY:(d.epsYoY!=null?d.epsYoY:null), qDate:d.qDate||""};
+      revYoY:(d.revYoY!=null?d.revYoY:null), profYoY:(d.profYoY!=null?d.profYoY:null), epsYoY:(d.epsYoY!=null?d.epsYoY:null), qDate:d.qDate||"",
+      profYoYPrev:(d.profYoYPrev!=null?d.profYoYPrev:null), ttmYoY:(d.ttmYoY!=null?d.ttmYoY:null)};
     runAnalyzer();
   }
 
@@ -1207,7 +1284,8 @@ details.sub textarea{width:100%;min-height:116px;margin-top:8px;background:var(-
       macdPos:$("#a_macd").checked, hhhl:$("#a_hhhl").checked
     };
     if(aScan && aScan.symbol===d.symbol){ d.probT1=aScan.probT1; d.probT10=aScan.probT10; d.probN=aScan.probN; d.basePct=aScan.basePct; d.baseBars=aScan.baseBars; d.stage2=aScan.stage2; d.rs=aScan.rs; d.setup=aScan.setup; d.trig=aScan.trig; d.trigWR=aScan.trigWR; d.trigN=aScan.trigN; d.blueSky=aScan.blueSky; d.athPct=aScan.athPct; d.fibZone=aScan.fibZone; d.fibRetr=aScan.fibRetr;
-      d.revYoY=aScan.revYoY; d.profYoY=aScan.profYoY; d.epsYoY=aScan.epsYoY; d.qDate=aScan.qDate; }
+      d.revYoY=aScan.revYoY; d.profYoY=aScan.profYoY; d.epsYoY=aScan.epsYoY; d.qDate=aScan.qDate;
+      d.profYoYPrev=aScan.profYoYPrev; d.ttmYoY=aScan.ttmYoY; }
     return d;
   }
 
@@ -1293,6 +1371,24 @@ details.sub textarea{width:100%;min-height:116px;margin-top:8px;background:var(-
     } else if(state.fetchResults!==false){
       notes.push({c:"warn", t:"No quarterly-result data for "+d.symbol+" (Yahoo didn't return it). Check the last two quarters' sales & profit growth on screener.in before entering."});
     }
+    // when the last result landed + when the next one is due + how the market is positioned for it
+    var rtim = resultTiming(d.qDate);
+    if(rtim){
+      notes.push({c:"warn", t:"Last result: quarter ended "+d.qDate+", so it was reported around "+rtim.repTxt+
+        " — about "+rtim.agoTxt.replace(" ago","")+" ago (estimate: NSE companies file within ~45 days of quarter-end; confirm the exact date on screener.in)."});
+      var rexp = resultExpectation(d);
+      if(rtim.dueSoon){
+        var ecls2 = rexp && /negative/.test(rexp.lean) ? "neg" : "warn";
+        var away = /\d/.test(rtim.toNextTxt) ? rtim.toNextTxt+" away" : rtim.toNextTxt;
+        notes.push({c:ecls2, t:"⚠ Next quarterly result is due around "+rtim.nextTxt+" ("+away+", estimated). "+
+          (rexp ? "Market expectation into the print: "+rexp.lean.toUpperCase()+" — "+rexp.reason+". " : "")+
+          "A swing entry now holds through a binary event — the playbook says wait until after the result, or cut size hard."});
+      } else if(rexp && d.profYoY!=null && d.profYoYPrev!=null){
+        var trend = d.profYoY - d.profYoYPrev >= 0.05 ? "accelerating" : d.profYoY - d.profYoYPrev <= -0.10 ? "decelerating" : "holding steady";
+        notes.push({c:"warn", t:"Earnings momentum: net-profit growth went "+pctTxt(d.profYoYPrev)+" → "+pctTxt(d.profYoY)+" YoY over the last two quarters — "+trend+
+          (d.ttmYoY!=null?" (trailing-12-month profit "+pctTxt(d.ttmYoY)+")":"")+". Next result ~"+rtim.nextTxt+" — the market is likely to keep pricing "+(trend==="accelerating"?"this in":trend==="decelerating"?"the slowdown in":"in line")+"."});
+      }
+    }
 
     var evLine = "";
     if(ex){
@@ -1305,10 +1401,12 @@ details.sub textarea{width:100%;min-height:116px;margin-top:8px;background:var(-
     }
     var resLine = "";
     if(rg.code!=="?"){
+      var rtim2 = resultTiming(d.qDate);
       resLine = '<p class="note"><b class="'+rg.cls+'">Latest results — '+rg.label+'</b>'+
-        (d.qDate?' <span class="dim">(Q ended '+esc(d.qDate)+')</span>':'')+'<br>'+
+        (d.qDate?' <span class="dim">(Q ended '+esc(d.qDate)+(rtim2?', reported ≈ '+esc(rtim2.repTxt):'')+')</span>':'')+'<br>'+
         'Profit '+esc(pctTxt(d.epsYoY!=null?d.epsYoY:d.profYoY))+' YoY'+
-        (d.epsYoY!=null?' (EPS)':'')+'  ·  Sales '+esc(pctTxt(d.revYoY))+' YoY</p>';
+        (d.epsYoY!=null?' (EPS)':'')+'  ·  Sales '+esc(pctTxt(d.revYoY))+' YoY'+
+        (rtim2?'<br><span class="dim">Next result ≈ '+esc(rtim2.nextTxt)+(rtim2.dueSoon?' — <b class="warn">due soon</b>':'')+'</span>':'')+'</p>';
     }
 
     card.innerHTML =
@@ -2121,7 +2219,7 @@ details.sub textarea{width:100%;min-height:116px;margin-top:8px;background:var(-
       blueSky: (bsky.newHigh && bsky.above) ? 1 : 0,
       fibZone: fib ? fib.zone : "",
       fibRetr: fib ? Math.round(fib.retr*100)/100 : null,
-      revYoY: null, profYoY: null, epsYoY: null, qDate: ""   // filled in later by applyFund() if results are fetched
+      revYoY: null, profYoY: null, epsYoY: null, qDate: "", profYoYPrev: null, ttmYoY: null   // filled in later by applyFund()
     };
   }
   function rowToCsv(r, leadingSet){
@@ -2130,7 +2228,8 @@ details.sub textarea{width:100%;min-height:116px;margin-top:8px;background:var(-
       r.macd?1:0, r.hhhl?1:0, r.resistance||0, (r.probT1==null?"":r.probT1), (r.probT10==null?"":r.probT10),
       r.basePct||0, r.baseBars||0, r.stage2||0, (r.rs==null?"":r.rs), (r.setup||""),
       (r.trig||""), (r.trigWR==null?"":r.trigWR), (r.athPct==null?"":r.athPct), (r.blueSky||0),
-      (r.revYoY==null?"":r.revYoY), (r.profYoY==null?"":r.profYoY), (r.epsYoY==null?"":r.epsYoY), (r.qDate||"")].join(", ");
+      (r.revYoY==null?"":r.revYoY), (r.profYoY==null?"":r.profYoY), (r.epsYoY==null?"":r.epsYoY), (r.qDate||""),
+      (r.profYoYPrev==null?"":r.profYoYPrev), (r.ttmYoY==null?"":r.ttmYoY)].join(", ");
   }
 
   /* ---------- auto-screen: fetch adapters ---------- */
@@ -2211,7 +2310,7 @@ details.sub textarea{width:100%;min-height:116px;margin-top:8px;background:var(-
     var now = Math.floor(Date.now()/1000), t = encodeURIComponent(sym + ".NS");
     return "https://query1.finance.yahoo.com/ws/fundamentals-timeseries/v1/finance/timeseries/" + t +
       "?symbol=" + t +
-      "&type=quarterlyTotalRevenue,quarterlyNetIncome,quarterlyDilutedEPS" +
+      "&type=quarterlyTotalRevenue,quarterlyNetIncome,quarterlyDilutedEPS,trailingNetIncome" +
       "&period1=1483228800&period2=" + now;
   }
   var FUND_TURNAROUND = 99;   // sentinel: swung from a YoY loss to a profit
@@ -2222,20 +2321,21 @@ details.sub textarea{width:100%;min-height:116px;margin-top:8px;background:var(-
     if(prev < 0 && cur < 0) return (Math.abs(prev) - Math.abs(cur)) / Math.abs(prev);  // smaller loss = less-negative = positive
     return null;
   }
-  // YoY: match the latest quarter to the entry ~365d earlier (Yahoo sometimes drops a quarter,
-  // so index-back-4 is unreliable). Returns null when there's no quarter within ~8 weeks of a year ago.
-  function fundYoY(arr){
-    if(!arr || arr.length < 2) return null;
-    var cur = arr[arr.length-1], curT = Date.parse(cur.d);
+  // YoY for arr[idx] vs the entry ~365d earlier (Yahoo sometimes drops a quarter, so
+  // index-back-4 is unreliable — date-match instead). null if no quarter within ~8 weeks of a year ago.
+  function fundYoYAt(arr, idx){
+    if(!arr || idx < 1 || idx >= arr.length) return null;
+    var cur = arr[idx], curT = Date.parse(cur.d);
     if(!isFinite(curT)) return null;
     var want = curT - 365*86400000, best = null, err = 1e15;
-    for(var i=0;i<arr.length-1;i++){
+    for(var i=0;i<idx;i++){
       var e = Math.abs(Date.parse(arr[i].d) - want);
       if(e < err){ err = e; best = arr[i]; }
     }
     if(!best || err > 56*86400000) return null;
     return fundGrowth(cur.v, best.v);
   }
+  function fundYoY(arr){ return arr ? fundYoYAt(arr, arr.length - 1) : null; }
   function parseFund(txt){
     var j; try{ j = JSON.parse(txt); }catch(e){ return null; }
     var res = j && j.timeseries && j.timeseries.result;
@@ -2251,14 +2351,19 @@ details.sub textarea{width:100%;min-height:116px;margin-top:8px;background:var(-
     }
     var rev = series("quarterlyTotalRevenue"),
         ni  = series("quarterlyNetIncome"),
-        eps = series("quarterlyDilutedEPS");
+        eps = series("quarterlyDilutedEPS"),
+        ttm = series("trailingNetIncome");
+    // EPS is 0 / null for many NSE tickers on Yahoo — ignore a dead series
+    if(eps.length && Math.abs(eps[eps.length-1].v) < 0.02) eps = [];
     if(rev.length < 2 && ni.length < 2 && eps.length < 2) return null;
     var last = ni[ni.length-1] || rev[rev.length-1] || eps[eps.length-1] || {};
     return {
-      qDate:  last.d || "",
-      revYoY: fundYoY(rev),
-      profYoY: fundYoY(ni),
-      epsYoY: fundYoY(eps)
+      qDate:      last.d || "",
+      revYoY:     fundYoY(rev),
+      profYoY:    fundYoY(ni),
+      profYoYPrev: fundYoYAt(ni, ni.length - 2),   // the quarter before — for acceleration
+      epsYoY:     fundYoY(eps),
+      ttmYoY:     fundYoY(ttm)                     // trailing-12-month net income YoY (seasonality-free)
     };
   }
   function fetchFundamentals(sym, cfg, signal){
@@ -2273,6 +2378,8 @@ details.sub textarea{width:100%;min-height:116px;margin-top:8px;background:var(-
     row.profYoY = r3(f.profYoY);
     row.epsYoY = r3(f.epsYoY);
     row.qDate = f.qDate || "";
+    row.profYoYPrev = r3(f.profYoYPrev);
+    row.ttmYoY = r3(f.ttmYoY);
   }
   function tdGet(url, signal){
     return fetchTimeout(url, 20000, signal).then(function(r){
