@@ -237,6 +237,9 @@ details.sub textarea{width:100%;min-height:116px;margin-top:8px;background:var(-
 .cx-ocem{fill:var(--accent-soft);opacity:.28}
 .cx-asof{font-size:11px;color:var(--muted);margin:2px 0 4px}
 .cx-asof.warn{color:var(--warn);font-weight:500}
+rect.cx-up.cx-live,rect.cx-dn.cx-live{fill:none;stroke-width:1.4}
+rect.cx-up.cx-live{stroke:var(--pos)} rect.cx-dn.cx-live{stroke:var(--neg)}
+.cx-line.cx-now{stroke:var(--ink);stroke-dasharray:1 2;opacity:.8} .cx-flab.cx-now{fill:var(--ink);font-weight:600}
 table.oc-guide{width:100%;border-collapse:collapse;font-size:12px;margin:6px 0}
 table.oc-guide th,table.oc-guide td{border:1px solid var(--line);padding:5px 8px;text-align:left;vertical-align:top}
 table.oc-guide th{background:var(--surface-2);font-weight:600}
@@ -287,7 +290,7 @@ table.oc-guide td:first-child{white-space:nowrap;width:1%}
     <span class="mark" aria-hidden="true">₹</span>
     <div>
       <h1>The 10% Ledger</h1>
-      <p>Momentum + pullback screener · NSE swing setups <span style="opacity:.5;font-size:11px">· build 2026-09-02</span></p>
+      <p>Momentum + pullback screener · NSE swing setups <span style="opacity:.5;font-size:11px">· build 2026-09-02b</span></p>
     </div>
   </div>
   <div class="controls">
@@ -1741,9 +1744,10 @@ table.oc-guide td:first-child{white-space:nowrap;width:1%}
     }
     for(var i=0;i<n;i++){
       var up=C[i]>=O[i], cls=up?"cx-up":"cx-dn", xc=X(i);
+      var liveBar = opts.liveLast && i===n-1;
       g.push('<line x1="'+f1(xc)+'" y1="'+f1(Y(H[i]))+'" x2="'+f1(xc)+'" y2="'+f1(Y(L[i]))+'" class="'+cls+' cx-wick"/>');
       var yo=Y(O[i]), yc=Y(C[i]);
-      g.push('<rect x="'+f1(xc-cw/2)+'" y="'+f1(Math.min(yo,yc))+'" width="'+f1(cw)+'" height="'+f1(Math.max(1,Math.abs(yo-yc)))+'" class="'+cls+'"/>');
+      g.push('<rect x="'+f1(xc-cw/2)+'" y="'+f1(Math.min(yo,yc))+'" width="'+f1(cw)+'" height="'+f1(Math.max(1,Math.abs(yo-yc)))+'" class="'+cls+(liveBar?' cx-live':'')+'"/>');
       g.push('<rect x="'+f1(xc-cw/2)+'" y="'+f1(VY(V[i]))+'" width="'+f1(cw)+'" height="'+f1(Math.max(0,VB-VY(V[i])))+'" class="'+cls+' cx-vol"/>');
     }
     function poly(arr,cls){
@@ -1792,6 +1796,7 @@ table.oc-guide td:first-child{white-space:nowrap;width:1%}
     g.push(hline(opts.entry,"cx-ent","Entry"));
     g.push(hline(opts.stop,"cx-stp","Stop"));
     g.push(hline(opts.t10,"cx-tgt","+10%"));
+    if(opts.liveLast && opts.livePrice>0) g.push(hline(opts.livePrice,"cx-now","now"));
     // option-chain overlays (manual input, Analyzer)
     g.push(hline(opts.ocPut,"cx-ocput","Put wall"));
     g.push(hline(opts.ocCall,"cx-occall","Call wall"));
@@ -1824,9 +1829,19 @@ table.oc-guide td:first-child{white-space:nowrap;width:1%}
       var series = tf==="weekly" ? toWeekly(o) : o;
       if(series.c.length<20){ host.innerHTML='<p class="empty">not enough history for a weekly chart</p>'; return; }
       var age = chartAge(o), last = o.d[o.d.length-1];
-      var meta = (staleNote || age>3)
-        ? '<div class="cx-asof warn">Data only through '+esc(last)+' ('+age+' day'+(age===1?'':'s')+' old)'+(staleNote?' — couldn’t fetch fresh candles':'')+'. Press <b>↻ live</b> to update.</div>'
-        : '<div class="cx-asof">Data through '+esc(last)+'.</div>';
+      opts.liveLast = !!o.liveLast;
+      opts.livePrice = o.liveLast ? o.c[o.c.length-1] : 0;
+      var meta = o.liveLast
+        ? '<div class="cx-asof">Live — last candle is today ('+esc(last)+'), still forming at '+nfmt(opts.livePrice)+'.</div>'
+        : (staleNote || age>3)
+          ? '<div class="cx-asof warn">Data only through '+esc(last)+' ('+age+' day'+(age===1?'':'s')+' old)'+(staleNote?' — couldn’t fetch fresh candles':'')+'. Press <b>↻ live</b> to update.</div>'
+          : '<div class="cx-asof">Data through '+esc(last)+(age>=1?' (last completed session)':'')+'.</div>';
+      var latest = o.c[o.c.length-1];
+      if(d.price>0 && latest>0){
+        var drift = (latest - d.price)/d.price;
+        if(Math.abs(drift) >= 0.015)
+          meta += '<div class="cx-asof warn">Since this was scored, price moved '+(drift>0?'+':'')+(drift*100).toFixed(1)+'% ('+nfmt(d.price)+' → '+nfmt(latest)+'). The score, entry and targets above are from the earlier data — re-scan or re-evaluate before acting.</div>';
+      }
       host.innerHTML = chartLegend(tf) + meta + buildChartSVG(series, opts);
       renderHold(sym, o);
     }
@@ -1847,7 +1862,7 @@ table.oc-guide td:first-child{white-space:nowrap;width:1%}
     }
     host.innerHTML='<p class="empty">'+(cached?'refreshing chart…':'loading chart…')+'</p>';
     fetchCandles(sym).then(function(o){
-      var norm={o:o.open||o.close, h:o.high, l:o.low, c:o.close, v:o.volume, d:o.dates};
+      var norm={o:o.open||o.close, h:o.high, l:o.low, c:o.close, v:o.volume, d:o.dates, liveLast:!!o.liveLast};
       chartCache[sym]=norm; draw(norm);
     }).catch(function(err){
       if(cached){ draw(cached, true); return; }
@@ -2517,15 +2532,24 @@ table.oc-guide td:first-child{white-space:nowrap;width:1%}
     if(!r){ throw new Error((j&&j.chart&&j.chart.error&&j.chart.error.description) || "no data"); }
     var q = r.indicators && r.indicators.quote && r.indicators.quote[0];
     if(!q) throw new Error("no quote data");
-    var out = {open:[], close:[], high:[], low:[], volume:[], dates:[]};
-    (r.timestamp||[]).forEach(function(ts,i){
-      if(q.close[i]==null) return;
-      out.close.push(q.close[i]);
-      out.open.push(q.open && q.open[i]!=null ? q.open[i] : q.close[i]);
-      out.high.push(q.high && q.high[i]!=null ? q.high[i] : q.close[i]);
-      out.low.push(q.low && q.low[i]!=null ? q.low[i] : q.close[i]);
+    var rmp = (r.meta && r.meta.regularMarketPrice) || 0;
+    var out = {open:[], close:[], high:[], low:[], volume:[], dates:[], liveLast:false};
+    var ts = r.timestamp || [];
+    ts.forEach(function(t,i){
+      var c = q.close[i];
+      if(c==null){
+        // today's still-forming bar: Yahoo leaves close null — use the live price so the
+        // chart shows where the stock is NOW, not yesterday's close. Flagged as `liveLast`.
+        if(i===ts.length-1 && rmp>0 && q.open && q.open[i]!=null){ c = rmp; out.liveLast = true; }
+        else return;
+      }
+      var o = (q.open && q.open[i]!=null) ? q.open[i] : c;
+      out.close.push(c);
+      out.open.push(o);
+      out.high.push(q.high && q.high[i]!=null ? Math.max(q.high[i], c, o) : Math.max(c, o));
+      out.low.push(q.low && q.low[i]!=null ? Math.min(q.low[i], c, o) : Math.min(c, o));
       out.volume.push(q.volume && q.volume[i]!=null ? q.volume[i] : 0);
-      out.dates.push(new Date(ts*1000).toISOString().slice(0,10));
+      out.dates.push(new Date(t*1000).toISOString().slice(0,10));
     });
     if(out.close.length<40) throw new Error("thin data");
     return out;
