@@ -231,6 +231,16 @@ details.sub textarea{width:100%;min-height:116px;margin-top:8px;background:var(-
 .cx-trig{fill:var(--accent);stroke:var(--accent)}
 .cx-fib{stroke:var(--warn);stroke-width:1;stroke-dasharray:1 4;opacity:.55}
 .cx-flab.cx-fiblab{fill:var(--warn);opacity:.7}
+.cx-line.cx-ocput{stroke:var(--pos);stroke-dasharray:2 2;opacity:.75} .cx-flab.cx-ocput{fill:var(--pos);opacity:.8}
+.cx-line.cx-occall{stroke:var(--neg);stroke-dasharray:2 2;opacity:.75} .cx-flab.cx-occall{fill:var(--neg);opacity:.8}
+.cx-line.cx-ocmp{stroke:var(--muted);stroke-dasharray:1 2;opacity:.6} .cx-flab.cx-ocmp{fill:var(--muted);opacity:.7}
+.cx-ocem{fill:var(--accent-soft);opacity:.28}
+.cx-asof{font-size:11px;color:var(--muted);margin:2px 0 4px}
+.cx-asof.warn{color:var(--warn);font-weight:500}
+table.oc-guide{width:100%;border-collapse:collapse;font-size:12px;margin:6px 0}
+table.oc-guide th,table.oc-guide td{border:1px solid var(--line);padding:5px 8px;text-align:left;vertical-align:top}
+table.oc-guide th{background:var(--surface-2);font-weight:600}
+table.oc-guide td:first-child{white-space:nowrap;width:1%}
 
 /* hold vs exit */
 .hverdict{border-radius:8px;padding:11px 13px;font-size:13px;line-height:1.55}
@@ -522,6 +532,51 @@ details.sub textarea{width:100%;min-height:116px;margin-top:8px;background:var(-
       <div id="hold"><p class="empty">Runs when a chart is loaded. Reframes the exit decision around the trend and probability — not your cost.</p></div>
     </div>
 
+    <div class="panel" id="ocPanel">
+      <h2>Option chain <span class="hint" style="font-weight:400">— optional</span></h2>
+      <p class="hint"><b>New to option chains? You can skip this entire panel</b> — the score, chart, targets and everything else work without it. It only adds a second opinion from the options market. If you want it: open <a href="https://www.nseindia.com/option-chain" target="_blank" rel="noopener">nseindia.com → Option Chain</a> (free, pick your stock at the top), or the free option-chain view on <a href="https://web.sensibull.com" target="_blank" rel="noopener">Sensibull</a>, and copy the numbers below. Only for stocks that have options (F&amp;O / “derivatives” stocks) — if the chain page is empty, this stock has no options and you skip it.</p>
+
+      <details class="sub" id="ocGuide">
+        <summary>Where each number is on the option-chain page</summary>
+        <table class="oc-guide">
+          <tr><th>Field</th><th>What it is / where to look</th></tr>
+          <tr><td><b>Days to expiry</b></td><td>Number of days from today to the expiry date shown at the top of the chain. Stock options expire on the <b>last Thursday of the month</b>. This box is pre-filled with that count — only change it if you're looking at a different expiry.</td></tr>
+          <tr><td><b>ATM implied volatility %</b></td><td>Find the row whose strike is closest to the current share price (often shaded — the “at-the-money” row). Read the <b>IV</b> number from either the call or put side. It's a percentage, usually 15–45 for large caps. This is the single most useful input.</td></tr>
+          <tr><td><b>Expected move ± ₹</b></td><td>Only some platforms show this directly (Sensibull labels it “Expected move” or “1 SD”). If yours does, type that rupee figure and you can leave IV blank. Otherwise skip it.</td></tr>
+          <tr><td><b>Max pain</b></td><td>A single strike price, usually printed near the top or bottom of the chain and labelled “Max Pain”. If your page doesn't show it, leave it blank.</td></tr>
+          <tr><td><b>Highest Call OI strike</b></td><td>Look down the <b>Call OI</b> column (open interest, call side), find the <b>biggest number</b>, then read across to that row's <b>strike price</b>. Type the strike, not the OI number. This strike tends to act as a ceiling.</td></tr>
+          <tr><td><b>Highest Put OI strike</b></td><td>Same, on the <b>Put OI</b> column — biggest number → its strike price. Tends to act as a floor.</td></tr>
+          <tr><td><b>PCR (OI)</b></td><td>Put-Call Ratio. Many chains print it at the bottom (“PCR” or “Total PE/CE OI”). If not shown: total Put OI ÷ total Call OI. Above 1 = more puts open, below 1 = more calls.</td></tr>
+        </table>
+        <p class="hint">You don't need all seven. Even just <b>days to expiry + ATM IV</b> gives you the implied range; adding the two OI strikes gives you the walls. Fill what you can find.</p>
+      </details>
+
+      <div class="form-grid" id="ocForm">
+        <label>Days to expiry
+          <input id="oc_dte" type="text" inputmode="decimal" placeholder="auto-filled">
+        </label>
+        <label>ATM implied volatility % (annual)
+          <input id="oc_iv" type="text" inputmode="decimal" placeholder="the IV of the strike nearest spot">
+        </label>
+        <label>Expected move ± ₹ (optional)
+          <input id="oc_em" type="text" inputmode="decimal" placeholder="only if your platform shows it">
+        </label>
+        <label>Max pain (₹)
+          <input id="oc_maxpain" type="text" inputmode="decimal" placeholder="the “Max Pain” strike">
+        </label>
+        <label>Highest Call OI strike (₹)
+          <input id="oc_callwall" type="text" inputmode="decimal" placeholder="strike with the biggest Call OI">
+        </label>
+        <label>Highest Put OI strike (₹)
+          <input id="oc_putwall" type="text" inputmode="decimal" placeholder="strike with the biggest Put OI">
+        </label>
+        <label>PCR (OI)
+          <input id="oc_pcr" type="text" inputmode="decimal" placeholder="e.g. 1.20 — often at the bottom">
+        </label>
+      </div>
+      <div id="ocOut"><p class="empty">Fill what you can from the option chain (even just IV + days to expiry). You'll get: the range the options market is pricing for this expiry, the strikes acting as support / resistance, and one line on whether the options market <b>backs or fights</b> this swing setup. It's a range and a lean — <b>not</b> a price prediction.</p></div>
+    </div>
+
     <div class="panel">
       <h2>Watchlist</h2>
       <div id="watchlist"><p class="empty">No saved setups yet.</p></div>
@@ -678,6 +733,20 @@ details.sub textarea{width:100%;min-height:116px;margin-top:8px;background:var(-
       <h3>The chart</h3>
       <p>Open any stock with <b>Analyze →</b> and the Analyzer draws a candlestick chart: EMA 20/50 (and 200 when enough history), the detected <b>consolidation base as a shaded box</b>, plus dashed lines for your entry, stop and +10% target and dotted lines for the nearest support / resistance. The <b>D / W</b> toggle switches between daily candles (~6 months) and weekly candles (~20 months) — weekly is aggregated from the daily data on the fly. Charts for the <b>top ~30 scored names are kept from the scan</b> so they open instantly; for anything else it fetches on demand (needs a working data source). <b>↻ live</b> forces a fresh pull. Always eyeball this before taking a trade — the score is a filter, the chart is the veto.</p>
 
+      <h3>Option chain</h3>
+      <p>The open-interest picture does move stocks — but as a <b>range and a sentiment tool, not a direction predictor</b>. Two honest limits up front:</p>
+      <ul>
+        <li><b>Data is manual.</b> NSE serves the option chain only to browsers, not to servers — the Cloudflare Worker gets an empty response every time. So the Analyzer has a small <b>Option chain</b> panel (F&amp;O stocks only) where you type ~6 numbers from your broker / Sensibull / Opstra: days to expiry, ATM implied volatility, max pain, the highest-Call-OI strike, the highest-Put-OI strike, and PCR. Takes about 20 seconds and they're saved per-stock in your browser.</li>
+        <li><b>Nothing predicts the next price.</b> What the chain <i>does</i> give you: the <b>expected-move range</b> the options market is pricing for this expiry (spot × IV × √(days/365) — the same ±1σ band your broker shows), the <b>OI walls</b> (heaviest call strike ≈ resistance, heaviest put strike ≈ support), the <b>max-pain</b> magnet (only meaningful in expiry week), and a <b>PCR</b> sentiment read.</li>
+      </ul>
+      <p>The panel then does the one genuinely useful thing: it checks whether the option structure <b>confirms or fights the chart setup</b>.</p>
+      <ul>
+        <li><b>Is the +10% target realistic for the expiry?</b> It shows how many σ of expected move the target is. Inside 1σ = a realistic reach in the window; beyond ~1.6σ = the options market is pricing that as unlikely before expiry, so the move needs more time than you're giving it.</li>
+        <li><b>Is there an OI wall in the way?</b> If the heaviest call strike sits between your entry and your target, that's where writers defend hardest — price usually stalls there first. It's flagged, and drawn on the chart (red dashed = call wall, green dashed = put wall, grey = max pain, shaded band = expected move).</li>
+        <li><b>Which way is sentiment leaning?</b> PCR &gt; 1.2 with put-writing at a strike below = a floor being built (mild bullish); PCR &lt; 0.8 with a fat call wall just overhead = capped (mild bearish). Extremes flip contrarian.</li>
+      </ul>
+      <p>It outputs an <b>options-implied view</b> — <i>bullish / leaning bullish / neutral / leaning bearish / bearish</i>, with the ±1σ range — and one line: <b>option chain backs the setup / is neutral / is a headwind</b>. Important caveat the panel repeats: <b>OI walls hold best in quiet markets and routinely break on exactly the momentum breakouts this tool screens for</b>. Read "headwind" as "this needs conviction volume to work", not "don't take the trade". Use it to size and to pick a realistic target, not as a signal.</p>
+
       <h3>Getting the data in</h3>
       <p><b>Auto-screen</b> (downloaded file only): set your universe and leading sectors, then “Scan now”. It pulls ~2 years of daily candles per stock (from Yahoo Finance, via a CORS proxy) and computes EMA 20/50/200, RSI(14), MACD, volume ratio and the breakout / support levels locally, then scores the whole list. Results cache for the day.</p>
       <p><b>You need a CORS proxy.</b> A browser can't call Yahoo directly (same-origin policy), and the free public proxies are almost all dead. The fix is to run your own — a <b>Cloudflare Worker</b>, 5 minutes, free forever, no keys:</p>
@@ -745,7 +814,8 @@ details.sub textarea{width:100%;min-height:116px;margin-top:8px;background:var(-
     proxyChoice: "custom",
     proxyCustom: "", apiKey: "", fmpKey: "", chartTF: "daily",
     universeSize: "200", customUniverse: "", leadingSectors: [],
-    dropForming: true, fetchEvents: false, fetchResults: true, scanCache: null, hostOverride: false
+    dropForming: true, fetchEvents: false, fetchResults: true, scanCache: null, hostOverride: false,
+    oc: {}
   };
 
   var SAMPLE = [
@@ -1262,6 +1332,7 @@ details.sub textarea{width:100%;min-height:116px;margin-top:8px;background:var(-
     $("#a_struct").value = String(opt);
     $("#a_sector").value = String(d.sectorPts||12);
     $("#a_entry").value = "";
+    fillOC(d.symbol);
     aScan = {symbol:d.symbol, probT1:(d.probT1!=null?d.probT1:null), probT10:(d.probT10!=null?d.probT10:null), probN:d.probN||0,
       basePct:d.basePct||0, baseBars:d.baseBars||0, stage2:d.stage2||0, rs:(d.rs!=null?d.rs:null), setup:d.setup||"",
       trig:d.trig||"", trigWR:(d.trigWR!=null?d.trigWR:null), trigN:d.trigN||0,
@@ -1451,7 +1522,142 @@ details.sub textarea{width:100%;min-height:116px;margin-top:8px;background:var(-
       resLine+
       evLine+
       notes.map(function(n){ return '<p class="note '+n.c+'">'+esc(n.t)+'</p>'; }).join("");
+    renderOC(d);
     renderChart(d.symbol);
+  }
+
+  /* ---------- option chain (manual input — NSE blocks server-side fetches) ---------- */
+  function readOC(){
+    var n = function(id){ var el=$("#"+id); var v = el ? parseFloat(String(el.value||"").replace(/[^0-9.\-]/g,"")) : NaN; return isFinite(v)?v:null; };
+    return { dte:n("oc_dte"), iv:n("oc_iv"), em:n("oc_em"),
+             maxpain:n("oc_maxpain"), call:n("oc_callwall"), put:n("oc_putwall"), pcr:n("oc_pcr") };
+  }
+  function ocHasAny(oc){ return ["dte","iv","em","maxpain","call","put","pcr"].some(function(k){ return oc[k]!=null; }); }
+  // "signal" = at least one field the user actually pulled from the chain (days-to-expiry auto-fills, so it doesn't count)
+  function ocHasSignal(oc){ return ["iv","em","maxpain","call","put","pcr"].some(function(k){ return oc[k]!=null; }); }
+  function saveOC(sym){
+    var o = readOC(); o.sym = sym || (($("#a_sym").value||"").toUpperCase());
+    state.oc = ocHasSignal(o) ? o : {}; save();
+  }
+  function fillOC(sym){
+    var o = state.oc || {}, same = o.sym && o.sym === sym;
+    [["oc_dte","dte"],["oc_iv","iv"],["oc_em","em"],["oc_maxpain","maxpain"],
+     ["oc_callwall","call"],["oc_putwall","put"],["oc_pcr","pcr"]].forEach(function(p){
+      var el = $("#"+p[0]); if(el) el.value = (same && o[p[1]]!=null) ? o[p[1]] : "";
+    });
+    var dte = $("#oc_dte");
+    if(dte && !dte.value) dte.value = monthlyExpiryDTE();   // sensible default: days to the last Thursday
+  }
+  // days from today to the last Thursday of the month (standard NSE stock-option expiry)
+  function monthlyExpiryDTE(){
+    var now = new Date(); now.setHours(0,0,0,0);
+    function lastThu(y,m){ var d = new Date(y, m+1, 0); d.setDate(d.getDate() - ((d.getDay() - 4 + 7) % 7)); return d; }
+    var e = lastThu(now.getFullYear(), now.getMonth());
+    if(e < now){ e = lastThu(now.getFullYear(), now.getMonth()+1); }
+    return Math.max(1, Math.round((e - now)/86400000));
+  }
+  function computeOC(spot, oc, target, entry){
+    if(!(spot>0)) return null;
+    var em = (oc.em!=null && oc.em>0) ? oc.em
+           : ((oc.iv!=null && oc.iv>0 && oc.dte!=null && oc.dte>0) ? spot*(oc.iv/100)*Math.sqrt(oc.dte/365) : null);
+    var out = { em:em, emDay:null, lo:null, hi:null, lo2:null, hi2:null, sigmas:null, notes:[], lean:0, leanTxt:"neutral", agree:"neutral" };
+    if(em){
+      out.lo = spot-em; out.hi = spot+em; out.lo2 = spot-2*em; out.hi2 = spot+2*em;
+      if(oc.iv!=null && oc.iv>0) out.emDay = spot*(oc.iv/100)/Math.sqrt(365);
+      if(target>spot){
+        out.sigmas = (target-spot)/em;
+        out.notes.push({c: out.sigmas<=1?"pos":out.sigmas<=1.6?"warn":"neg",
+          t:"The +10% target (₹"+nfmt(target)+") is "+out.sigmas.toFixed(1)+"σ away. "+
+            (out.sigmas<=1 ? "Inside the ±1σ move the options market is pricing for this expiry — a realistic reach in the window." :
+             out.sigmas<=1.6 ? "A 1–1.6σ move — possible but optimistic for this expiry; a nearer target or more time may be needed." :
+             "Beyond ~1.6σ — the options market prices that as unlikely by this expiry. The move needs longer than the expiry, or expect it to fall short.")});
+      }
+    }
+    if(oc.call>0){
+      var cd = (oc.call-spot)/spot;
+      if(target>0 && oc.call < target*0.999){
+        out.notes.push({c:"warn", t:"Call wall (heaviest call OI) ₹"+nfmt(oc.call)+" sits BELOW your +10% target — writers defend that strike hardest, price usually stalls there first. A decisive break can trigger short-covering and accelerate, but plan for a fight at ₹"+nfmt(oc.call)+"."});
+        out.lean -= 1;
+      } else if(entry>0 && Math.abs(oc.call-entry)/entry < 0.015){
+        out.notes.push({c:"warn", t:"Entry is right at the ₹"+nfmt(oc.call)+" call wall — the most-written call strike. It needs conviction volume to clear."});
+        out.lean -= 1;
+      } else {
+        out.notes.push({c:"pos", t:"Call wall ₹"+nfmt(oc.call)+" ("+(cd*100).toFixed(1)+"% above spot) is above your target — no option-writer resistance between here and +10%."});
+        out.lean += 1;
+      }
+    }
+    if(oc.put>0){
+      var pd = (spot-oc.put)/spot;
+      if(pd < 0.01){
+        out.notes.push({c:"neg", t:"Spot is at / below the ₹"+nfmt(oc.put)+" put wall — thin cushion. Lose that strike and put writers unwind; it can slide fast."});
+        out.lean -= 1;
+      } else {
+        out.notes.push({c:"pos", t:"Put wall ₹"+nfmt(oc.put)+" is "+(pd*100).toFixed(1)+"% below spot — the options-market floor; put-writing there is a cushion under the setup."});
+        out.lean += 1;
+      }
+    }
+    if(oc.maxpain>0 && oc.dte!=null){
+      var mp = (oc.maxpain-spot)/spot;
+      if(oc.dte <= 6){
+        out.notes.push({c: Math.abs(mp)<0.01?"warn":(mp<0?"neg":"pos"),
+          t:"Max pain ₹"+nfmt(oc.maxpain)+" is "+(mp>=0?"+":"")+(mp*100).toFixed(1)+"% vs spot, expiry in "+oc.dte+"d. "+
+            (Math.abs(mp)<0.01 ? "≈ spot — pinning risk into expiry; expect chop, not trend." :
+             mp<0 ? "There's often a mild drift toward max pain into expiry — a headwind this week." :
+             "Mild upward pull toward max pain into expiry — a small tailwind.")});
+        out.lean += (mp<-0.005?-1 : mp>0.005?1 : 0);
+      } else {
+        out.notes.push({c:"", t:"Max pain ₹"+nfmt(oc.maxpain)+" — only bites in expiry week ("+oc.dte+"d away); ignore it for a swing entry now."});
+      }
+    }
+    if(oc.pcr!=null){
+      out.notes.push({c: oc.pcr>=1.2?"pos":(oc.pcr<=0.8?"neg":""),
+        t:"PCR (OI) "+oc.pcr.toFixed(2)+" — "+
+          (oc.pcr>=1.5 ? "heavy put writing, a floor is being built (but >1.5 can also flag a crowded long)." :
+           oc.pcr>=1.2 ? "more puts written than calls — a mild bullish tilt / support building." :
+           oc.pcr<=0.6 ? "heavy call writing, upside seen as capped (an extreme low can precede a squeeze)." :
+           oc.pcr<=0.8 ? "more calls written than puts — a mild bearish tilt / resistance building." :
+           "balanced — no clear options-sentiment tilt.")});
+      out.lean += (oc.pcr>=1.2?1 : oc.pcr<=0.8?-1 : 0);
+    }
+    out.leanTxt = out.lean>=2 ? "bullish" : out.lean===1 ? "leaning bullish"
+                : out.lean<=-2 ? "bearish" : out.lean===-1 ? "leaning bearish" : "neutral";
+    var callCap = (oc.call>0 && target>0 && oc.call < target*0.999);
+    var farReach = (out.sigmas!=null && out.sigmas>1.8);
+    var backs  = out.lean>=1 && !callCap && !farReach;
+    var fights = out.lean<=-1 || farReach || (oc.call>0 && target>0 && oc.call < target*0.97);
+    out.agree = fights ? "fight" : (backs ? "confirm" : "neutral");
+    return out;
+  }
+  function renderOC(d){
+    var host = $("#ocOut"); if(!host) return;
+    var oc = readOC();
+    if(!ocHasSignal(oc)){
+      host.innerHTML = '<p class="empty">Fill what you can from the option chain (even just IV + days to expiry). You\'ll get: the range the options market is pricing for this expiry, the strikes acting as support / resistance, and one line on whether the options market <b>backs or fights</b> this swing setup. It\'s a range and a lean — <b>not</b> a price prediction.</p>';
+      return;
+    }
+    var ev = (d && d.symbol) ? evaluateRow(d) : null;
+    var spot = (d && d.price>0) ? d.price : (parseFloat($("#a_price").value)||0);
+    var target = ev ? ev.tr.t10 : 0, entry = ev ? ev.tr.entry : 0;
+    var r = computeOC(spot, oc, target, entry);
+    if(!r){ host.innerHTML = '<p class="empty">Add current price plus either ATM IV % + days-to-expiry, or the expected-move ₹, to get the implied range.</p>'; return; }
+    var html = "";
+    if(r.em){
+      html += '<div class="posgrid">'+
+        '<div><div class="k">Implied range to expiry (±1σ, ~68%)</div><div class="v">'+inr(r.lo)+' – '+inr(r.hi)+'</div></div>'+
+        '<div><div class="k">Wider band (±2σ, ~95%)</div><div class="v">'+inr(r.lo2)+' – '+inr(r.hi2)+'</div></div>'+
+        '<div><div class="k">Expected move</div><div class="v">±'+inr(r.em)+(r.emDay?' <span class="dim">(≈ ±'+inr(r.emDay)+"/day)</span>":'')+'</div></div>'+
+        (oc.dte!=null?'<div><div class="k">Expiry</div><div class="v">'+oc.dte+' days</div></div>':'')+
+      '</div>';
+    }
+    var acls = r.agree==="confirm"?"pos":(r.agree==="fight"?"neg":"warn");
+    var atxt = r.agree==="confirm" ? "Option chain BACKS the setup — walls and the expected move give the +10% target room, and OI sentiment leans your way."
+             : r.agree==="fight" ? "Option chain is a HEADWIND — see the flags below. Consider a nearer target, smaller size, or waiting for the call wall to clear before entering."
+             : "Option chain is NEUTRAL on this setup — no strong help or hindrance from the derivatives side.";
+    html += '<p class="note '+acls+'"><b>Options-implied view: '+r.leanTxt+'</b>'+
+      (r.em?' · roughly '+inr(r.lo)+' – '+inr(r.hi)+' by expiry':'')+'.<br>'+esc(atxt)+'</p>';
+    html += r.notes.map(function(n){ return '<p class="note '+(n.c||"")+'">'+esc(n.t)+'</p>'; }).join("");
+    html += '<p class="hint">This is a range and a sentiment read, not a forecast — nothing can predict the next price. OI walls hold best in quiet tapes and often break on exactly the momentum breakouts this tool screens for, so read "headwind" as "needs conviction volume", not "don\'t trade".</p>';
+    host.innerHTML = html;
   }
 
   /* ---------- analyzer chart ---------- */
@@ -1552,13 +1758,23 @@ details.sub textarea{width:100%;min-height:116px;margin-top:8px;background:var(-
         g.push('<path d="M'+f1(tx-4)+' '+f1(ty+6)+' L'+f1(tx+4)+' '+f1(ty+6)+' L'+f1(tx)+' '+f1(ty)+' Z" class="cx-trig"/>');
       }
     }
+    var _labelYs=[];
+    function placeY(yy){
+      var y=yy;
+      for(var pass=0; pass<10; pass++){
+        var clash=false;
+        for(var i=0;i<_labelYs.length;i++){ if(Math.abs(_labelYs[i]-y)<9.5){ y=_labelYs[i]+10; clash=true; break; } }
+        if(!clash) break;
+      }
+      _labelYs.push(y); return y;
+    }
     function hline(p,cls,lab){
       if(!(p>0)) return "";
-      if(p>hi) return '<text x="'+(W-PR-2)+'" y="'+(T+9)+'" class="cx-flab '+cls+'" text-anchor="end">'+lab+' '+nfmt(p,0)+' ↑</text>';
-      if(p<lo) return '<text x="'+(W-PR-2)+'" y="'+(PB-3)+'" class="cx-flab '+cls+'" text-anchor="end">'+lab+' '+nfmt(p,0)+' ↓</text>';
+      if(p>hi) return '<text x="'+(W-PR-2)+'" y="'+f1(placeY(T+9))+'" class="cx-flab '+cls+'" text-anchor="end">'+lab+' '+nfmt(p,0)+' ↑</text>';
+      if(p<lo) return '<text x="'+(W-PR-2)+'" y="'+f1(placeY(PB-3))+'" class="cx-flab '+cls+'" text-anchor="end">'+lab+' '+nfmt(p,0)+' ↓</text>';
       var yy=Y(p);
       return '<line x1="'+PL+'" y1="'+f1(yy)+'" x2="'+(W-PR)+'" y2="'+f1(yy)+'" class="cx-line '+cls+'"/>'+
-             '<text x="'+PL+'" y="'+f1(yy-2)+'" class="cx-flab '+cls+'">'+lab+' '+nfmt(p,0)+'</text>';
+             '<text x="'+PL+'" y="'+f1(placeY(yy-2))+'" class="cx-flab '+cls+'">'+lab+' '+nfmt(p,0)+'</text>';
     }
     // Fibonacci retracement of the last swing (drawn when price has pulled back a bit)
     var fb = fibLevels(o.h||o.close, o.l||o.close, o.c||o.close);
@@ -1576,6 +1792,14 @@ details.sub textarea{width:100%;min-height:116px;margin-top:8px;background:var(-
     g.push(hline(opts.entry,"cx-ent","Entry"));
     g.push(hline(opts.stop,"cx-stp","Stop"));
     g.push(hline(opts.t10,"cx-tgt","+10%"));
+    // option-chain overlays (manual input, Analyzer)
+    g.push(hline(opts.ocPut,"cx-ocput","Put wall"));
+    g.push(hline(opts.ocCall,"cx-occall","Call wall"));
+    g.push(hline(opts.ocMaxpain,"cx-ocmp","Max pain"));
+    if(opts.ocEMlo>0 && opts.ocEMhi>0 && opts.ocEMhi>lo && opts.ocEMlo<hi){
+      var ey1=Y(Math.min(hi,opts.ocEMhi)), ey2=Y(Math.max(lo,opts.ocEMlo));
+      g.push('<rect x="'+PL+'" y="'+f1(ey1)+'" width="'+(W-PR-PL)+'" height="'+f1(Math.max(0,ey2-ey1))+'" class="cx-ocem"/>');
+    }
     return '<svg viewBox="0 0 '+W+' '+HH+'" class="cx-svg" preserveAspectRatio="xMidYMid meet" role="img" aria-label="daily price chart for '+esc(opts.symbol||"")+'">'+g.join("")+'</svg>';
   }
   function renderChart(sym){
@@ -1584,27 +1808,52 @@ details.sub textarea{width:100%;min-height:116px;margin-top:8px;background:var(-
     var tf = state.chartTF==="weekly" ? "weekly" : "daily";
     var tpx = trigParts(d);
     var opts={symbol:sym, entry:e.tr.entry, stop:e.tr.stop, t10:e.tr.t10, support:d.support, resistance:d.resistance, weekly: tf==="weekly", trigAgo: tpx? tpx.ago : -1};
-    function draw(o){
+    var _oc = readOC();
+    if(ocHasSignal(_oc)){
+      var _ocr = computeOC(d.price, _oc, e.tr.t10, e.tr.entry);
+      opts.ocCall = _oc.call; opts.ocPut = _oc.put; opts.ocMaxpain = _oc.maxpain;
+      if(_ocr){ opts.ocEMlo = _ocr.lo; opts.ocEMhi = _ocr.hi; }
+    }
+    function chartAge(o){
+      if(!o || !o.d || !o.d.length) return 999;
+      var last=new Date(o.d[o.d.length-1]+"T00:00:00");
+      return isNaN(last) ? 999 : Math.floor((Date.now()-last.getTime())/86400000);
+    }
+    function draw(o, staleNote){
       if(!o || !o.c || o.c.length<20){ host.innerHTML='<p class="empty">chart data unavailable</p>'; return; }
       var series = tf==="weekly" ? toWeekly(o) : o;
       if(series.c.length<20){ host.innerHTML='<p class="empty">not enough history for a weekly chart</p>'; return; }
-      host.innerHTML = chartLegend(tf) + buildChartSVG(series, opts);
+      var age = chartAge(o), last = o.d[o.d.length-1];
+      var meta = staleNote
+        ? '<div class="cx-asof warn">Showing cached data as of '+esc(last)+' ('+age+' days old) — couldn’t fetch fresh candles. Press <b>↻ live</b> or check your data source.</div>'
+        : (age>3 ? '<div class="cx-asof warn">Data as of '+esc(last)+' ('+age+' days old). Press <b>↻ live</b> for the latest.</div>'
+                 : '<div class="cx-asof">Data through '+esc(last)+'.</div>');
+      host.innerHTML = chartLegend(tf) + meta + buildChartSVG(series, opts);
       renderHold(sym, o);
     }
-    if(chartCache[sym]){ draw(chartCache[sym]); return; }
-    var ex=getExtra(sym);
-    if(ex && ex.chart && ex.chart.c && ex.chart.c.length>=30){ chartCache[sym]=ex.chart; draw(ex.chart); return; }
-    if(isHosted && !state.hostOverride){
-      host.innerHTML='<p class="empty">The Claude artifact preview can’t fetch price data. Use the downloaded file or a self-hosted copy.</p>';
+
+    var cached = chartCache[sym];
+    if(!cached){
+      var ex=getExtra(sym);
+      if(ex && ex.chart && ex.chart.c && ex.chart.c.length>=30) cached = ex.chart;
+    }
+    var fresh = cached && chartAge(cached) <= 3;          // ≤3 calendar days covers a long weekend
+    var canFetch = !(isHosted && !state.hostOverride);
+
+    if(fresh){ draw(cached); return; }
+    if(!canFetch){
+      if(cached) draw(cached, true);
+      else host.innerHTML='<p class="empty">The Claude artifact preview can’t fetch price data. Use the downloaded file or a self-hosted copy.</p>';
       return;
     }
-    host.innerHTML='<p class="empty">loading chart…</p>';
+    host.innerHTML='<p class="empty">'+(cached?'refreshing chart…':'loading chart…')+'</p>';
     fetchCandles(sym).then(function(o){
       var norm={o:o.open||o.close, h:o.high, l:o.low, c:o.close, v:o.volume, d:o.dates};
       chartCache[sym]=norm; draw(norm);
     }).catch(function(err){
+      if(cached){ draw(cached, true); return; }
       host.innerHTML='<p class="empty">couldn’t load a chart for '+esc(sym)+': '+esc((err&&err.message)||"failed")+
-        '. Run a scan first (charts for the top 30 are kept), or set a working data source.</p>';
+        '. Run a scan first (charts for the top names are kept), or set a working data source.</p>';
     });
   }
   function refreshChartLive(){
@@ -2187,12 +2436,13 @@ details.sub textarea{width:100%;min-height:116px;margin-top:8px;background:var(-
     // trigger candle (hammer / inv-hammer / pin / engulf) at a rising MA — the "go" signal
     var trg = triggerAtMA(op,h,l,c,e20a,e50a,st2.score, weekly?4:4);
     var trigWR = triggerWinRate(op,h,l,c,e20a,e50a,e200a, weekly?25:14);
-    // last ~150 bars kept for charting the top-ranked names (rounded to keep localStorage small)
-    var TB = 150, ts = Math.max(0, c.length - TB), rnd = function(x){ return Math.round(x*100)/100; };
+    // last ~400 bars kept for charting the top-ranked names — enough for a real EMA200 and a
+    // usable weekly view (≈57 weeks). Rounded to keep localStorage small.
+    var TB = 400, ts = Math.max(0, c.length - TB), rnd = function(x){ return Math.round(x*100)/100; };
     var tail = {
       o: op.slice(ts).map(rnd), h: h.slice(ts).map(rnd), l: l.slice(ts).map(rnd),
       c: c.slice(ts).map(rnd), v: vol.slice(ts).map(function(x){return Math.round(x);}),
-      d: ds.slice(ts)
+      d: ds.slice(ts), asof: ds.length ? ds[ds.length-1] : ""
     };
     return {
       sym:sym, sector:sector, tail:tail,
@@ -2747,13 +2997,13 @@ details.sub textarea{width:100%;min-height:116px;margin-top:8px;background:var(-
       var head = "# NSE auto-scan "+today+" · "+srcName+" · "+ok.length+" ok / "+failed.length+" failed"+(aborted?" (stopped early)":"");
       var csv = head+"\n"+ok.map(function(r){ return rowToCsv(r, leadingSet); }).join("\n");
       $("#batchInput").value = csv; state.batchInput = csv;
-      // keep charts for the top ~30 by score so the Analyzer can draw them with no extra fetch
+      // keep ~400-bar charts for the top ~24 by score so the Analyzer can draw them with no extra fetch
       var topByScore = ok.map(function(r){
         var dd = {price:r.price, ema20:r.e20, ema50:r.e50, ema200:r.e200, rsi:r.rsi, volRatio:r.vr, macdPos:r.macd, hhhl:r.hhhl,
           structurePts: deriveStructure(r.price, r.breakout, r.basePct, r.baseBars, r.vr).pts,
           sectorPts: leadingSet[r.sector] ? 20 : 12};
         return {r:r, s:scoreStock(dd).total};
-      }).sort(function(a,b){ return b.s-a.s; }).slice(0,30);
+      }).sort(function(a,b){ return b.s-a.s; }).slice(0,24);
       topByScore.forEach(function(x){
         if(x.r.tail){ (extra[x.r.sym] = extra[x.r.sym] || {}).chart = x.r.tail; }
       });
@@ -2877,6 +3127,7 @@ details.sub textarea{width:100%;min-height:116px;margin-top:8px;background:var(-
     renderWatchlist();
     initScanUI();
     renderScreener();
+    fillOC(($("#a_sym").value||"").toUpperCase());
 
     $("#tabs").addEventListener("click", function(e){
       var b = e.target.closest("button"); if(b) switchTab(b.getAttribute("data-tab"));
@@ -2897,6 +3148,15 @@ details.sub textarea{width:100%;min-height:116px;margin-top:8px;background:var(-
     $("#a_avgentry").addEventListener("input", function(){
       var sym=($("#a_sym").value||"").toUpperCase();
       if(sym && chartCache[sym]) renderHold(sym, chartCache[sym]);
+    });
+    ["oc_dte","oc_iv","oc_em","oc_maxpain","oc_callwall","oc_putwall","oc_pcr"].forEach(function(id){
+      var el=$("#"+id); if(!el) return;
+      el.addEventListener("input", function(){
+        var sym=($("#a_sym").value||"").toUpperCase();
+        saveOC(sym);
+        renderOC(readAnalyzer());
+        if(sym) renderChart(sym);
+      });
     });
     setSeg("chartTF", state.chartTF, "chartTF");
     $$("#chartTF button").forEach(function(b){
