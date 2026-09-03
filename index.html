@@ -290,7 +290,7 @@ table.oc-guide td:first-child{white-space:nowrap;width:1%}
     <span class="mark" aria-hidden="true">₹</span>
     <div>
       <h1>The 10% Ledger</h1>
-      <p>Momentum + pullback screener · NSE swing setups <span style="opacity:.5;font-size:11px">· build 2026-09-02b</span></p>
+      <p>Momentum + pullback screener · NSE swing setups <span style="opacity:.5;font-size:11px">· build 2026-09-03</span></p>
     </div>
   </div>
   <div class="controls">
@@ -323,6 +323,7 @@ table.oc-guide td:first-child{white-space:nowrap;width:1%}
 
 <nav class="tabs" id="tabs">
   <button data-tab="screener" class="active">Screener</button>
+  <button data-tab="coil">10-DMA Coil</button>
   <button data-tab="analyzer">Analyzer</button>
   <button data-tab="playbook">Playbook</button>
 </nav>
@@ -429,7 +430,7 @@ table.oc-guide td:first-child{white-space:nowrap;width:1%}
       <details class="sub" id="rawBox">
         <summary>Raw data — paste your own or edit the scan output</summary>
         <p class="hint">One stock per line, comma or tab separated. First 6 fields required. Edit any row and press “Score all”.</p>
-        <code class="cols">SYM, price, EMA20, EMA50, EMA200, RSI, volR, breakout, support, sector, macd, hhhl, resist, probT1, probT10, basePct, baseBars, stage2, RS, setup, trigger, trigWR, athPct, blueSky(1/0), revYoY, profYoY, epsYoY, qDate, profYoYPrev, ttmYoY</code>
+        <code class="cols">SYM, price, EMA20, EMA50, EMA200, RSI, volR, breakout, support, sector, macd, hhhl, resist, probT1, probT10, basePct, baseBars, stage2, RS, setup, trigger, trigWR, athPct, blueSky(1/0), revYoY, profYoY, epsYoY, qDate, profYoYPrev, ttmYoY, coil(len|state|tight|volR|from10|rangeHi|popAgo|popGain|popVol)</code>
         <textarea id="batchInput" spellcheck="false" aria-label="Stock data input"></textarea>
         <div class="row-actions">
           <button class="primary" id="scoreBtn">Score all</button>
@@ -437,6 +438,51 @@ table.oc-guide td:first-child{white-space:nowrap;width:1%}
           <button class="ghost" id="clearBtn">Clear</button>
         </div>
       </details>
+    </div>
+  </section>
+
+  <!-- 10-DMA COIL -->
+  <section id="tab-coil" hidden>
+    <div class="panel">
+      <div class="scan-head">
+        <h2>10-DMA coil → pop</h2>
+        <span class="scan-meta" id="coilMeta"></span>
+      </div>
+      <p class="hint">Stocks <b>roped to a rising 10-day moving average</b> — small candles, top and bottom close together, low volume — for 5+ sessions. This is the quiet stretch that precedes the sudden vertical moves (the UFLEX / LAURUSLABS staircase). Runs on your last scan; press <b>Score all</b> on the Screener tab after a scan if this looks empty.</p>
+      <div class="scan-head" style="margin-top:4px">
+        <label class="chk"><input type="checkbox" id="coilWatchOnly"> Watchlist only</label>
+        <label class="chk" style="margin-left:0"><input type="checkbox" id="coilUptrend" checked> Uptrend only (RS ≥ 45)</label>
+      </div>
+      <div class="summary" id="coilSummary" aria-live="polite"></div>
+
+      <h3 style="margin:16px 0 4px">Coiling now — watch for the break</h3>
+      <div class="table-wrap">
+        <table id="coilTableA">
+          <thead><tr>
+            <th>Symbol</th><th title="Consecutive sessions closing within 4% of the 10-DMA, daily range ≤5%, volume ≤1.15× average">Days roped</th>
+            <th title="Average daily high-to-low range during the coil">Range / day</th>
+            <th title="Average volume during the coil vs its 50-day average">Vol</th>
+            <th title="Where price sits vs the 10-DMA right now">vs 10-DMA</th>
+            <th>RS</th><th>Stage-2</th><th title="Set a price alert here — the top of the tight range">Alert above</th><th></th>
+          </tr></thead>
+          <tbody id="coilBodyA"><tr><td colspan="9" class="empty">Run a scan, then come back here.</td></tr></tbody>
+        </table>
+      </div>
+
+      <h3 style="margin:20px 0 4px">Just popped — the move may be starting</h3>
+      <div class="table-wrap">
+        <table id="coilTableB">
+          <thead><tr>
+            <th>Symbol</th><th>Days roped</th><th title="The pop day's gain">Pop</th>
+            <th title="The pop day's volume vs the 50-day average">Pop vol</th>
+            <th title="Sessions since the pop candle">Bars ago</th>
+            <th>vs 10-DMA</th><th>RS</th><th></th>
+          </tr></thead>
+          <tbody id="coilBodyB"><tr><td colspan="8" class="empty">Nothing has popped out of a coil in the last few sessions.</td></tr></tbody>
+        </table>
+      </div>
+
+      <p class="hint" style="margin-top:12px"><b>Days roped</b> = consecutive sessions closing within 4% of the 10-DMA with a daily range ≤5% on ≤1.15× average volume, with the 10-DMA flat-to-rising. <b>Pop</b> = a wide up-candle (≥1.6× the recent average range) on ≥1.4× volume closing up ≥1.5%. Add coilers to your watchlist (open one → Analyze → <i>Add to watchlist</i>) and set a price alert at <b>Alert above</b>. The pattern fails if the 10-DMA rolls over or the market regime turns Red.</p>
     </div>
   </section>
 
@@ -676,6 +722,15 @@ table.oc-guide td:first-child{white-space:nowrap;width:1%}
       <p>The tool now detects this. When a trigger candle has printed at the rising MA in the last few bars, the <b>Setup cell shows it</b> (e.g. <code>pullback→MA · 🔨 hammer today · 58%</code>). The <b>58%</b> is a genuine cross-check: how often, over this stock's own last 2 years, a trigger candle at a rising MA in a Stage-2 trend was followed by price tagging +6% before −3%. Use the <b>"Triggered"</b> filter to see only names where the candle has just fired — those are the "buy tomorrow" candidates. On the chart, the trigger bar is marked with a small ▲.</p>
       <p>Your instinct is right that the move usually starts on one of these candles — but <b>the candle without the context is a coin-flip</b>. It only carries an edge when it prints at a <i>rising</i> MA, in a Stage-2 leader (RS 80+), inside a tight base. That's why it's a confirmation of the setup, not a setup on its own.</p>
 
+      <h3>The 10-DMA coil — its own tab</h3>
+      <p>A very specific version of the tight-consolidation pattern, and often the cleanest: <b>price ropes itself to a rising 10-day moving average</b> — candles small, top and bottom close together, volume drying up — and drifts like that for a week or more, then releases in one wide candle on heavy volume. Repeat. It's the staircase you see on UFLEX, LAURUSLABS and most sustained trends.</p>
+      <p>The <b>10-DMA Coil</b> tab runs this over your last scan and splits it into two lists:</p>
+      <ul>
+        <li><b>Coiling now</b> — 5+ straight sessions closing within 4% of the 10-DMA, daily range ≤5%, volume ≤1.15× its 50-day average, with the 10-DMA flat-to-rising. These are the <i>watch</i> candidates: nothing has happened yet. It shows how many days it's been roped, how tight the candles are, how quiet the volume is, and an <b>Alert above</b> price — the top of the tight range. Open one → Analyze → <i>Add to watchlist</i>, then set a broker alert at that level.</li>
+        <li><b>Just popped</b> — was coiling, then in the last ≤3 sessions printed a wide up-candle (≥1.6× the recent average range) on ≥1.4× volume closing up ≥1.5%. The move may be starting. It shows the pop day's gain, the volume multiple, and how many sessions ago it fired.</li>
+      </ul>
+      <p>Filters: <b>Watchlist only</b> (just names you've saved) and <b>Uptrend only</b> (RS ≥ 45 — skip coils in downtrends, which usually break down). The edge: you enter on the release with a stop just under the tight range (a small, well-defined risk), and the coil's own tightness tells you the move that follows is usually several times that risk. It fails when the 10-DMA rolls over or the market regime turns Red — don't take coils into a falling market.</p>
+
       <h3>The DarvaX method — mapped into the tool</h3>
       <p>The DarvaX author runs a specific, narrow version of exactly this pattern. Every rule he uses is either already in the screen or has now been added. Here is his method, item by item, and where it lives here:</p>
       <table>
@@ -822,17 +877,17 @@ table.oc-guide td:first-child{white-space:nowrap;width:1%}
   };
 
   var SAMPLE = [
-    "# cols: SYM,price,EMA20,EMA50,EMA200,RSI,volR,breakout,support,sector,macd,hhhl,resist,probT1,probT10,basePct,baseBars,stage2,RS,setup,trigger,trigWR,athPct,blueSky,revYoY,profYoY,epsYoY,qDate,profYoYPrev,ttmYoY",
-    "HINDZINC, 627, 598, 560, 505, 69, 2.3, 620, 606, L, 1, 1, 0, 0.58, 0.33, 0.06, 22, 6, 88, HDF, inside-bar@0, 0.61, 0.01, 1, 0.19, 0.34, 0.31, 2026-06-30, 0.26, 0.3",
-    "BEL, 415, 402, 395, 360, 66, 1.9, 409, 391, L, 1, 1, 0, 0.55, 0.31, 0.07, 18, 6, 84, BOB, hammer@1, 0.62, 0.03, 1, 0.21, 0.28, 0.27, 2026-06-30, 0.33, 0.24",
-    "JINDALSTEL, 1175, 1120, 1090, 1010, 60, 1.4, 1160, 1120, L, 1, 1, 1240, 0.5, 0.27, 0.11, 26, 5, 76, LBB, , , 0.11, 0, 0.08, 0.12, 0.1, 2026-03-31, 0.21, 0.1",
-    "MEESHO, 205, 198, 190, 0, 63, 1.4, 200, 191, I, 1, 1, 0, 0.5, 0.26, 0.08, 14, 5, 72, S2P, pin-bar@0, 0.58, 0.05, 0, 0.33, 99, 99, 2026-06-30, , ",
-    "SAIL, 195, 190, 185, 132, 55, 0.9, 201, 188, L, 1, 0, 201, 0.44, 0.22, 0.06, 20, 5, 66, COIL, , , 0.14, 0, -0.04, -0.22, -0.21, 2026-06-30, -0.1, -0.15",
-    "NYKAA, 341, 333, 325, 300, 58, 1.3, 339, 328, I, 1, 1, 360, 0.47, 0.24, 0.09, 20, 4, 55, , , , 0.16, 0, 0.24, 0.55, 0.5, 2026-06-30, 0.4, 0.48",
-    "TMB, 892, 878, 870, 845, 55, 1.1, 905, 862, I, 1, 0, 905, 0.44, 0.22, 0.05, 30, 3, 44, , , , 0.09, 0, 0.06, 0.03, 0.02, 2026-06-30, 0.05, 0.04",
-    "PERSISTENT, 6200, 5900, 6050, 5400, 64, 1.5, 6100, 5800, I, 0, 0, 6400, 0.42, 0.2, 0.14, 9, 2, 30, , , , 0.13, 0, 0.18, 0.22, 0.2, 2026-06-30, 0.19, 0.21",
-    "TATAPOWER, 452, 448, 455, 410, 49, 0.9, 465, 435, Lag, 0, 0, 465, 0.3, 0.14, 0, 0, 1, 20, , , , 0.22, 0, 0.05, -0.08, -0.09, 2026-06-30, 0.02, -0.03",
-    "IRCTC, 810, 825, 840, 790, 43, 0.8, 850, 800, Lag, 0, 0, 850, 0.25, 0.11, 0, 0, 0, 12, , , , 0.35, 0, 0.02, -0.03, -0.04, 2026-06-30, 0, -0.02"
+    "# cols: SYM,price,EMA20,EMA50,EMA200,RSI,volR,breakout,support,sector,macd,hhhl,resist,probT1,probT10,basePct,baseBars,stage2,RS,setup,trigger,trigWR,athPct,blueSky,revYoY,profYoY,epsYoY,qDate,profYoYPrev,ttmYoY,coil",
+    "HINDZINC, 627, 598, 560, 505, 69, 2.3, 620, 606, L, 1, 1, 0, 0.58, 0.33, 0.06, 22, 6, 88, HDF, inside-bar@0, 0.61, 0.01, 1, 0.19, 0.34, 0.31, 2026-06-30, 0.26, 0.3, ",
+    "BEL, 415, 402, 395, 360, 66, 1.9, 409, 391, L, 1, 1, 0, 0.55, 0.31, 0.07, 18, 6, 84, BOB, hammer@1, 0.62, 0.03, 1, 0.21, 0.28, 0.27, 2026-06-30, 0.33, 0.24, 14|coil|0.022|0.71|0.006|411|||",
+    "JINDALSTEL, 1175, 1120, 1090, 1010, 60, 1.4, 1160, 1120, L, 1, 1, 1240, 0.5, 0.27, 0.11, 26, 5, 76, LBB, , , 0.11, 0, 0.08, 0.12, 0.1, 2026-03-31, 0.21, 0.1, ",
+    "MEESHO, 205, 198, 190, 0, 63, 1.4, 200, 191, I, 1, 1, 0, 0.5, 0.26, 0.08, 14, 5, 72, S2P, pin-bar@0, 0.58, 0.05, 0, 0.33, 99, 99, 2026-06-30, , , 9|pop|0.021|0.66|0.032|201|1|0.043|1.9",
+    "SAIL, 195, 190, 185, 132, 55, 0.9, 201, 188, L, 1, 0, 201, 0.44, 0.22, 0.06, 20, 5, 66, COIL, , , 0.14, 0, -0.04, -0.22, -0.21, 2026-06-30, -0.1, -0.15, ",
+    "NYKAA, 341, 333, 325, 300, 58, 1.3, 339, 328, I, 1, 1, 360, 0.47, 0.24, 0.09, 20, 4, 55, , , , 0.16, 0, 0.24, 0.55, 0.5, 2026-06-30, 0.4, 0.48, 8|coil|0.028|0.85|0.011|338|||",
+    "TMB, 892, 878, 870, 845, 55, 1.1, 905, 862, I, 1, 0, 905, 0.44, 0.22, 0.05, 30, 3, 44, , , , 0.09, 0, 0.06, 0.03, 0.02, 2026-06-30, 0.05, 0.04, ",
+    "PERSISTENT, 6200, 5900, 6050, 5400, 64, 1.5, 6100, 5800, I, 0, 0, 6400, 0.42, 0.2, 0.14, 9, 2, 30, , , , 0.13, 0, 0.18, 0.22, 0.2, 2026-06-30, 0.19, 0.21, ",
+    "TATAPOWER, 452, 448, 455, 410, 49, 0.9, 465, 435, Lag, 0, 0, 465, 0.3, 0.14, 0, 0, 1, 20, , , , 0.22, 0, 0.05, -0.08, -0.09, 2026-06-30, 0.02, -0.03, ",
+    "IRCTC, 810, 825, 840, 790, 43, 0.8, 850, 800, Lag, 0, 0, 850, 0.25, 0.11, 0, 0, 0, 12, , , , 0.35, 0, 0.02, -0.03, -0.04, 2026-06-30, 0, -0.02, "
   ].join("\n");
 
   /* ---------- persistence ---------- */
@@ -979,6 +1034,11 @@ table.oc-guide td:first-child{white-space:nowrap;width:1%}
       d.qDate = (p[27]||"").trim();
       d.profYoYPrev = pf(28);
       d.ttmYoY = pf(29);
+      var cp = (p[30]||"").split("|");
+      d.coil = (cp[0] && +cp[0]>0) ? {
+        len:+cp[0]||0, state:cp[1]||"", tight:+cp[2]||0, volR:+cp[3]||0, from10:+cp[4]||0,
+        rangeHi:+cp[5]||0, popAgo:(cp[6]===""||cp[6]==null?null:+cp[6]), popGain:+cp[7]||0, popVol:+cp[8]||0
+      } : null;
       var st = deriveStructure(d.price, d.breakout, d.basePct, d.baseBars, d.volRatio);
       d.structurePts=st.pts; d.structureLbl=st.label;
       rows.push(d);
@@ -1300,6 +1360,79 @@ table.oc-guide td:first-child{white-space:nowrap;width:1%}
 
     $$("#resultsTable thead th").forEach(function(th){
       th.classList.toggle("sorted", th.getAttribute("data-k")===state.sort.k);
+    });
+  }
+
+  /* ---------- 10-DMA coil tab ---------- */
+  function coilAlertLevel(d){
+    if(d.coil && d.coil.rangeHi>0) return d.coil.rangeHi;
+    if(d.breakout>0 && d.breakout>=d.price*0.98) return d.breakout;
+    var t = d.coil ? Math.max(0.01, d.coil.tight) : 0.02;
+    return d.price*(1+t);
+  }
+  function pctSpan(x, digs){
+    var v = Math.round(x*1000)/10;
+    var cls = v>0.05 ? "pos" : v<-0.05 ? "neg" : "dim";
+    return '<span class="'+cls+'">'+(v>0?"+":"")+v.toFixed(digs==null?1:digs)+'%</span>';
+  }
+  function renderCoil(){
+    var rows = parseBatch($("#batchInput").value);
+    var wl = {}; (state.watchlist||[]).forEach(function(w){ wl[w.symbol]=1; });
+    var watchOnly = $("#coilWatchOnly") && $("#coilWatchOnly").checked;
+    var upOnly = $("#coilUptrend") && $("#coilUptrend").checked;
+    var pool = rows.filter(function(d){
+      if(!d.coil) return false;
+      if(watchOnly && !wl[d.symbol]) return false;
+      if(upOnly && !(d.rs!=null && d.rs>=45)) return false;
+      return true;
+    });
+    var coiling = pool.filter(function(d){ return d.coil.state==="coil"; })
+      .sort(function(a,b){ return b.coil.len-a.coil.len || a.coil.tight-b.coil.tight; });
+    var popped = pool.filter(function(d){ return d.coil.state==="pop"; })
+      .sort(function(a,b){ return (a.coil.popAgo||0)-(b.coil.popAgo||0) || b.coil.popGain-a.coil.popGain; });
+
+    var meta = $("#coilMeta");
+    if(meta) meta.textContent = rows.length ? (rows.length+" scanned · "+coiling.length+" coiling · "+popped.length+" just popped") : "no scan data";
+    var sum = $("#coilSummary");
+    if(sum) sum.innerHTML = rows.length
+      ? '<span class="chip"><b>'+coiling.length+'</b> coiling</span><span class="chip"><b>'+popped.length+'</b> popped ≤3 sessions</span>'+
+        (coiling[0] ? '<span class="chip">tightest: <b>'+esc(coiling[0].symbol)+'</b> ('+coiling[0].coil.len+'d)</span>' : '')
+      : '';
+
+    var A = $("#coilBodyA");
+    if(A) A.innerHTML = coiling.length ? coiling.map(function(d){
+      return '<tr>'+
+        '<td class="sym">'+esc(d.symbol)+'</td>'+
+        '<td class="num"><b>'+d.coil.len+'</b></td>'+
+        '<td class="num">'+(Math.round(d.coil.tight*1000)/10).toFixed(1)+'%</td>'+
+        '<td class="num">'+(d.coil.volR?d.coil.volR.toFixed(2)+'×':'–')+'</td>'+
+        '<td class="num">'+pctSpan(d.coil.from10)+'</td>'+
+        '<td class="num">'+rsCell(d.rs)+'</td>'+
+        '<td class="num">'+(d.stage2||0)+'/7</td>'+
+        '<td class="num">'+nfmt(coilAlertLevel(d))+'</td>'+
+        '<td><button class="openbtn" data-sym="'+esc(d.symbol)+'">Analyze →</button></td>'+
+      '</tr>';
+    }).join("") : '<tr><td colspan="9" class="empty">No stocks are roped to the 10-DMA right now'+(watchOnly?' in your watchlist':'')+'.</td></tr>';
+
+    var B = $("#coilBodyB");
+    if(B) B.innerHTML = popped.length ? popped.map(function(d){
+      return '<tr>'+
+        '<td class="sym">'+esc(d.symbol)+'</td>'+
+        '<td class="num">'+d.coil.len+'</td>'+
+        '<td class="num">'+pctSpan(d.coil.popGain)+'</td>'+
+        '<td class="num">'+(d.coil.popVol?d.coil.popVol.toFixed(1)+'×':'–')+'</td>'+
+        '<td class="num">'+(d.coil.popAgo===0?'today':d.coil.popAgo+'d')+'</td>'+
+        '<td class="num">'+pctSpan(d.coil.from10)+'</td>'+
+        '<td class="num">'+rsCell(d.rs)+'</td>'+
+        '<td><button class="openbtn" data-sym="'+esc(d.symbol)+'">Analyze →</button></td>'+
+      '</tr>';
+    }).join("") : '<tr><td colspan="8" class="empty">Nothing has popped out of a coil in the last few sessions.</td></tr>';
+
+    $$("#tab-coil .openbtn").forEach(function(btn){
+      btn.addEventListener("click", function(){
+        var row = rows.filter(function(r){ return r.symbol===btn.getAttribute("data-sym"); })[0];
+        if(row){ loadIntoAnalyzer(row); switchTab("analyzer"); }
+      });
     });
   }
 
@@ -2283,6 +2416,41 @@ table.oc-guide td:first-child{white-space:nowrap;width:1%}
     var netUp = n>66 && c[n-1] > c[n-66]*1.03;
     return { tightZones:tight, stacked: tight>=2 && rising && netUp };
   }
+  // Price "roped" to a rising 10-day SMA — tight candles, low volume — for 5+ sessions,
+  // then a wide up-candle on volume. The UFLEX / LAURUSLABS staircase. Runs on the last closed bar.
+  function dmaCoil(o,h,l,c,v){
+    var n=c.length;
+    if(n < 45) return null;
+    function sma10(i){ if(i<9) return null; var s=0,k; for(k=i-9;k<=i;k++) s+=c[k]; return s/10; }
+    var vBase = avgN(v.slice(0, Math.max(1,n-1)), 50) || 1;
+    // pop? a wide up-range bar on volume in the last ~3 sessions
+    var pop = -1, i, k;
+    for(i=n-1; i>=n-3 && i>=12; i--){
+      var rng = (h[i]-l[i])/(c[i]||1), pr=0, pc=0;
+      for(k=Math.max(0,i-8); k<i; k++){ pr += (h[k]-l[k])/(c[k]||1); pc++; }
+      pr = pc ? pr/pc : rng;
+      if(c[i] > o[i] && rng >= pr*1.6 && rng >= 0.03 && v[i] >= vBase*1.4 && c[i] > c[i-1]*1.015){ pop = i; break; }
+    }
+    // the tight / quiet / roped run ending just before the pop (or at the last bar)
+    var end = pop>=0 ? pop-1 : n-1, run=0, sumRng=0, sumVol=0;
+    for(var j=end; j>=10; j--){
+      var s=sma10(j); if(s==null) break;
+      var dist=Math.abs(c[j]-s)/s, rj=(h[j]-l[j])/(c[j]||1);
+      if(dist<=0.04 && rj<=0.05 && v[j]<=vBase*1.15){ run++; sumRng+=rj; sumVol+=v[j]/vBase; }
+      else break;
+    }
+    var sNow=sma10(end), sPrev=sma10(Math.max(10, end-Math.max(run,5)));
+    var rising = sNow!=null && sPrev!=null && sNow >= sPrev*0.985;
+    var from10 = sNow ? (c[n-1]-sNow)/sNow : 0;
+    var tightPct = run ? sumRng/run : 0, volR = run ? sumVol/run : 1;
+    var rangeHi = 0; for(k=Math.max(0,end-run+1); k<=end; k++){ if(h[k]>rangeHi) rangeHi=h[k]; }
+    if(pop>=0 && run>=3 && rising)
+      return {len:run, state:"pop", tight:tightPct, volR:volR, from10:from10, rangeHi:rangeHi,
+              popAgo:n-1-pop, popGain:(c[pop]-c[pop-1])/(c[pop-1]||1), popVol:v[pop]/vBase};
+    if(run>=5 && rising)
+      return {len:run, state:"coil", tight:tightPct, volR:volR, from10:from10, rangeHi:rangeHi};
+    return null;
+  }
   // Uncharted territory — price at / near the highest high of the whole fetched series,
   // and above every prior close. (Darvas: no overhead supply.)
   function blueSky(h,c){
@@ -2450,6 +2618,12 @@ table.oc-guide td:first-child{white-space:nowrap;width:1%}
     // trigger candle (hammer / inv-hammer / pin / engulf) at a rising MA — the "go" signal
     var trg = triggerAtMA(op,h,l,c,e20a,e50a,st2.score, weekly?4:4);
     var trigWR = triggerWinRate(op,h,l,c,e20a,e50a,e200a, weekly?25:14);
+    // 10-DMA coil → pop (the UFLEX / LAURUSLABS staircase)
+    var dc = dmaCoil(op,h,l,c,vol);
+    var r3 = function(x){ return Math.round(x*1000)/1000; };
+    var coilStr = dc ? [dc.len, dc.state, r3(dc.tight), Math.round(dc.volR*100)/100, r3(dc.from10),
+      r3(dc.rangeHi), (dc.popAgo==null?"":dc.popAgo), (dc.popGain==null?"":r3(dc.popGain)),
+      (dc.popVol==null?"":Math.round(dc.popVol*100)/100)].join("|") : "";
     // last ~400 bars kept for charting the top-ranked names — enough for a real EMA200 and a
     // usable weekly view (≈57 weeks). Rounded to keep localStorage small.
     var TB = 400, ts = Math.max(0, c.length - TB), rnd = function(x){ return Math.round(x*100)/100; };
@@ -2483,6 +2657,7 @@ table.oc-guide td:first-child{white-space:nowrap;width:1%}
       blueSky: (bsky.newHigh && bsky.above) ? 1 : 0,
       fibZone: fib ? fib.zone : "",
       fibRetr: fib ? Math.round(fib.retr*100)/100 : null,
+      coil: coilStr,
       revYoY: null, profYoY: null, epsYoY: null, qDate: "", profYoYPrev: null, ttmYoY: null   // filled in later by applyFund()
     };
   }
@@ -2493,7 +2668,7 @@ table.oc-guide td:first-child{white-space:nowrap;width:1%}
       r.basePct||0, r.baseBars||0, r.stage2||0, (r.rs==null?"":r.rs), (r.setup||""),
       (r.trig||""), (r.trigWR==null?"":r.trigWR), (r.athPct==null?"":r.athPct), (r.blueSky||0),
       (r.revYoY==null?"":r.revYoY), (r.profYoY==null?"":r.profYoY), (r.epsYoY==null?"":r.epsYoY), (r.qDate||""),
-      (r.profYoYPrev==null?"":r.profYoYPrev), (r.ttmYoY==null?"":r.ttmYoY)].join(", ");
+      (r.profYoYPrev==null?"":r.profYoYPrev), (r.ttmYoY==null?"":r.ttmYoY), (r.coil||"")].join(", ");
   }
 
   /* ---------- auto-screen: fetch adapters ---------- */
@@ -2837,7 +3012,7 @@ table.oc-guide td:first-child{white-space:nowrap;width:1%}
     if(!force && state.scanCache && state.scanCache.date===today && state.scanCache.csv){
       $("#batchInput").value = state.scanCache.csv;
       state.batchInput = state.scanCache.csv; save();
-      applyLeadingSectors(); renderScreener();
+      applyLeadingSectors(); renderScreener(); renderCoil();
       setStatus("cached", false);
       $("#scanErrline").textContent = "Showing today's cached scan — press “Force refresh” to re-fetch.";
       return;
@@ -3037,6 +3212,7 @@ table.oc-guide td:first-child{white-space:nowrap;width:1%}
       }
       save();
       renderScreener();
+      renderCoil();
       setStatus(aborted?"stopped":"done", false);
       scanMetaFromCache();
       if(!ok.length){
@@ -3105,7 +3281,8 @@ table.oc-guide td:first-child{white-space:nowrap;width:1%}
   /* ---------- tabs / theme / controls ---------- */
   function switchTab(name){
     $$("#tabs button").forEach(function(b){ b.classList.toggle("active", b.getAttribute("data-tab")===name); });
-    ["screener","analyzer","playbook"].forEach(function(t){ $("#tab-"+t).hidden = (t!==name); });
+    ["screener","coil","analyzer","playbook"].forEach(function(t){ $("#tab-"+t).hidden = (t!==name); });
+    if(name==="coil") renderCoil();
   }
 
   function applyTheme(){
@@ -3156,15 +3333,17 @@ table.oc-guide td:first-child{white-space:nowrap;width:1%}
       var b = e.target.closest("button"); if(b) switchTab(b.getAttribute("data-tab"));
     });
     $("#themeBtn").addEventListener("click", toggleTheme);
-    $("#scoreBtn").addEventListener("click", function(){ state.batchInput = $("#batchInput").value; save(); renderScreener(); });
+    $("#scoreBtn").addEventListener("click", function(){ state.batchInput = $("#batchInput").value; save(); renderScreener(); renderCoil(); });
     $("#batchInput").addEventListener("change", function(){ state.batchInput = $("#batchInput").value; save(); });
-    $("#sampleBtn").addEventListener("click", function(){ $("#batchInput").value = SAMPLE; state.batchInput = SAMPLE; save(); renderScreener(); });
-    $("#clearBtn").addEventListener("click", function(){ $("#batchInput").value = ""; state.batchInput = ""; save(); renderScreener(); });
+    $("#sampleBtn").addEventListener("click", function(){ $("#batchInput").value = SAMPLE; state.batchInput = SAMPLE; save(); renderScreener(); renderCoil(); });
+    $("#clearBtn").addEventListener("click", function(){ $("#batchInput").value = ""; state.batchInput = ""; save(); renderScreener(); renderCoil(); });
     $("#onlyActionable").addEventListener("change", renderScreener);
     $("#onlyBreakout").addEventListener("change", renderScreener);
     $("#onlyStage2").addEventListener("change", renderScreener);
     $("#onlyTriggered").addEventListener("change", renderScreener);
     if($("#onlyResults")) $("#onlyResults").addEventListener("change", renderScreener);
+    if($("#coilWatchOnly")) $("#coilWatchOnly").addEventListener("change", renderCoil);
+    if($("#coilUptrend")) $("#coilUptrend").addEventListener("change", renderCoil);
     $("#analyzeBtn").addEventListener("click", runAnalyzer);
     $("#addWatchBtn").addEventListener("click", addToWatchlist);
     $("#chartRefresh").addEventListener("click", refreshChartLive);
