@@ -290,7 +290,7 @@ table.oc-guide td:first-child{white-space:nowrap;width:1%}
     <span class="mark" aria-hidden="true">₹</span>
     <div>
       <h1>The 10% Ledger</h1>
-      <p>Momentum + pullback screener · NSE swing setups <span style="opacity:.5;font-size:11px">· build 2026-09-03</span></p>
+      <p>Momentum + pullback screener · NSE swing setups <span style="opacity:.5;font-size:11px">· build 2026-09-04</span></p>
     </div>
   </div>
   <div class="controls">
@@ -324,6 +324,7 @@ table.oc-guide td:first-child{white-space:nowrap;width:1%}
 <nav class="tabs" id="tabs">
   <button data-tab="screener" class="active">Screener</button>
   <button data-tab="coil">10-DMA Coil</button>
+  <button data-tab="signals">Signal Log</button>
   <button data-tab="analyzer">Analyzer</button>
   <button data-tab="playbook">Playbook</button>
 </nav>
@@ -483,6 +484,60 @@ table.oc-guide td:first-child{white-space:nowrap;width:1%}
       </div>
 
       <p class="hint" style="margin-top:12px"><b>Days roped</b> = consecutive sessions closing within 4% of the 10-DMA with a daily range ≤5% on ≤1.15× average volume, with the 10-DMA flat-to-rising. <b>Pop</b> = a wide up-candle (≥1.6× the recent average range) on ≥1.4× volume closing up ≥1.5%. Add coilers to your watchlist (open one → Analyze → <i>Add to watchlist</i>) and set a price alert at <b>Alert above</b>. The pattern fails if the 10-DMA rolls over or the market regime turns Red.</p>
+    </div>
+  </section>
+
+  <!-- SIGNAL LOG -->
+  <section id="tab-signals" hidden>
+    <div class="panel">
+      <h2>Signal Log</h2>
+      <p class="hint">Track calls from traders you follow (DarvaX / @AmitabhJha3 or anyone) against what this tool independently sees. Paste each call in <b>as it happens</b> — ticker, date, source, their stated reason — and check back later for the real return. This builds an honest, verified track record instead of guessing at someone's history (there's no reliable way to pull a trader's past tweets automatically).</p>
+      <div class="form-grid" id="sigForm">
+        <label>Symbol
+          <input id="sig_sym" type="text" placeholder="e.g. TITAN" autocomplete="off">
+        </label>
+        <label>Date called
+          <input id="sig_date" type="date">
+        </label>
+        <label>Source
+          <input id="sig_source" type="text" placeholder="@AmitabhJha3" value="@AmitabhJha3" autocomplete="off">
+        </label>
+        <label>Price at call (₹, optional)
+          <input id="sig_price" type="text" inputmode="decimal" placeholder="if known">
+        </label>
+        <label class="full">Their stated reason — paste the tweet text or your own note
+          <textarea id="sig_reason" rows="2" placeholder="e.g. “High Dry Fry breakout, RS leader, base held the 20-EMA”"></textarea>
+        </label>
+      </div>
+      <div class="field-actions"><button class="primary" id="sigAddBtn">Log this call</button></div>
+
+      <details class="sub" id="sigBulkBox">
+        <summary>Bulk import — paste several calls at once</summary>
+        <p class="hint">One per line: <code>SYMBOL | DATE (YYYY-MM-DD) | PRICE | REASON | SOURCE</code>. Only <code>SYMBOL</code> is required — leave the rest blank between pipes (e.g. <code>JGCHEM | 2026-08-05 | 547 | DarvaX Coin 8</code>). Lines starting with <code>#</code> are ignored.</p>
+        <textarea id="sigBulk" rows="5" spellcheck="false" placeholder="JGCHEM | 2026-08-05 | 547 | DarvaX Coin 8, results due 8 Aug; later self-graded &quot;Blaster Jackpot&quot;
+MUFIN | 2026-08-12 | | Target level 120 per his post; results were due 11 Aug
+URBANCO | 2026-09-03 | 177 | DarvaX Coin 11, teased via likes/reposts before reveal
+GRANULES | 2026-08-18 | | From his 18-Aug retrospective table, self-graded &quot;Jackpot&quot; — original call date not shown"></textarea>
+        <div class="row-actions">
+          <button id="sigBulkBtn">Import lines</button>
+          <span class="hint" id="sigBulkStatus"></span>
+        </div>
+      </details>
+
+      <div class="summary" id="sigSummary" aria-live="polite" style="margin-top:14px"></div>
+      <div class="table-wrap">
+        <table id="sigTable">
+          <thead><tr>
+            <th>Symbol</th><th>Date</th><th>Days</th><th>Price@call</th>
+            <th title="Editable — type today's price if it's not in your last scan">Now</th>
+            <th>Return</th>
+            <th title="Cross-checked against your last scan: does the tool independently see this as a setup?">Tool's read</th>
+            <th>Source / reason</th><th></th>
+          </tr></thead>
+          <tbody id="sigBody"><tr><td colspan="9" class="empty">No signals logged yet — log one above.</td></tr></tbody>
+        </table>
+      </div>
+      <p class="hint" style="margin-top:10px">"Tool's read" only fills in for a symbol that's in your <b>current scan data</b> — run a scan (or paste raw data) that includes it. "Now" pulls the scanned price automatically when available; otherwise type it in and it's remembered. This log is decision <i>support</i> for judging a source's real hit rate over time — it doesn't validate or endorse any specific trader.</p>
     </div>
   </section>
 
@@ -873,7 +928,7 @@ table.oc-guide td:first-child{white-space:nowrap;width:1%}
     proxyCustom: "", apiKey: "", fmpKey: "", chartTF: "daily",
     universeSize: "200", customUniverse: "", leadingSectors: [],
     dropForming: true, fetchEvents: false, fetchResults: true, scanCache: null, hostOverride: false,
-    oc: {}
+    oc: {}, signals: []
   };
 
   var SAMPLE = [
@@ -1432,6 +1487,118 @@ table.oc-guide td:first-child{white-space:nowrap;width:1%}
       btn.addEventListener("click", function(){
         var row = rows.filter(function(r){ return r.symbol===btn.getAttribute("data-sym"); })[0];
         if(row){ loadIntoAnalyzer(row); switchTab("analyzer"); }
+      });
+    });
+  }
+
+  /* ---------- signal log: track outside calls against what the tool independently sees ---------- */
+  function addSignal(){
+    var sym = ($("#sig_sym").value||"").trim().toUpperCase();
+    if(!sym){ $("#sig_sym").focus(); return; }
+    var entry = {
+      id: Date.now().toString(36)+Math.random().toString(36).slice(2,7),
+      symbol: sym,
+      date: $("#sig_date").value || new Date().toISOString().slice(0,10),
+      source: ($("#sig_source").value||"").trim() || "@AmitabhJha3",
+      reason: ($("#sig_reason").value||"").trim(),
+      priceAtCall: parseFloat($("#sig_price").value) || null,
+      priceNow: null
+    };
+    state.signals = state.signals || [];
+    state.signals.unshift(entry);
+    save();
+    $("#sig_sym").value = ""; $("#sig_price").value = ""; $("#sig_reason").value = "";
+    renderSignals();
+  }
+  function bulkImportSignals(){
+    var txt = ($("#sigBulk").value || "");
+    var lines = txt.split(/\r?\n/).map(function(l){ return l.trim(); }).filter(Boolean);
+    var added = 0, skipped = 0;
+    state.signals = state.signals || [];
+    lines.forEach(function(line, idx){
+      if(line.charAt(0)==="#") return;
+      var p = line.split("|").map(function(s){ return s.trim(); });
+      var sym = (p[0]||"").toUpperCase();
+      if(!sym){ skipped++; return; }
+      var date = (p[1] && /^\d{4}-\d{2}-\d{2}$/.test(p[1])) ? p[1] : new Date().toISOString().slice(0,10);
+      var price = p[2] ? parseFloat(p[2]) : null;
+      state.signals.unshift({
+        id: Date.now().toString(36)+Math.random().toString(36).slice(2,7)+idx,
+        symbol: sym, date: date,
+        source: p[4] || "@AmitabhJha3",
+        reason: p[3] || "",
+        priceAtCall: (isFinite(price) && price>0) ? price : null,
+        priceNow: null
+      });
+      added++;
+    });
+    save();
+    var status = $("#sigBulkStatus");
+    if(status) status.textContent = added ? ("imported "+added+(skipped?", skipped "+skipped+" (no symbol)":"")) : "nothing to import";
+    if(added) $("#sigBulk").value = "";
+    renderSignals();
+  }
+  function renderSignals(){
+    var body = $("#sigBody"), summary = $("#sigSummary");
+    if(!body) return;
+    var list = state.signals || [];
+    if(!list.length){
+      body.innerHTML = '<tr><td colspan="9" class="empty">No signals logged yet — log one above.</td></tr>';
+      if(summary) summary.innerHTML = "";
+      return;
+    }
+    var rows = parseBatch($("#batchInput").value);
+    var bySym = {}; rows.forEach(function(r){ bySym[r.symbol] = r; });
+    var rets = [];
+    body.innerHTML = list.map(function(s){
+      var d = bySym[s.symbol];
+      var now = s.priceNow!=null ? s.priceNow : (d && d.price>0 ? d.price : null);
+      var days = Math.max(0, Math.round((Date.now() - new Date(s.date+"T00:00:00").getTime())/86400000));
+      var ret = (s.priceAtCall>0 && now>0) ? (now-s.priceAtCall)/s.priceAtCall : null;
+      if(ret!=null) rets.push(ret);
+      var readCell = d
+        ? gradeBadge(setupGrade(d))+'<span style="font-size:11px">'+esc(rowSetup(d).label)+'</span> <span class="dim">RS '+(d.rs!=null?Math.round(d.rs):'–')+' · S2 '+(d.stage2||0)+'/7</span>'
+        : '<span class="dim">not in last scan</span>';
+      return '<tr>'+
+        '<td class="sym">'+esc(s.symbol)+'</td>'+
+        '<td>'+esc(s.date)+'</td>'+
+        '<td class="num">'+days+'d</td>'+
+        '<td class="num">'+(s.priceAtCall?nfmt(s.priceAtCall):'<span class="dim">–</span>')+'</td>'+
+        '<td class="num"><input type="text" inputmode="decimal" class="sigNow" data-id="'+s.id+'" value="'+(now!=null?now:"")+'" style="width:72px;text-align:right"></td>'+
+        '<td class="num">'+(ret!=null?pctSpan(ret):'<span class="dim">–</span>')+'</td>'+
+        '<td>'+readCell+'</td>'+
+        '<td class="dim" style="max-width:240px;white-space:normal;font-size:11.5px">'+esc(s.source)+(s.reason?' — '+esc(s.reason):'')+'</td>'+
+        '<td><button class="openbtn" data-sym="'+esc(s.symbol)+'">Analyze →</button> <button class="x" data-id="'+s.id+'">remove</button></td>'+
+      '</tr>';
+    }).join("");
+    if(summary){
+      var wins = rets.filter(function(r){ return r>0; }).length;
+      var avg = rets.length ? rets.reduce(function(a,b){ return a+b; },0)/rets.length : null;
+      summary.innerHTML = '<span class="chip"><b>'+list.length+'</b> logged</span>'+
+        (rets.length
+          ? '<span class="chip"><b>'+wins+'/'+rets.length+'</b> positive so far</span><span class="chip">avg '+pctSpan(avg)+'</span>'
+          : '<span class="chip dim">add a price at call, or run a scan, to start tracking returns</span>');
+    }
+    $$("#sigBody .sigNow").forEach(function(inp){
+      inp.addEventListener("change", function(){
+        var id = inp.getAttribute("data-id"), v = parseFloat(inp.value);
+        var sig = (state.signals||[]).filter(function(x){ return x.id===id; })[0];
+        if(sig){ sig.priceNow = isFinite(v) ? v : null; save(); renderSignals(); }
+      });
+    });
+    $$("#sigBody .x").forEach(function(btn){
+      btn.addEventListener("click", function(){
+        var id = btn.getAttribute("data-id");
+        state.signals = (state.signals||[]).filter(function(x){ return x.id!==id; });
+        save(); renderSignals();
+      });
+    });
+    $$("#sigBody .openbtn").forEach(function(btn){
+      btn.addEventListener("click", function(){
+        var sym = btn.getAttribute("data-sym"), row = bySym[sym];
+        if(row){ loadIntoAnalyzer(row); }
+        else { $("#a_sym").value = sym; }
+        switchTab("analyzer");
       });
     });
   }
@@ -3012,7 +3179,7 @@ table.oc-guide td:first-child{white-space:nowrap;width:1%}
     if(!force && state.scanCache && state.scanCache.date===today && state.scanCache.csv){
       $("#batchInput").value = state.scanCache.csv;
       state.batchInput = state.scanCache.csv; save();
-      applyLeadingSectors(); renderScreener(); renderCoil();
+      applyLeadingSectors(); renderScreener(); renderCoil(); renderSignals();
       setStatus("cached", false);
       $("#scanErrline").textContent = "Showing today's cached scan — press “Force refresh” to re-fetch.";
       return;
@@ -3213,6 +3380,7 @@ table.oc-guide td:first-child{white-space:nowrap;width:1%}
       save();
       renderScreener();
       renderCoil();
+      renderSignals();
       setStatus(aborted?"stopped":"done", false);
       scanMetaFromCache();
       if(!ok.length){
@@ -3281,8 +3449,9 @@ table.oc-guide td:first-child{white-space:nowrap;width:1%}
   /* ---------- tabs / theme / controls ---------- */
   function switchTab(name){
     $$("#tabs button").forEach(function(b){ b.classList.toggle("active", b.getAttribute("data-tab")===name); });
-    ["screener","coil","analyzer","playbook"].forEach(function(t){ $("#tab-"+t).hidden = (t!==name); });
+    ["screener","coil","signals","analyzer","playbook"].forEach(function(t){ $("#tab-"+t).hidden = (t!==name); });
     if(name==="coil") renderCoil();
+    if(name==="signals"){ if($("#sig_date") && !$("#sig_date").value) $("#sig_date").value = new Date().toISOString().slice(0,10); renderSignals(); }
   }
 
   function applyTheme(){
@@ -3333,10 +3502,10 @@ table.oc-guide td:first-child{white-space:nowrap;width:1%}
       var b = e.target.closest("button"); if(b) switchTab(b.getAttribute("data-tab"));
     });
     $("#themeBtn").addEventListener("click", toggleTheme);
-    $("#scoreBtn").addEventListener("click", function(){ state.batchInput = $("#batchInput").value; save(); renderScreener(); renderCoil(); });
+    $("#scoreBtn").addEventListener("click", function(){ state.batchInput = $("#batchInput").value; save(); renderScreener(); renderCoil(); renderSignals(); });
     $("#batchInput").addEventListener("change", function(){ state.batchInput = $("#batchInput").value; save(); });
-    $("#sampleBtn").addEventListener("click", function(){ $("#batchInput").value = SAMPLE; state.batchInput = SAMPLE; save(); renderScreener(); renderCoil(); });
-    $("#clearBtn").addEventListener("click", function(){ $("#batchInput").value = ""; state.batchInput = ""; save(); renderScreener(); renderCoil(); });
+    $("#sampleBtn").addEventListener("click", function(){ $("#batchInput").value = SAMPLE; state.batchInput = SAMPLE; save(); renderScreener(); renderCoil(); renderSignals(); });
+    $("#clearBtn").addEventListener("click", function(){ $("#batchInput").value = ""; state.batchInput = ""; save(); renderScreener(); renderCoil(); renderSignals(); });
     $("#onlyActionable").addEventListener("change", renderScreener);
     $("#onlyBreakout").addEventListener("change", renderScreener);
     $("#onlyStage2").addEventListener("change", renderScreener);
@@ -3344,6 +3513,8 @@ table.oc-guide td:first-child{white-space:nowrap;width:1%}
     if($("#onlyResults")) $("#onlyResults").addEventListener("change", renderScreener);
     if($("#coilWatchOnly")) $("#coilWatchOnly").addEventListener("change", renderCoil);
     if($("#coilUptrend")) $("#coilUptrend").addEventListener("change", renderCoil);
+    if($("#sigAddBtn")) $("#sigAddBtn").addEventListener("click", addSignal);
+    if($("#sigBulkBtn")) $("#sigBulkBtn").addEventListener("click", bulkImportSignals);
     $("#analyzeBtn").addEventListener("click", runAnalyzer);
     $("#addWatchBtn").addEventListener("click", addToWatchlist);
     $("#chartRefresh").addEventListener("click", refreshChartLive);
