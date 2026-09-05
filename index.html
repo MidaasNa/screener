@@ -290,7 +290,7 @@ table.oc-guide td:first-child{white-space:nowrap;width:1%}
     <span class="mark" aria-hidden="true">₹</span>
     <div>
       <h1>The 10% Ledger</h1>
-      <p>Momentum + pullback screener · NSE swing setups <span style="opacity:.5;font-size:11px">· build 2026-09-06b</span></p>
+      <p>Momentum + pullback screener · NSE swing setups <span style="opacity:.5;font-size:11px">· build 2026-09-07</span></p>
     </div>
   </div>
   <div class="controls">
@@ -323,6 +323,7 @@ table.oc-guide td:first-child{white-space:nowrap;width:1%}
 
 <nav class="tabs" id="tabs">
   <button data-tab="screener" class="active">Screener</button>
+  <button data-tab="golden">Golden Guru</button>
   <button data-tab="coil">10-DMA Coil</button>
   <button data-tab="signals">Signal Log</button>
   <button data-tab="analyzer">Analyzer</button>
@@ -434,7 +435,7 @@ table.oc-guide td:first-child{white-space:nowrap;width:1%}
       <details class="sub" id="rawBox">
         <summary>Raw data — paste your own or edit the scan output</summary>
         <p class="hint">One stock per line, comma or tab separated. First 6 fields required. Edit any row and press “Score all”.</p>
-        <code class="cols">SYM, price, EMA20, EMA50, EMA200, RSI, volR, breakout, support, sector, macd, hhhl, resist, probT1, probT10, basePct, baseBars, stage2, RS, setup, trigger, trigWR, athPct, blueSky(1/0), revYoY, profYoY, epsYoY, qDate, profYoYPrev, ttmYoY, coil(len|state|tight|volR|from10|rangeHi|popAgo|popGain|popVol|width), mvt(mult|ma|dist|ago|up|from|gcAgo|track)</code>
+        <code class="cols">SYM, price, EMA20, EMA50, EMA200, RSI, volR, breakout, support, sector, macd, hhhl, resist, probT1, probT10, basePct, baseBars, stage2, RS, setup, trigger, trigWR, athPct, blueSky(1/0), revYoY, profYoY, epsYoY, qDate, profYoYPrev, ttmYoY, coil(...), mvt(...), gg(baseLen|baseWidth|gcAgo|volMult|from50|rangeHi)</code>
         <textarea id="batchInput" spellcheck="false" aria-label="Stock data input"></textarea>
         <div class="row-actions">
           <button class="primary" id="scoreBtn">Score all</button>
@@ -442,6 +443,41 @@ table.oc-guide td:first-child{white-space:nowrap;width:1%}
           <button class="ghost" id="clearBtn">Clear</button>
         </div>
       </details>
+    </div>
+  </section>
+
+  <!-- GOLDEN GURU -->
+  <section id="tab-golden" hidden>
+    <div class="panel">
+      <div class="scan-head">
+        <h2>Golden Guru</h2>
+        <span class="scan-meta" id="ggMeta"></span>
+      </div>
+      <p class="hint">One strict setup, both conditions required:</p>
+      <ol class="hint" style="margin:2px 0 8px 18px">
+        <li><b>Tight consolidation near the moving average</b> — a 6–24 session base riding the 10-DMA: ≤16% high-to-low, drifting sideways, most bars hugging the line on a small range and quiet volume.</li>
+        <li><b>10-DMA crosses above the 50-DMA just 1–2 sessions ago, on ≥3× volume</b> — the base resolving up, right now.</li>
+      </ol>
+      <div class="scan-head" style="margin-top:2px">
+        <label class="chk"><input type="checkbox" id="ggUptrend" checked> RS ≥ 45</label>
+      </div>
+      <div class="summary" id="ggSummary" aria-live="polite"></div>
+      <div class="table-wrap">
+        <table id="ggTable">
+          <thead><tr>
+            <th>Symbol</th>
+            <th title="Length × high-to-low width of the base the stock just broke out of">Base</th>
+            <th title="Sessions since the 10-DMA crossed above the 50-DMA">Golden cross</th>
+            <th title="Volume on / since the cross vs its pre-base 50-day average">Volume</th>
+            <th title="Where price sits vs the 50-DMA now">vs 50-DMA</th>
+            <th>RS</th><th>Stage-2</th>
+            <th title="The top of the base — a re-entry / add level if it pulls back">Base top</th>
+            <th></th>
+          </tr></thead>
+          <tbody id="ggBody"><tr><td colspan="9" class="empty">Run a scan (Screener → Scan now), then come back here.</td></tr></tbody>
+        </table>
+      </div>
+      <p class="hint" style="margin-top:12px">This is the launch moment — the trade is <i>above the cross bar's high</i>, stop under the base low or the 10-DMA. It's rare by design; a scan may return only a handful or none. Confirm RS is strong and the market regime isn't Red. Named after DarvaX / @AmitabhJha3's golden-cross plays — logging his calls in <b>Signal Log</b> lets you check whether his picks actually show this footprint.</p>
     </div>
   </section>
 
@@ -780,8 +816,16 @@ GRANULES | 2026-08-18 | | From his 18-Aug retrospective table, self-graded &quot
       <p>The tool now detects this. When a trigger candle has printed at the rising MA in the last few bars, the <b>Setup cell shows it</b> (e.g. <code>pullback→MA · 🔨 hammer today · 58%</code>). The <b>58%</b> is a genuine cross-check: how often, over this stock's own last 2 years, a trigger candle at a rising MA in a Stage-2 trend was followed by price tagging +6% before −3%. Use the <b>"Triggered"</b> filter to see only names where the candle has just fired — those are the "buy tomorrow" candidates. On the chart, the trigger bar is marked with a small ▲.</p>
       <p>Your instinct is right that the move usually starts on one of these candles — but <b>the candle without the context is a coin-flip</b>. It only carries an edge when it prints at a <i>rising</i> MA, in a Stage-2 leader (RS 80+), inside a tight base. That's why it's a confirmation of the setup, not a setup on its own.</p>
 
+      <h3>Golden Guru — its own tab</h3>
+      <p>The strictest, most time-sensitive setup in the tool. A stock only appears in the <b>Golden Guru</b> tab if <i>both</i> are true:</p>
+      <ol>
+        <li><b>It just came out of a tight consolidation near the moving average</b> — a 6–24 session base riding the 10-DMA: ≤17% high-to-low, drifting sideways (net move ≤11%), most bars hugging the line with a small daily range on quiet volume.</li>
+        <li><b>The 10-DMA crossed above the 50-DMA 1–3 sessions ago, on ≥3× volume</b> — the base resolving up, right now, with institutions behind it.</li>
+      </ol>
+      <p>Each row shows the base (length × width), how many sessions since the golden cross, the volume multiple, and the <b>base top</b> (a re-entry level). This is the launch moment — <b>the trade is a buy-stop above the cross bar's high, stop under the base low or the 10-DMA</b>. It is rare by construction: a full scan may turn up a handful or none. The RS ≥ 45 filter is on by default; still confirm RS is genuinely strong and skip it in a Red market regime. It's named after DarvaX / @AmitabhJha3's golden-cross style — pair it with the <b>Signal Log</b> to check whether his actual picks show this footprint or not.</p>
+
       <h3>The 10-DMA coil — its own tab</h3>
-      <p>A very specific version of the tight-consolidation pattern, and often the cleanest: <b>price ropes itself to a rising 10-day moving average</b> — candles small, top and bottom close together, volume drying up — and drifts like that for a week or more, then releases in one wide candle on heavy volume. Repeat. It's the staircase you see on UFLEX, LAURUSLABS and most sustained trends.</p>
+      <p>A looser, earlier version of the same idea — you're watching for the base <i>before</i> it breaks, rather than the moment it does: <b>price ropes itself to a rising 10-day moving average</b> — candles small, top and bottom close together, volume drying up — and drifts like that for a week or more, then releases in one wide candle on heavy volume. Repeat. It's the staircase you see on UFLEX, LAURUSLABS and most sustained trends.</p>
       <p>The <b>10-DMA Coil</b> tab runs this over your last scan and splits it into two lists:</p>
       <ul>
         <li><b>Coiling now</b> — the tool finds the longest recent <b>window</b> (6–24 sessions) that reads as a tight base: ≤15% high-to-low, price drifting sideways (net move ≤9%), most bars closing within 5% of the 10-DMA with a small daily range, quiet volume, 10-DMA flat-to-rising. It's window-based on purpose, so one or two wider or busier bars inside an otherwise-quiet stretch <i>don't</i> disqualify it (the old version broke the moment any single bar was slightly off). These are the <i>watch</i> candidates: nothing has happened yet. It shows how many days it's been roped, the average candle size (hover for the whole base width), how quiet the volume is, and an <b>Alert above</b> price — the top of the base. Open one → Analyze → <i>Add to watchlist</i>, then set a broker alert at that level.</li>
@@ -946,9 +990,9 @@ GRANULES | 2026-08-18 | | From his 18-Aug retrospective table, self-graded &quot
   };
 
   var SAMPLE = [
-    "# cols: SYM,price,EMA20,EMA50,EMA200,RSI,volR,breakout,support,sector,macd,hhhl,resist,probT1,probT10,basePct,baseBars,stage2,RS,setup,trigger,trigWR,athPct,blueSky,revYoY,profYoY,epsYoY,qDate,profYoYPrev,ttmYoY,coil,mvt",
+    "# cols: SYM,price,EMA20,EMA50,EMA200,RSI,volR,breakout,support,sector,macd,hhhl,resist,probT1,probT10,basePct,baseBars,stage2,RS,setup,trigger,trigWR,athPct,blueSky,revYoY,profYoY,epsYoY,qDate,profYoYPrev,ttmYoY,coil,mvt,gg",
     "HINDZINC, 627, 598, 560, 505, 69, 2.3, 620, 606, L, 1, 1, 0, 0.58, 0.33, 0.06, 22, 6, 88, HDF, inside-bar@0, 0.61, 0.01, 1, 0.19, 0.34, 0.31, 2026-06-30, 0.26, 0.3, ",
-    "BEL, 415, 402, 395, 360, 66, 1.9, 409, 391, L, 1, 1, 0, 0.55, 0.31, 0.07, 18, 6, 84, BOB, hammer@1, 0.62, 0.03, 1, 0.21, 0.28, 0.27, 2026-06-30, 0.33, 0.24, 14|coil|0.022|0.71|0.006|411||||0.09",
+    "BEL, 415, 402, 395, 360, 66, 1.9, 409, 391, L, 1, 1, 0, 0.55, 0.31, 0.07, 18, 6, 84, BOB, hammer@1, 0.62, 0.03, 1, 0.21, 0.28, 0.27, 2026-06-30, 0.33, 0.24, 14|coil|0.022|0.71|0.006|411||||0.09, , 12|0.06|1|3.6|0.04|420",
     "JINDALSTEL, 1175, 1120, 1090, 1010, 60, 1.4, 1160, 1120, L, 1, 1, 1240, 0.5, 0.27, 0.11, 26, 5, 76, LBB, , , 0.11, 0, 0.08, 0.12, 0.1, 2026-03-31, 0.21, 0.1, , 4.2|50|0.014|1|1|0.03|12|78",
     "MEESHO, 205, 198, 190, 0, 63, 1.4, 200, 191, I, 1, 1, 0, 0.5, 0.26, 0.08, 14, 5, 72, S2P, pin-bar@0, 0.58, 0.05, 0, 0.33, 99, 99, 2026-06-30, , , 9|pop|0.021|0.66|0.032|201|1|0.043|1.9|0.08",
     "SAIL, 195, 190, 185, 132, 55, 0.9, 201, 188, L, 1, 0, 201, 0.44, 0.22, 0.06, 20, 5, 66, COIL, , , 0.14, 0, -0.04, -0.22, -0.21, 2026-06-30, -0.1, -0.15, ",
@@ -1112,6 +1156,10 @@ GRANULES | 2026-08-18 | | From his 18-Aug retrospective table, self-graded &quot
       d.mvt = (mp[0] && +mp[0]>=3) ? {
         mult:+mp[0]||0, ma:mp[1]||"", dist:+mp[2]||0, ago:+mp[3]||0, up:mp[4]==="1", from:+mp[5]||0,
         gcAgo:(mp[6]===""||mp[6]==null?null:+mp[6]), track:(mp[7]===""||mp[7]==null?null:+mp[7])
+      } : null;
+      var gp = (p[32]||"").split("|");
+      d.gg = (gp[0] && +gp[0]>=6) ? {
+        baseLen:+gp[0]||0, baseWidth:+gp[1]||0, gcAgo:+gp[2]||0, volMult:+gp[3]||0, from50:+gp[4]||0, rangeHi:+gp[5]||0
       } : null;
       var st = deriveStructure(d.price, d.breakout, d.basePct, d.baseBars, d.volRatio);
       d.structurePts=st.pts; d.structureLbl=st.label;
@@ -1454,6 +1502,45 @@ GRANULES | 2026-08-18 | | From his 18-Aug retrospective table, self-graded &quot
     var cls = v>0.05 ? "pos" : v<-0.05 ? "neg" : "dim";
     return '<span class="'+cls+'">'+(v>0?"+":"")+v.toFixed(digs==null?1:digs)+'%</span>';
   }
+  function renderGolden(){
+    var body = $("#ggBody"); if(!body) return;
+    var rows = parseBatch($("#batchInput").value);
+    var upOnly = $("#ggUptrend") && $("#ggUptrend").checked;
+    var pool = rows.filter(function(d){
+      if(!d.gg) return false;
+      if(upOnly && !(d.rs!=null && d.rs>=45)) return false;
+      return true;
+    }).sort(function(a,b){ return a.gg.gcAgo-b.gg.gcAgo || b.gg.volMult-a.gg.volMult; });
+
+    if($("#ggMeta")) $("#ggMeta").textContent = rows.length ? (rows.length+" scanned · "+pool.length+" match") : "no scan data";
+    if($("#ggSummary")) $("#ggSummary").innerHTML = rows.length
+      ? '<span class="chip"><b>'+pool.length+'</b> Golden Guru setup'+(pool.length===1?'':'s')+'</span>'+
+        (pool[0] ? '<span class="chip">freshest: <b>'+esc(pool[0].symbol)+'</b> (cross '+pool[0].gg.gcAgo+'d ago, '+pool[0].gg.volMult.toFixed(1)+'× vol)</span>' : '')
+      : '';
+
+    body.innerHTML = pool.length ? pool.map(function(d){
+      var g=d.gg;
+      return '<tr>'+
+        '<td class="sym">'+esc(d.symbol)+'</td>'+
+        '<td class="num">'+g.baseLen+'d · '+(g.baseWidth*100).toFixed(0)+'%</td>'+
+        '<td class="num"><b>'+g.gcAgo+' session'+(g.gcAgo>1?'s':'')+' ago</b></td>'+
+        '<td class="num pos">'+g.volMult.toFixed(1)+'×</td>'+
+        '<td class="num">'+pctSpan(g.from50)+'</td>'+
+        '<td class="num">'+rsCell(d.rs)+'</td>'+
+        '<td class="num">'+(d.stage2||0)+'/7</td>'+
+        '<td class="num">'+(g.rangeHi>0?nfmt(g.rangeHi):'–')+'</td>'+
+        '<td><button class="openbtn" data-sym="'+esc(d.symbol)+'">Analyze →</button></td>'+
+      '</tr>';
+    }).join("") : '<tr><td colspan="9" class="empty">No stock currently passes both conditions'+(upOnly?' (with RS ≥ 45)':'')+'. This setup is rare — check back after the next scan.</td></tr>';
+
+    $$("#ggBody .openbtn").forEach(function(btn){
+      btn.addEventListener("click", function(){
+        var row = rows.filter(function(r){ return r.symbol===btn.getAttribute("data-sym"); })[0];
+        if(row){ loadIntoAnalyzer(row); switchTab("analyzer"); }
+      });
+    });
+  }
+
   function renderCoil(){
     var rows = parseBatch($("#batchInput").value);
     var wl = {}; (state.watchlist||[]).forEach(function(w){ wl[w.symbol]=1; });
@@ -2849,6 +2936,54 @@ GRANULES | 2026-08-18 | | From his 18-Aug retrospective table, self-graded &quot
     }
     return best;
   }
+  // "Golden Guru": a 6-24 session tight consolidation riding the MA that resolves into a
+  // 10/50-SMA golden cross just 1-2 sessions ago, on ≥3× volume.
+  function goldenGuru(o,h,l,c,v){
+    var n=c.length;
+    if(n < 68) return null;
+    function s(p,x){ if(x<p-1) return null; var q=0,j; for(j=x-p+1;j<=x;j++) q+=c[j]; return q/p; }
+    // (2) 10-over-50 golden cross 1–3 sessions ago, still valid now
+    var gcAgo = -1, a, i, k;
+    for(a=1; a<=3; a++){
+      i = n-1-a;
+      var p10=s(10,i-1), p50=s(50,i-1), x10=s(10,i), x50=s(50,i);
+      if(p10!=null && p50!=null && x10!=null && x50!=null && p10 <= p50 && x10 > x50){ gcAgo = a; break; }
+    }
+    if(gcAgo < 0) return null;
+    if(!(s(10,n-1) > s(50,n-1))) return null;
+    var crossIdx = n-1-gcAgo;
+    // (2b) ≥3× volume on the cross day or since
+    var vBase = avgN(v.slice(0, Math.max(1, crossIdx-2)), 50) || avgN(v, 50) || 1;
+    var volMult = 0;
+    for(k=crossIdx; k<=n-1; k++){ var m = v[k]/vBase; if(m > volMult) volMult = m; }
+    if(volMult < 3) return null;
+    // (1) 6-24 bar tight base riding the 10-SMA, ending the day before the cross
+    var end = crossIdx-1;
+    if(end < 24) return null;
+    var best = null;
+    for(var L=6; L<=24; L++){
+      var st = end-L+1;
+      if(st < 12) break;
+      var hi=-1e9, lo=1e9, near=0, tight=0, vSum=0;
+      for(k=st;k<=end;k++){
+        if(h[k]>hi) hi=h[k];
+        if(l[k]<lo) lo=l[k];
+        var sk = s(10,k);
+        if(sk!=null && Math.abs(c[k]-sk)/sk <= 0.06) near++;
+        if((h[k]-l[k])/(c[k]||1) <= 0.06) tight++;
+        vSum += v[k];
+      }
+      var winRange = lo>0 ? (hi-lo)/lo : 9;
+      var net = c[st]>0 ? Math.abs(c[end]-c[st])/c[st] : 9;
+      if(winRange <= 0.17 && net <= 0.11 && near/L >= 0.55 && tight/L >= 0.55 && vSum/L <= vBase*1.35){
+        best = {len:L, width:winRange};
+      }
+    }
+    if(!best) return null;
+    var rangeHi = -1e9; for(k=end-best.len+1; k<=end; k++){ if(h[k]>rangeHi) rangeHi=h[k]; }
+    return { baseLen:best.len, baseWidth:best.width, gcAgo:gcAgo, volMult:volMult,
+             from50:(c[n-1]-s(50,n-1))/s(50,n-1), rangeHi:rangeHi };
+  }
   // Uncharted territory — price at / near the highest high of the whole fetched series,
   // and above every prior close. (Darvas: no overhead supply.)
   function blueSky(h,c){
@@ -3025,6 +3160,9 @@ GRANULES | 2026-08-18 | | From his 18-Aug retrospective table, self-graded &quot
     // volume thrust (≥3×) on an up bar at the 10/50/200 MA
     var mvt = maVolThrust(op,h,l,c,vol);
     var mvtStr = mvt ? [Math.round(mvt.mult*10)/10, mvt.ma, r3(mvt.dist), mvt.ago, (mvt.up?1:0), r3(mvt.from), (mvt.gcAgo==null?"":mvt.gcAgo), (mvt.track==null?"":mvt.track)].join("|") : "";
+    // Golden Guru: tight base → 10/50 golden cross 1-2 days ago on 3× volume
+    var gg = goldenGuru(op,h,l,c,vol);
+    var ggStr = gg ? [gg.baseLen, r3(gg.baseWidth), gg.gcAgo, Math.round(gg.volMult*10)/10, r3(gg.from50), r3(gg.rangeHi)].join("|") : "";
     // last ~400 bars kept for charting the top-ranked names — enough for a real EMA200 and a
     // usable weekly view (≈57 weeks). Rounded to keep localStorage small.
     var TB = 400, ts = Math.max(0, c.length - TB), rnd = function(x){ return Math.round(x*100)/100; };
@@ -3058,7 +3196,7 @@ GRANULES | 2026-08-18 | | From his 18-Aug retrospective table, self-graded &quot
       blueSky: (bsky.newHigh && bsky.above) ? 1 : 0,
       fibZone: fib ? fib.zone : "",
       fibRetr: fib ? Math.round(fib.retr*100)/100 : null,
-      coil: coilStr, mvt: mvtStr,
+      coil: coilStr, mvt: mvtStr, gg: ggStr,
       revYoY: null, profYoY: null, epsYoY: null, qDate: "", profYoYPrev: null, ttmYoY: null   // filled in later by applyFund()
     };
   }
@@ -3069,7 +3207,7 @@ GRANULES | 2026-08-18 | | From his 18-Aug retrospective table, self-graded &quot
       r.basePct||0, r.baseBars||0, r.stage2||0, (r.rs==null?"":r.rs), (r.setup||""),
       (r.trig||""), (r.trigWR==null?"":r.trigWR), (r.athPct==null?"":r.athPct), (r.blueSky||0),
       (r.revYoY==null?"":r.revYoY), (r.profYoY==null?"":r.profYoY), (r.epsYoY==null?"":r.epsYoY), (r.qDate||""),
-      (r.profYoYPrev==null?"":r.profYoYPrev), (r.ttmYoY==null?"":r.ttmYoY), (r.coil||""), (r.mvt||"")].join(", ");
+      (r.profYoYPrev==null?"":r.profYoYPrev), (r.ttmYoY==null?"":r.ttmYoY), (r.coil||""), (r.mvt||""), (r.gg||"")].join(", ");
   }
 
   /* ---------- auto-screen: fetch adapters ---------- */
@@ -3413,7 +3551,7 @@ GRANULES | 2026-08-18 | | From his 18-Aug retrospective table, self-graded &quot
     if(!force && state.scanCache && state.scanCache.date===today && state.scanCache.csv && state.scanCache.uniKey===uniKey){
       $("#batchInput").value = state.scanCache.csv;
       state.batchInput = state.scanCache.csv; save();
-      applyLeadingSectors(); renderScreener(); renderCoil(); renderSignals();
+      applyLeadingSectors(); renderScreener(); renderGolden(); renderCoil(); renderSignals();
       setStatus("cached", false);
       $("#scanErrline").textContent = "Showing today's cached scan of these "+uni.length+" names — press “Force refresh” to re-fetch.";
       return;
@@ -3615,6 +3753,7 @@ GRANULES | 2026-08-18 | | From his 18-Aug retrospective table, self-graded &quot
       }
       save();
       renderScreener();
+      renderGolden();
       renderCoil();
       renderSignals();
       setStatus(aborted?"stopped":"done", false);
@@ -3692,7 +3831,8 @@ GRANULES | 2026-08-18 | | From his 18-Aug retrospective table, self-graded &quot
   /* ---------- tabs / theme / controls ---------- */
   function switchTab(name){
     $$("#tabs button").forEach(function(b){ b.classList.toggle("active", b.getAttribute("data-tab")===name); });
-    ["screener","coil","signals","analyzer","playbook"].forEach(function(t){ $("#tab-"+t).hidden = (t!==name); });
+    ["screener","golden","coil","signals","analyzer","playbook"].forEach(function(t){ $("#tab-"+t).hidden = (t!==name); });
+    if(name==="golden") renderGolden();
     if(name==="coil") renderCoil();
     if(name==="signals"){ if($("#sig_date") && !$("#sig_date").value) $("#sig_date").value = new Date().toISOString().slice(0,10); renderSignals(); }
   }
@@ -3745,10 +3885,10 @@ GRANULES | 2026-08-18 | | From his 18-Aug retrospective table, self-graded &quot
       var b = e.target.closest("button"); if(b) switchTab(b.getAttribute("data-tab"));
     });
     $("#themeBtn").addEventListener("click", toggleTheme);
-    $("#scoreBtn").addEventListener("click", function(){ state.batchInput = $("#batchInput").value; save(); renderScreener(); renderCoil(); renderSignals(); });
+    $("#scoreBtn").addEventListener("click", function(){ state.batchInput = $("#batchInput").value; save(); renderScreener(); renderGolden(); renderCoil(); renderSignals(); });
     $("#batchInput").addEventListener("change", function(){ state.batchInput = $("#batchInput").value; save(); });
-    $("#sampleBtn").addEventListener("click", function(){ $("#batchInput").value = SAMPLE; state.batchInput = SAMPLE; save(); renderScreener(); renderCoil(); renderSignals(); });
-    $("#clearBtn").addEventListener("click", function(){ $("#batchInput").value = ""; state.batchInput = ""; save(); renderScreener(); renderCoil(); renderSignals(); });
+    $("#sampleBtn").addEventListener("click", function(){ $("#batchInput").value = SAMPLE; state.batchInput = SAMPLE; save(); renderScreener(); renderGolden(); renderCoil(); renderSignals(); });
+    $("#clearBtn").addEventListener("click", function(){ $("#batchInput").value = ""; state.batchInput = ""; save(); renderScreener(); renderGolden(); renderCoil(); renderSignals(); });
     $("#onlyActionable").addEventListener("change", renderScreener);
     $("#onlyBreakout").addEventListener("change", renderScreener);
     $("#onlyStage2").addEventListener("change", renderScreener);
@@ -3757,6 +3897,7 @@ GRANULES | 2026-08-18 | | From his 18-Aug retrospective table, self-graded &quot
     if($("#onlyMaVol")) $("#onlyMaVol").addEventListener("change", renderScreener);
     if($("#coilWatchOnly")) $("#coilWatchOnly").addEventListener("change", renderCoil);
     if($("#coilUptrend")) $("#coilUptrend").addEventListener("change", renderCoil);
+    if($("#ggUptrend")) $("#ggUptrend").addEventListener("change", renderGolden);
     if($("#sigAddBtn")) $("#sigAddBtn").addEventListener("click", addSignal);
     if($("#sigBulkBtn")) $("#sigBulkBtn").addEventListener("click", bulkImportSignals);
     $("#analyzeBtn").addEventListener("click", runAnalyzer);
