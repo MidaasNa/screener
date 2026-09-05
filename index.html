@@ -290,7 +290,7 @@ table.oc-guide td:first-child{white-space:nowrap;width:1%}
     <span class="mark" aria-hidden="true">₹</span>
     <div>
       <h1>The 10% Ledger</h1>
-      <p>Momentum + pullback screener · NSE swing setups <span style="opacity:.5;font-size:11px">· build 2026-09-04</span></p>
+      <p>Momentum + pullback screener · NSE swing setups <span style="opacity:.5;font-size:11px">· build 2026-09-04b</span></p>
     </div>
   </div>
   <div class="controls">
@@ -397,6 +397,7 @@ table.oc-guide td:first-child{white-space:nowrap;width:1%}
         <label class="chk" style="margin-left:0"><input type="checkbox" id="onlyTriggered"> Triggered</label>
         <label class="chk" style="margin-left:0"><input type="checkbox" id="onlyBreakout"> Breakouts</label>
         <label class="chk" style="margin-left:0"><input type="checkbox" id="onlyResults" title="Only stocks whose latest quarter shows growing profit and sales"> Strong results</label>
+        <label class="chk" style="margin-left:0"><input type="checkbox" id="onlyMaVol" title="A volume thrust of 3× or more on an up bar while price sits on the 10 / 50 / 200 moving average"> 3× vol @ MA</label>
         <label class="chk" style="margin-left:0"><input type="checkbox" id="onlyActionable"> Actionable</label>
       </div>
       <div class="summary" id="summary" aria-live="polite"></div>
@@ -426,12 +427,12 @@ table.oc-guide td:first-child{white-space:nowrap;width:1%}
           </tbody>
         </table>
       </div>
-      <p class="hint" style="margin-top:10px"><b>RS</b> = 6-month relative-strength rank (0–99) vs everything scanned — the single best "something is happening here" tell; want 80+. <b>Setup</b> names the Stage-2 continuation pattern: <code>base-on-base</code> (stacked tight bases, higher lows — the LAURUSLABS staircase), <code>pullback→MA</code> (uptrend resting on a rising EMA), <code>long-base brk</code>, <code>VCP breakout</code>, <code>coiling</code> (tight, near trigger, not out yet). Use <b>"Stage-2 setups"</b> to see only these. * <b>Prob</b> = historical follow-through rate (not a forecast). <b>Support / Resist</b> = nearest swing levels. <b>Results</b> = latest reported quarter's YoY profit &amp; sales growth (from Yahoo) — ★ strong, ▲ growing, · flat, ▼ shrinking; the number shown is profit/EPS YoY, hover for sales. It also shows roughly how long ago the result landed, and <b>⚠ result ~Nd</b> when the next quarterly result is estimated to be due soon — hover that for whether the market looks positioned for a beat or a miss (earnings trajectory + how the stock is trading into the print).</p>
+      <p class="hint" style="margin-top:10px"><b>RS</b> = 6-month relative-strength rank (0–99) vs everything scanned — the single best "something is happening here" tell; want 80+. <b>Setup</b> names the Stage-2 continuation pattern: <code>base-on-base</code> (stacked tight bases, higher lows — the LAURUSLABS staircase), <code>pullback→MA</code> (uptrend resting on a rising EMA), <code>long-base brk</code>, <code>VCP breakout</code>, <code>coiling</code> (tight, near trigger, not out yet). Use <b>"Stage-2 setups"</b> to see only these. * <b>Prob</b> = historical follow-through rate (not a forecast). <b>Support / Resist</b> = nearest swing levels. <b>Results</b> = latest reported quarter's YoY profit &amp; sales growth (from Yahoo) — ★ strong, ▲ growing, · flat, ▼ shrinking; the number shown is profit/EPS YoY, hover for sales. It also shows roughly how long ago the result landed, and <b>⚠ result ~Nd</b> when the next quarterly result is estimated to be due soon — hover that for whether the market looks positioned for a beat or a miss (earnings trajectory + how the stock is trading into the print). The <b>⚡N×@MA</b> badge next to a symbol = a volume thrust of N times average on an up bar while price was sitting right on the 10 / 50 / 200 moving average (the UNIVCABLES power-bar-off-the-MA); filter to just those with <b>"3× vol @ MA"</b>.</p>
 
       <details class="sub" id="rawBox">
         <summary>Raw data — paste your own or edit the scan output</summary>
         <p class="hint">One stock per line, comma or tab separated. First 6 fields required. Edit any row and press “Score all”.</p>
-        <code class="cols">SYM, price, EMA20, EMA50, EMA200, RSI, volR, breakout, support, sector, macd, hhhl, resist, probT1, probT10, basePct, baseBars, stage2, RS, setup, trigger, trigWR, athPct, blueSky(1/0), revYoY, profYoY, epsYoY, qDate, profYoYPrev, ttmYoY, coil(len|state|tight|volR|from10|rangeHi|popAgo|popGain|popVol)</code>
+        <code class="cols">SYM, price, EMA20, EMA50, EMA200, RSI, volR, breakout, support, sector, macd, hhhl, resist, probT1, probT10, basePct, baseBars, stage2, RS, setup, trigger, trigWR, athPct, blueSky(1/0), revYoY, profYoY, epsYoY, qDate, profYoYPrev, ttmYoY, coil(len|state|tight|volR|from10|rangeHi|popAgo|popGain|popVol), mvt(mult|ma|dist|ago|up|from)</code>
         <textarea id="batchInput" spellcheck="false" aria-label="Stock data input"></textarea>
         <div class="row-actions">
           <button class="primary" id="scoreBtn">Score all</button>
@@ -786,6 +787,10 @@ GRANULES | 2026-08-18 | | From his 18-Aug retrospective table, self-graded &quot
       </ul>
       <p>Filters: <b>Watchlist only</b> (just names you've saved) and <b>Uptrend only</b> (RS ≥ 45 — skip coils in downtrends, which usually break down). The edge: you enter on the release with a stop just under the tight range (a small, well-defined risk), and the coil's own tightness tells you the move that follows is usually several times that risk. It fails when the 10-DMA rolls over or the market regime turns Red — don't take coils into a falling market.</p>
 
+      <h3>Volume thrust at the moving average — the ⚡ badge</h3>
+      <p>The related, faster signal: <b>a single bar where volume jumps to 3× or more of its 50-day average, on an up close, while price is sitting right on the 10, 50 or 200-period moving average</b>. That's the big green volume bar you see on UNIVCABLES just before it ran — a large buyer stepping in to defend the MA, in size. The tool flags it with a <b>⚡N×@MA</b> badge on the symbol (N = the volume multiple, MA = which line it was on), a <b>"3× vol @ MA"</b> filter on the Screener, and a summary count. The scanner checks the last three sessions, so you catch it the day of or the day after.</p>
+      <p>How to trade it: it's <i>confirmation</i>, not a standalone trigger. Best when the MA is <i>rising</i> and RS is strong — then a fat volume bar off it is accumulation and you enter on a hold above that bar's high, stop below its low or the MA (whichever is tighter). A 3× down bar at the MA is the opposite (distribution) — the tool only flags up bars, but still eyeball the chart. Against a falling 200-MA in a weak name, a volume spike is often a blow-off, not a buy.</p>
+
       <h3>The DarvaX method — mapped into the tool</h3>
       <p>The DarvaX author runs a specific, narrow version of exactly this pattern. Every rule he uses is either already in the screen or has now been added. Here is his method, item by item, and where it lives here:</p>
       <table>
@@ -932,10 +937,10 @@ GRANULES | 2026-08-18 | | From his 18-Aug retrospective table, self-graded &quot
   };
 
   var SAMPLE = [
-    "# cols: SYM,price,EMA20,EMA50,EMA200,RSI,volR,breakout,support,sector,macd,hhhl,resist,probT1,probT10,basePct,baseBars,stage2,RS,setup,trigger,trigWR,athPct,blueSky,revYoY,profYoY,epsYoY,qDate,profYoYPrev,ttmYoY,coil",
+    "# cols: SYM,price,EMA20,EMA50,EMA200,RSI,volR,breakout,support,sector,macd,hhhl,resist,probT1,probT10,basePct,baseBars,stage2,RS,setup,trigger,trigWR,athPct,blueSky,revYoY,profYoY,epsYoY,qDate,profYoYPrev,ttmYoY,coil,mvt",
     "HINDZINC, 627, 598, 560, 505, 69, 2.3, 620, 606, L, 1, 1, 0, 0.58, 0.33, 0.06, 22, 6, 88, HDF, inside-bar@0, 0.61, 0.01, 1, 0.19, 0.34, 0.31, 2026-06-30, 0.26, 0.3, ",
     "BEL, 415, 402, 395, 360, 66, 1.9, 409, 391, L, 1, 1, 0, 0.55, 0.31, 0.07, 18, 6, 84, BOB, hammer@1, 0.62, 0.03, 1, 0.21, 0.28, 0.27, 2026-06-30, 0.33, 0.24, 14|coil|0.022|0.71|0.006|411|||",
-    "JINDALSTEL, 1175, 1120, 1090, 1010, 60, 1.4, 1160, 1120, L, 1, 1, 1240, 0.5, 0.27, 0.11, 26, 5, 76, LBB, , , 0.11, 0, 0.08, 0.12, 0.1, 2026-03-31, 0.21, 0.1, ",
+    "JINDALSTEL, 1175, 1120, 1090, 1010, 60, 1.4, 1160, 1120, L, 1, 1, 1240, 0.5, 0.27, 0.11, 26, 5, 76, LBB, , , 0.11, 0, 0.08, 0.12, 0.1, 2026-03-31, 0.21, 0.1, , 4.2|50|0.014|1|1|0.03",
     "MEESHO, 205, 198, 190, 0, 63, 1.4, 200, 191, I, 1, 1, 0, 0.5, 0.26, 0.08, 14, 5, 72, S2P, pin-bar@0, 0.58, 0.05, 0, 0.33, 99, 99, 2026-06-30, , , 9|pop|0.021|0.66|0.032|201|1|0.043|1.9",
     "SAIL, 195, 190, 185, 132, 55, 0.9, 201, 188, L, 1, 0, 201, 0.44, 0.22, 0.06, 20, 5, 66, COIL, , , 0.14, 0, -0.04, -0.22, -0.21, 2026-06-30, -0.1, -0.15, ",
     "NYKAA, 341, 333, 325, 300, 58, 1.3, 339, 328, I, 1, 1, 360, 0.47, 0.24, 0.09, 20, 4, 55, , , , 0.16, 0, 0.24, 0.55, 0.5, 2026-06-30, 0.4, 0.48, 8|coil|0.028|0.85|0.011|338|||",
@@ -1093,6 +1098,10 @@ GRANULES | 2026-08-18 | | From his 18-Aug retrospective table, self-graded &quot
       d.coil = (cp[0] && +cp[0]>0) ? {
         len:+cp[0]||0, state:cp[1]||"", tight:+cp[2]||0, volR:+cp[3]||0, from10:+cp[4]||0,
         rangeHi:+cp[5]||0, popAgo:(cp[6]===""||cp[6]==null?null:+cp[6]), popGain:+cp[7]||0, popVol:+cp[8]||0
+      } : null;
+      var mp = (p[31]||"").split("|");
+      d.mvt = (mp[0] && +mp[0]>=3) ? {
+        mult:+mp[0]||0, ma:mp[1]||"", dist:+mp[2]||0, ago:+mp[3]||0, up:mp[4]==="1", from:+mp[5]||0
       } : null;
       var st = deriveStructure(d.price, d.breakout, d.basePct, d.baseBars, d.volRatio);
       d.structurePts=st.pts; d.structureLbl=st.label;
@@ -1345,11 +1354,13 @@ GRANULES | 2026-08-18 | | From his 18-Aug retrospective table, self-graded &quot
     var onlyS2 = $("#onlyStage2") && $("#onlyStage2").checked;
     var onlyTrg = $("#onlyTriggered") && $("#onlyTriggered").checked;
     var onlyRes = $("#onlyResults") && $("#onlyResults").checked;
+    var onlyMV = $("#onlyMaVol") && $("#onlyMaVol").checked;
     var shown = evals;
     if(onlyS2) shown = shown.filter(function(e){ return !!e.d.setup; });
     if(onlyTrg) shown = shown.filter(function(e){ var t=trigParts(e.d); return t && t.ago<=2; });
     if(onlyBrk) shown = shown.filter(function(e){ return /^(VCP|tight|base|wide)$/.test(rowBase(e.d).tag); });
     if(onlyRes) shown = shown.filter(function(e){ var c=resultGrade(e.d).code; return c==="good" || c==="superb"; });
+    if(onlyMV) shown = shown.filter(function(e){ return !!e.d.mvt; });
     if(onlyAct) shown = shown.filter(function(e){ return e.actionable; });
 
     if(!shown.length){
@@ -1361,7 +1372,8 @@ GRANULES | 2026-08-18 | | From his 18-Aug retrospective table, self-graded &quot
         var qtxt = state.regime==="red" ? "0" : nfmt(q,0);
         var ex = getExtra(e.d.symbol);
         return '<tr class="tier'+e.v.tier+'">'+
-          '<td class="sym">'+esc(e.d.symbol)+(e.d.blueSky?' <span class="pos" title="uncharted territory — price above all prior highs, no overhead supply" style="font-size:9px">ATH</span>':'')+'</td>'+
+          '<td class="sym">'+esc(e.d.symbol)+(e.d.blueSky?' <span class="pos" title="uncharted territory — price above all prior highs, no overhead supply" style="font-size:9px">ATH</span>':'')+
+            (e.d.mvt?' <span class="pos" title="'+esc(e.d.mvt.mult+'× volume on an up bar '+(e.d.mvt.ago===0?'today':e.d.mvt.ago+' session'+(e.d.mvt.ago>1?'s':'')+' ago')+', right on the '+e.d.mvt.ma+'-MA')+'" style="font-size:9px">⚡'+e.d.mvt.mult+'×@'+e.d.mvt.ma+'</span>':'')+'</td>'+
           '<td class="num">'+e.sc.total+'</td>'+
           '<td class="num">'+rsCell(e.d.rs)+'</td>'+
           '<td><span class="pill '+e.v.cls+'">'+esc(e.v.label.replace(/ —.*/,""))+'</span></td>'+
@@ -1393,6 +1405,7 @@ GRANULES | 2026-08-18 | | From his 18-Aug retrospective table, self-graded &quot
     var strongRes = evals.filter(function(e){ var c=resultGrade(e.d).code; return c==="good" || c==="superb"; }).length;
     var weakRes = evals.filter(function(e){ return resultGrade(e.d).code==="weak"; }).length;
     var dueRes = evals.filter(function(e){ var t=resultTiming(e.d.qDate); return t && t.dueSoon; }).length;
+    var maVol = evals.filter(function(e){ return !!e.d.mvt; }).length;
     var aplus = evals.filter(function(e){ return setupGrade(e.d)==="A+"; }).length;
     var topRs = evals.slice().filter(function(e){return e.d.rs!=null;}).sort(function(a,b){return b.d.rs-a.d.rs;})[0];
     summary.innerHTML =
@@ -1402,6 +1415,7 @@ GRANULES | 2026-08-18 | | From his 18-Aug retrospective table, self-graded &quot
       '<span class="chip"><b>'+ath+'</b> at ATH</span>'+
       '<span class="chip"><b>'+trg+'</b> triggered</span>'+
       '<span class="chip"><b>'+strongRes+'</b> strong results'+(weakRes?' · '+weakRes+' shrinking':'')+(dueRes?' · <span class="warn">'+dueRes+' result due</span>':'')+'</span>'+
+      (maVol?'<span class="chip"><b>'+maVol+'</b> 3× vol @ MA</span>':'')+
       '<span class="chip"><b>'+act+'</b> actionable</span>'+
       (topRs?'<span class="chip">strongest: <b>'+esc(topRs.d.symbol)+'</b> RS '+topRs.d.rs+'</span>':'')+
       (best?'<span class="chip">top score: <b>'+esc(best.d.symbol)+'</b> ('+best.sc.total+')</span>':'');
@@ -1641,7 +1655,7 @@ GRANULES | 2026-08-18 | | From his 18-Aug retrospective table, self-graded &quot
       trig:d.trig||"", trigWR:(d.trigWR!=null?d.trigWR:null), trigN:d.trigN||0,
       blueSky:d.blueSky||0, athPct:(d.athPct!=null?d.athPct:null), fibZone:d.fibZone||"", fibRetr:(d.fibRetr!=null?d.fibRetr:null),
       revYoY:(d.revYoY!=null?d.revYoY:null), profYoY:(d.profYoY!=null?d.profYoY:null), epsYoY:(d.epsYoY!=null?d.epsYoY:null), qDate:d.qDate||"",
-      profYoYPrev:(d.profYoYPrev!=null?d.profYoYPrev:null), ttmYoY:(d.ttmYoY!=null?d.ttmYoY:null)};
+      profYoYPrev:(d.profYoYPrev!=null?d.profYoYPrev:null), ttmYoY:(d.ttmYoY!=null?d.ttmYoY:null), mvt:(d.mvt||null)};
     runAnalyzer();
   }
 
@@ -1659,7 +1673,7 @@ GRANULES | 2026-08-18 | | From his 18-Aug retrospective table, self-graded &quot
     };
     if(aScan && aScan.symbol===d.symbol){ d.probT1=aScan.probT1; d.probT10=aScan.probT10; d.probN=aScan.probN; d.basePct=aScan.basePct; d.baseBars=aScan.baseBars; d.stage2=aScan.stage2; d.rs=aScan.rs; d.setup=aScan.setup; d.trig=aScan.trig; d.trigWR=aScan.trigWR; d.trigN=aScan.trigN; d.blueSky=aScan.blueSky; d.athPct=aScan.athPct; d.fibZone=aScan.fibZone; d.fibRetr=aScan.fibRetr;
       d.revYoY=aScan.revYoY; d.profYoY=aScan.profYoY; d.epsYoY=aScan.epsYoY; d.qDate=aScan.qDate;
-      d.profYoYPrev=aScan.profYoYPrev; d.ttmYoY=aScan.ttmYoY; }
+      d.profYoYPrev=aScan.profYoYPrev; d.ttmYoY=aScan.ttmYoY; d.mvt=aScan.mvt; }
     return d;
   }
 
@@ -1728,6 +1742,10 @@ GRANULES | 2026-08-18 | | From his 18-Aug retrospective table, self-graded &quot
          /golden/.test(d.fibZone) ? "The 50–61.8% golden zone is where you accumulate a favourite in a market shake-out — but wait for a reversal candle." :
          /deep|broken/.test(d.fibZone) ? "A retrace this deep means the leg is in doubt — don't buy it as a continuation." :
          "At the highs — the breakout, not the pullback, is the trade.")});
+    }
+    if(d.mvt){
+      var mAgo = d.mvt.ago===0 ? "today" : d.mvt.ago+" session"+(d.mvt.ago>1?"s":"")+" ago";
+      notes.push({c:"warn", t:"Volume thrust: a "+d.mvt.mult+"× bar (vs 50-day average) printed "+mAgo+" on an up close, right on the "+d.mvt.ma+"-period moving average — the accumulation footprint from the UNIVCABLES-type power bar. It says a large buyer stepped in defending that MA. Enter on a hold above that bar's high; stop below its low or the MA, whichever is tighter. It's a confirmation, not a setup on its own — pair it with the trend and RS."});
     }
     // latest reported quarter — the "superb quarterly numbers" check DarvaX / CANSLIM demand
     var rg = resultGrade(d);
@@ -2618,6 +2636,32 @@ GRANULES | 2026-08-18 | | From his 18-Aug retrospective table, self-graded &quot
       return {len:run, state:"coil", tight:tightPct, volR:volR, from10:from10, rangeHi:rangeHi};
     return null;
   }
+  // A volume thrust (≥3× the 50-bar average) on an up bar while price is sitting on one of the
+  // 10 / 50 / 200 moving averages — the "power bar off the MA" in the UNIVCABLES screenshot.
+  function maVolThrust(o,h,l,c,v){
+    var n=c.length;
+    if(n < 55) return null;
+    function sma(p,i){ if(i<p-1) return null; var s=0,k; for(k=i-p+1;k<=i;k++) s+=c[k]; return s/p; }
+    var e50=emaArr(c,50), e200=emaArr(c,200);
+    var vAvg = avgN(v.slice(0, Math.max(1,n-3)), 50) || 1;   // baseline that ignores the recent spike
+    var best=null, i;
+    for(i=n-1; i>=n-3 && i>=1; i--){
+      var mult = v[i]/vAvg;
+      if(mult < 3) continue;
+      if(c[i] < o[i]*0.997) continue;                        // up / neutral bar only (accumulation, not distribution)
+      var cands=[], s10=sma(10,i);
+      if(s10!=null) cands.push(["10", s10]);
+      if(e50[i]!=null) cands.push(["50", e50[i]]);
+      if(e200[i]!=null) cands.push(["200", e200[i]]);
+      var near=null;
+      cands.forEach(function(p){ var d=Math.abs(c[i]-p[1])/p[1]; if(d<=0.03 && (!near || d<near.d)) near={ma:p[0], d:d}; });
+      if(near){
+        var cand={mult:mult, ma:near.ma, dist:near.d, ago:n-1-i, up:c[i]>o[i], from:(c[n-1]-c[i])/(c[i]||1)};
+        if(!best || cand.mult>best.mult) best=cand;
+      }
+    }
+    return best;
+  }
   // Uncharted territory — price at / near the highest high of the whole fetched series,
   // and above every prior close. (Darvas: no overhead supply.)
   function blueSky(h,c){
@@ -2791,6 +2835,9 @@ GRANULES | 2026-08-18 | | From his 18-Aug retrospective table, self-graded &quot
     var coilStr = dc ? [dc.len, dc.state, r3(dc.tight), Math.round(dc.volR*100)/100, r3(dc.from10),
       r3(dc.rangeHi), (dc.popAgo==null?"":dc.popAgo), (dc.popGain==null?"":r3(dc.popGain)),
       (dc.popVol==null?"":Math.round(dc.popVol*100)/100)].join("|") : "";
+    // volume thrust (≥3×) on an up bar at the 10/50/200 MA
+    var mvt = maVolThrust(op,h,l,c,vol);
+    var mvtStr = mvt ? [Math.round(mvt.mult*10)/10, mvt.ma, r3(mvt.dist), mvt.ago, (mvt.up?1:0), r3(mvt.from)].join("|") : "";
     // last ~400 bars kept for charting the top-ranked names — enough for a real EMA200 and a
     // usable weekly view (≈57 weeks). Rounded to keep localStorage small.
     var TB = 400, ts = Math.max(0, c.length - TB), rnd = function(x){ return Math.round(x*100)/100; };
@@ -2824,7 +2871,7 @@ GRANULES | 2026-08-18 | | From his 18-Aug retrospective table, self-graded &quot
       blueSky: (bsky.newHigh && bsky.above) ? 1 : 0,
       fibZone: fib ? fib.zone : "",
       fibRetr: fib ? Math.round(fib.retr*100)/100 : null,
-      coil: coilStr,
+      coil: coilStr, mvt: mvtStr,
       revYoY: null, profYoY: null, epsYoY: null, qDate: "", profYoYPrev: null, ttmYoY: null   // filled in later by applyFund()
     };
   }
@@ -2835,7 +2882,7 @@ GRANULES | 2026-08-18 | | From his 18-Aug retrospective table, self-graded &quot
       r.basePct||0, r.baseBars||0, r.stage2||0, (r.rs==null?"":r.rs), (r.setup||""),
       (r.trig||""), (r.trigWR==null?"":r.trigWR), (r.athPct==null?"":r.athPct), (r.blueSky||0),
       (r.revYoY==null?"":r.revYoY), (r.profYoY==null?"":r.profYoY), (r.epsYoY==null?"":r.epsYoY), (r.qDate||""),
-      (r.profYoYPrev==null?"":r.profYoYPrev), (r.ttmYoY==null?"":r.ttmYoY), (r.coil||"")].join(", ");
+      (r.profYoYPrev==null?"":r.profYoYPrev), (r.ttmYoY==null?"":r.ttmYoY), (r.coil||""), (r.mvt||"")].join(", ");
   }
 
   /* ---------- auto-screen: fetch adapters ---------- */
@@ -3511,6 +3558,7 @@ GRANULES | 2026-08-18 | | From his 18-Aug retrospective table, self-graded &quot
     $("#onlyStage2").addEventListener("change", renderScreener);
     $("#onlyTriggered").addEventListener("change", renderScreener);
     if($("#onlyResults")) $("#onlyResults").addEventListener("change", renderScreener);
+    if($("#onlyMaVol")) $("#onlyMaVol").addEventListener("change", renderScreener);
     if($("#coilWatchOnly")) $("#coilWatchOnly").addEventListener("change", renderCoil);
     if($("#coilUptrend")) $("#coilUptrend").addEventListener("change", renderCoil);
     if($("#sigAddBtn")) $("#sigAddBtn").addEventListener("click", addSignal);
