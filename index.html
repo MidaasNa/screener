@@ -290,7 +290,7 @@ table.oc-guide td:first-child{white-space:nowrap;width:1%}
     <span class="mark" aria-hidden="true">₹</span>
     <div>
       <h1>The 10% Ledger</h1>
-      <p>Momentum + pullback screener · NSE swing setups <span style="opacity:.5;font-size:11px">· build 2026-09-06</span></p>
+      <p>Momentum + pullback screener · NSE swing setups <span style="opacity:.5;font-size:11px">· build 2026-09-06b</span></p>
     </div>
   </div>
   <div class="controls">
@@ -434,7 +434,7 @@ table.oc-guide td:first-child{white-space:nowrap;width:1%}
       <details class="sub" id="rawBox">
         <summary>Raw data — paste your own or edit the scan output</summary>
         <p class="hint">One stock per line, comma or tab separated. First 6 fields required. Edit any row and press “Score all”.</p>
-        <code class="cols">SYM, price, EMA20, EMA50, EMA200, RSI, volR, breakout, support, sector, macd, hhhl, resist, probT1, probT10, basePct, baseBars, stage2, RS, setup, trigger, trigWR, athPct, blueSky(1/0), revYoY, profYoY, epsYoY, qDate, profYoYPrev, ttmYoY, coil(len|state|tight|volR|from10|rangeHi|popAgo|popGain|popVol), mvt(mult|ma|dist|ago|up|from|gcAgo|track)</code>
+        <code class="cols">SYM, price, EMA20, EMA50, EMA200, RSI, volR, breakout, support, sector, macd, hhhl, resist, probT1, probT10, basePct, baseBars, stage2, RS, setup, trigger, trigWR, athPct, blueSky(1/0), revYoY, profYoY, epsYoY, qDate, profYoYPrev, ttmYoY, coil(len|state|tight|volR|from10|rangeHi|popAgo|popGain|popVol|width), mvt(mult|ma|dist|ago|up|from|gcAgo|track)</code>
         <textarea id="batchInput" spellcheck="false" aria-label="Stock data input"></textarea>
         <div class="row-actions">
           <button class="primary" id="scoreBtn">Score all</button>
@@ -463,8 +463,8 @@ table.oc-guide td:first-child{white-space:nowrap;width:1%}
       <div class="table-wrap">
         <table id="coilTableA">
           <thead><tr>
-            <th>Symbol</th><th title="Consecutive sessions closing within 4% of the 10-DMA, daily range ≤5%, volume ≤1.15× average">Days roped</th>
-            <th title="Average daily high-to-low range during the coil">Range / day</th>
+            <th>Symbol</th><th title="Length of the tight, quiet stretch riding the 10-DMA (window-based — tolerates the odd wider bar)">Days roped</th>
+            <th title="Average daily high-to-low range during the coil. Hover a cell for the whole base's high-to-low width.">Range / day</th>
             <th title="Average volume during the coil vs its 50-day average">Vol</th>
             <th title="Where price sits vs the 10-DMA right now">vs 10-DMA</th>
             <th>RS</th><th>Stage-2</th><th title="Set a price alert here — the top of the tight range">Alert above</th><th></th>
@@ -486,7 +486,7 @@ table.oc-guide td:first-child{white-space:nowrap;width:1%}
         </table>
       </div>
 
-      <p class="hint" style="margin-top:12px"><b>Days roped</b> = consecutive sessions closing within 4% of the 10-DMA with a daily range ≤5% on ≤1.15× average volume, with the 10-DMA flat-to-rising. <b>Pop</b> = a wide up-candle (≥1.6× the recent average range) on ≥1.4× volume closing up ≥1.5%. Add coilers to your watchlist (open one → Analyze → <i>Add to watchlist</i>) and set a price alert at <b>Alert above</b>. The pattern fails if the 10-DMA rolls over or the market regime turns Red.</p>
+      <p class="hint" style="margin-top:12px"><b>Days roped</b> = the longest recent window (6–24 sessions) where the base was tight (≤15% high-to-low), ~most bars closed within 5% of the 10-DMA and had a daily range ≤6%, volume stayed near its pre-base level, and the 10-DMA was flat-to-rising. It's window-based, so one or two wider or busier bars don't break it. <b>Pop</b> = a wide up-candle (≥1.5× the recent average range) on ≥1.3× volume closing up ≥1.2%. Add coilers to your watchlist (open one → Analyze → <i>Add to watchlist</i>) and set a price alert at <b>Alert above</b>. The pattern fails if the 10-DMA rolls over or the market regime turns Red.</p>
     </div>
   </section>
 
@@ -784,7 +784,7 @@ GRANULES | 2026-08-18 | | From his 18-Aug retrospective table, self-graded &quot
       <p>A very specific version of the tight-consolidation pattern, and often the cleanest: <b>price ropes itself to a rising 10-day moving average</b> — candles small, top and bottom close together, volume drying up — and drifts like that for a week or more, then releases in one wide candle on heavy volume. Repeat. It's the staircase you see on UFLEX, LAURUSLABS and most sustained trends.</p>
       <p>The <b>10-DMA Coil</b> tab runs this over your last scan and splits it into two lists:</p>
       <ul>
-        <li><b>Coiling now</b> — 5+ straight sessions closing within 4% of the 10-DMA, daily range ≤5%, volume ≤1.15× its 50-day average, with the 10-DMA flat-to-rising. These are the <i>watch</i> candidates: nothing has happened yet. It shows how many days it's been roped, how tight the candles are, how quiet the volume is, and an <b>Alert above</b> price — the top of the tight range. Open one → Analyze → <i>Add to watchlist</i>, then set a broker alert at that level.</li>
+        <li><b>Coiling now</b> — the tool finds the longest recent <b>window</b> (6–24 sessions) that reads as a tight base: ≤15% high-to-low, price drifting sideways (net move ≤9%), most bars closing within 5% of the 10-DMA with a small daily range, quiet volume, 10-DMA flat-to-rising. It's window-based on purpose, so one or two wider or busier bars inside an otherwise-quiet stretch <i>don't</i> disqualify it (the old version broke the moment any single bar was slightly off). These are the <i>watch</i> candidates: nothing has happened yet. It shows how many days it's been roped, the average candle size (hover for the whole base width), how quiet the volume is, and an <b>Alert above</b> price — the top of the base. Open one → Analyze → <i>Add to watchlist</i>, then set a broker alert at that level.</li>
         <li><b>Just popped</b> — was coiling, then in the last ≤3 sessions printed a wide up-candle (≥1.6× the recent average range) on ≥1.4× volume closing up ≥1.5%. The move may be starting. It shows the pop day's gain, the volume multiple, and how many sessions ago it fired.</li>
       </ul>
       <p>Filters: <b>Watchlist only</b> (just names you've saved) and <b>Uptrend only</b> (RS ≥ 45 — skip coils in downtrends, which usually break down). The edge: you enter on the release with a stop just under the tight range (a small, well-defined risk), and the coil's own tightness tells you the move that follows is usually several times that risk. It fails when the 10-DMA rolls over or the market regime turns Red — don't take coils into a falling market.</p>
@@ -948,11 +948,11 @@ GRANULES | 2026-08-18 | | From his 18-Aug retrospective table, self-graded &quot
   var SAMPLE = [
     "# cols: SYM,price,EMA20,EMA50,EMA200,RSI,volR,breakout,support,sector,macd,hhhl,resist,probT1,probT10,basePct,baseBars,stage2,RS,setup,trigger,trigWR,athPct,blueSky,revYoY,profYoY,epsYoY,qDate,profYoYPrev,ttmYoY,coil,mvt",
     "HINDZINC, 627, 598, 560, 505, 69, 2.3, 620, 606, L, 1, 1, 0, 0.58, 0.33, 0.06, 22, 6, 88, HDF, inside-bar@0, 0.61, 0.01, 1, 0.19, 0.34, 0.31, 2026-06-30, 0.26, 0.3, ",
-    "BEL, 415, 402, 395, 360, 66, 1.9, 409, 391, L, 1, 1, 0, 0.55, 0.31, 0.07, 18, 6, 84, BOB, hammer@1, 0.62, 0.03, 1, 0.21, 0.28, 0.27, 2026-06-30, 0.33, 0.24, 14|coil|0.022|0.71|0.006|411|||",
+    "BEL, 415, 402, 395, 360, 66, 1.9, 409, 391, L, 1, 1, 0, 0.55, 0.31, 0.07, 18, 6, 84, BOB, hammer@1, 0.62, 0.03, 1, 0.21, 0.28, 0.27, 2026-06-30, 0.33, 0.24, 14|coil|0.022|0.71|0.006|411||||0.09",
     "JINDALSTEL, 1175, 1120, 1090, 1010, 60, 1.4, 1160, 1120, L, 1, 1, 1240, 0.5, 0.27, 0.11, 26, 5, 76, LBB, , , 0.11, 0, 0.08, 0.12, 0.1, 2026-03-31, 0.21, 0.1, , 4.2|50|0.014|1|1|0.03|12|78",
-    "MEESHO, 205, 198, 190, 0, 63, 1.4, 200, 191, I, 1, 1, 0, 0.5, 0.26, 0.08, 14, 5, 72, S2P, pin-bar@0, 0.58, 0.05, 0, 0.33, 99, 99, 2026-06-30, , , 9|pop|0.021|0.66|0.032|201|1|0.043|1.9",
+    "MEESHO, 205, 198, 190, 0, 63, 1.4, 200, 191, I, 1, 1, 0, 0.5, 0.26, 0.08, 14, 5, 72, S2P, pin-bar@0, 0.58, 0.05, 0, 0.33, 99, 99, 2026-06-30, , , 9|pop|0.021|0.66|0.032|201|1|0.043|1.9|0.08",
     "SAIL, 195, 190, 185, 132, 55, 0.9, 201, 188, L, 1, 0, 201, 0.44, 0.22, 0.06, 20, 5, 66, COIL, , , 0.14, 0, -0.04, -0.22, -0.21, 2026-06-30, -0.1, -0.15, ",
-    "NYKAA, 341, 333, 325, 300, 58, 1.3, 339, 328, I, 1, 1, 360, 0.47, 0.24, 0.09, 20, 4, 55, , , , 0.16, 0, 0.24, 0.55, 0.5, 2026-06-30, 0.4, 0.48, 8|coil|0.028|0.85|0.011|338|||",
+    "NYKAA, 341, 333, 325, 300, 58, 1.3, 339, 328, I, 1, 1, 360, 0.47, 0.24, 0.09, 20, 4, 55, , , , 0.16, 0, 0.24, 0.55, 0.5, 2026-06-30, 0.4, 0.48, 8|coil|0.028|0.85|0.011|338||||0.11",
     "TMB, 892, 878, 870, 845, 55, 1.1, 905, 862, I, 1, 0, 905, 0.44, 0.22, 0.05, 30, 3, 44, , , , 0.09, 0, 0.06, 0.03, 0.02, 2026-06-30, 0.05, 0.04, ",
     "PERSISTENT, 6200, 5900, 6050, 5400, 64, 1.5, 6100, 5800, I, 0, 0, 6400, 0.42, 0.2, 0.14, 9, 2, 30, , , , 0.13, 0, 0.18, 0.22, 0.2, 2026-06-30, 0.19, 0.21, ",
     "TATAPOWER, 452, 448, 455, 410, 49, 0.9, 465, 435, Lag, 0, 0, 465, 0.3, 0.14, 0, 0, 1, 20, , , , 0.22, 0, 0.05, -0.08, -0.09, 2026-06-30, 0.02, -0.03, ",
@@ -1106,7 +1106,7 @@ GRANULES | 2026-08-18 | | From his 18-Aug retrospective table, self-graded &quot
       var cp = (p[30]||"").split("|");
       d.coil = (cp[0] && +cp[0]>0) ? {
         len:+cp[0]||0, state:cp[1]||"", tight:+cp[2]||0, volR:+cp[3]||0, from10:+cp[4]||0,
-        rangeHi:+cp[5]||0, popAgo:(cp[6]===""||cp[6]==null?null:+cp[6]), popGain:+cp[7]||0, popVol:+cp[8]||0
+        rangeHi:+cp[5]||0, popAgo:(cp[6]===""||cp[6]==null?null:+cp[6]), popGain:+cp[7]||0, popVol:+cp[8]||0, width:+cp[9]||0
       } : null;
       var mp = (p[31]||"").split("|");
       d.mvt = (mp[0] && +mp[0]>=3) ? {
@@ -1483,7 +1483,7 @@ GRANULES | 2026-08-18 | | From his 18-Aug retrospective table, self-graded &quot
       return '<tr>'+
         '<td class="sym">'+esc(d.symbol)+'</td>'+
         '<td class="num"><b>'+d.coil.len+'</b></td>'+
-        '<td class="num">'+(Math.round(d.coil.tight*1000)/10).toFixed(1)+'%</td>'+
+        '<td class="num" title="whole base high-to-low '+((d.coil.width||0)*100).toFixed(1)+'%">'+(Math.round(d.coil.tight*1000)/10).toFixed(1)+'%</td>'+
         '<td class="num">'+(d.coil.volR?d.coil.volR.toFixed(2)+'×':'–')+'</td>'+
         '<td class="num">'+pctSpan(d.coil.from10)+'</td>'+
         '<td class="num">'+rsCell(d.rs)+'</td>'+
@@ -2751,40 +2751,55 @@ GRANULES | 2026-08-18 | | From his 18-Aug retrospective table, self-graded &quot
     var netUp = n>66 && c[n-1] > c[n-66]*1.03;
     return { tightZones:tight, stacked: tight>=2 && rising && netUp };
   }
-  // Price "roped" to a rising 10-day SMA — tight candles, low volume — for 5+ sessions,
-  // then a wide up-candle on volume. The UFLEX / LAURUSLABS staircase. Runs on the last closed bar.
+  // Price "roped" to a flat-to-rising 10-day SMA — small candles, quiet volume — for ~6+ sessions,
+  // then a wide up-candle on volume. The UFLEX / LAURUSLABS staircase. Window-based (tolerates
+  // the odd outlier bar) rather than an all-or-nothing consecutive streak.
   function dmaCoil(o,h,l,c,v){
-    var n=c.length;
+    var n=c.length, i, k;
     if(n < 45) return null;
-    function sma10(i){ if(i<9) return null; var s=0,k; for(k=i-9;k<=i;k++) s+=c[k]; return s/10; }
-    var vBase = avgN(v.slice(0, Math.max(1,n-1)), 50) || 1;
-    // pop? a wide up-range bar on volume in the last ~3 sessions
-    var pop = -1, i, k;
-    for(i=n-1; i>=n-3 && i>=12; i--){
+    function sma10(x){ if(x<9) return null; var s=0,j; for(j=x-9;j<=x;j++) s+=c[j]; return s/10; }
+    var vBase = avgN(v.slice(0, Math.max(1, n-30)), 50) || avgN(v, 50) || 1;   // volume BEFORE the recent stretch
+    // pop = a wide up-bar on volume in the last ~4 sessions
+    var pop = -1;
+    for(i=n-1; i>=n-4 && i>=16; i--){
       var rng = (h[i]-l[i])/(c[i]||1), pr=0, pc=0;
-      for(k=Math.max(0,i-8); k<i; k++){ pr += (h[k]-l[k])/(c[k]||1); pc++; }
+      for(k=Math.max(0,i-10); k<i; k++){ pr += (h[k]-l[k])/(c[k]||1); pc++; }
       pr = pc ? pr/pc : rng;
-      if(c[i] > o[i] && rng >= pr*1.6 && rng >= 0.03 && v[i] >= vBase*1.4 && c[i] > c[i-1]*1.015){ pop = i; break; }
+      if(c[i] > o[i] && rng >= pr*1.5 && rng >= 0.028 && v[i] >= vBase*1.3 && c[i] > c[i-1]*1.012){ pop = i; break; }
     }
-    // the tight / quiet / roped run ending just before the pop (or at the last bar)
-    var end = pop>=0 ? pop-1 : n-1, run=0, sumRng=0, sumVol=0;
-    for(var j=end; j>=10; j--){
-      var s=sma10(j); if(s==null) break;
-      var dist=Math.abs(c[j]-s)/s, rj=(h[j]-l[j])/(c[j]||1);
-      if(dist<=0.04 && rj<=0.05 && v[j]<=vBase*1.15){ run++; sumRng+=rj; sumVol+=v[j]/vBase; }
-      else break;
+    var end = pop>=0 ? pop-1 : n-1;
+    if(end < 24) return null;
+    var s10end = sma10(end);
+    if(s10end==null) return null;
+    // find the LONGEST window (6..24 bars) ending at `end` that reads as a tight, roped, quiet base
+    var best = null;
+    for(var L=6; L<=24; L++){
+      var st = end-L+1;
+      if(st < 12) break;
+      var hi=-1e9, lo=1e9, near=0, tightN=0, vSum=0, rngSum=0;
+      for(i=st;i<=end;i++){
+        if(h[i]>hi) hi=h[i];
+        if(l[i]<lo) lo=l[i];
+        var s=sma10(i);
+        if(s!=null && Math.abs(c[i]-s)/s <= 0.05) near++;
+        var br=(h[i]-l[i])/(c[i]||1); rngSum+=br;
+        if(br <= 0.06) tightN++;
+        vSum += v[i];
+      }
+      var winRange = lo>0 ? (hi-lo)/lo : 9;
+      var vAvgWin = vSum/L;
+      var s10start = sma10(st);
+      var rising = s10start!=null && s10end >= s10start*0.98;
+      var netMove = c[st]>0 ? Math.abs(c[end]-c[st])/c[st] : 9;   // a coil drifts sideways, it doesn't trend up through the window
+      if(winRange <= 0.15 && netMove <= 0.09 && near/L >= 0.66 && tightN/L >= 0.6 && vAvgWin <= vBase*1.3 && rising){
+        best = {len:L, tight:rngSum/L, width:winRange, volR:vAvgWin/vBase, rangeHi:hi, from10:(c[n-1]-s10end)/s10end};
+      }
     }
-    var sNow=sma10(end), sPrev=sma10(Math.max(10, end-Math.max(run,5)));
-    var rising = sNow!=null && sPrev!=null && sNow >= sPrev*0.985;
-    var from10 = sNow ? (c[n-1]-sNow)/sNow : 0;
-    var tightPct = run ? sumRng/run : 0, volR = run ? sumVol/run : 1;
-    var rangeHi = 0; for(k=Math.max(0,end-run+1); k<=end; k++){ if(h[k]>rangeHi) rangeHi=h[k]; }
-    if(pop>=0 && run>=3 && rising)
-      return {len:run, state:"pop", tight:tightPct, volR:volR, from10:from10, rangeHi:rangeHi,
+    if(!best) return null;
+    if(pop >= 0)
+      return {len:best.len, state:"pop", tight:best.tight, width:best.width, volR:best.volR, from10:best.from10, rangeHi:best.rangeHi,
               popAgo:n-1-pop, popGain:(c[pop]-c[pop-1])/(c[pop-1]||1), popVol:v[pop]/vBase};
-    if(run>=5 && rising)
-      return {len:run, state:"coil", tight:tightPct, volR:volR, from10:from10, rangeHi:rangeHi};
-    return null;
+    return {len:best.len, state:"coil", tight:best.tight, width:best.width, volR:best.volR, from10:best.from10, rangeHi:best.rangeHi};
   }
   // The RATNAVEER pattern: a recent 10/50-SMA golden cross (10 now above 50), price
   // riding close to the rising 10-SMA, and a ≥3× volume up-bar right on the 10 or 50 SMA.
@@ -3006,7 +3021,7 @@ GRANULES | 2026-08-18 | | From his 18-Aug retrospective table, self-graded &quot
     var r3 = function(x){ return Math.round(x*1000)/1000; };
     var coilStr = dc ? [dc.len, dc.state, r3(dc.tight), Math.round(dc.volR*100)/100, r3(dc.from10),
       r3(dc.rangeHi), (dc.popAgo==null?"":dc.popAgo), (dc.popGain==null?"":r3(dc.popGain)),
-      (dc.popVol==null?"":Math.round(dc.popVol*100)/100)].join("|") : "";
+      (dc.popVol==null?"":Math.round(dc.popVol*100)/100), r3(dc.width||0)].join("|") : "";
     // volume thrust (≥3×) on an up bar at the 10/50/200 MA
     var mvt = maVolThrust(op,h,l,c,vol);
     var mvtStr = mvt ? [Math.round(mvt.mult*10)/10, mvt.ma, r3(mvt.dist), mvt.ago, (mvt.up?1:0), r3(mvt.from), (mvt.gcAgo==null?"":mvt.gcAgo), (mvt.track==null?"":mvt.track)].join("|") : "";
