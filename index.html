@@ -290,7 +290,7 @@ table.oc-guide td:first-child{white-space:nowrap;width:1%}
     <span class="mark" aria-hidden="true">₹</span>
     <div>
       <h1>The 10% Ledger</h1>
-      <p>Momentum + pullback screener · NSE swing setups <span style="opacity:.5;font-size:11px">· build 2026-09-07b</span></p>
+      <p>Momentum + pullback screener · NSE swing setups <span style="opacity:.5;font-size:11px">· build 2026-09-08</span></p>
     </div>
   </div>
   <div class="controls">
@@ -325,6 +325,7 @@ table.oc-guide td:first-child{white-space:nowrap;width:1%}
   <button data-tab="screener" class="active">Screener</button>
   <button data-tab="golden">Golden Guru</button>
   <button data-tab="silver">Silver Guru</button>
+  <button data-tab="darvas">Darvas Box</button>
   <button data-tab="coil">10-DMA Coil</button>
   <button data-tab="signals">Signal Log</button>
   <button data-tab="analyzer">Analyzer</button>
@@ -436,7 +437,7 @@ table.oc-guide td:first-child{white-space:nowrap;width:1%}
       <details class="sub" id="rawBox">
         <summary>Raw data — paste your own or edit the scan output</summary>
         <p class="hint">One stock per line, comma or tab separated. First 6 fields required. Edit any row and press “Score all”.</p>
-        <code class="cols">SYM, price, EMA20, EMA50, EMA200, RSI, volR, breakout, support, sector, macd, hhhl, resist, probT1, probT10, basePct, baseBars, stage2, RS, setup, trigger, trigWR, athPct, blueSky(1/0), revYoY, profYoY, epsYoY, qDate, profYoYPrev, ttmYoY, coil(...), mvt(...), gg(...), sg(fall|span|recAgo|volMult|lowRef|lowAgo|from10)</code>
+        <code class="cols">SYM, price, EMA20, EMA50, EMA200, RSI, volR, breakout, support, sector, macd, hhhl, resist, probT1, probT10, basePct, baseBars, stage2, RS, setup, trigger, trigWR, athPct, blueSky(1/0), revYoY, profYoY, epsYoY, qDate, profYoYPrev, ttmYoY, coil(...), mvt(...), gg(...), sg(...), dx(boxHi|boxLo|boxBars|boxWidth|ext|vBreak|newHigh|stacked|uptrend)</code>
         <textarea id="batchInput" spellcheck="false" aria-label="Stock data input"></textarea>
         <div class="row-actions">
           <button class="primary" id="scoreBtn">Score all</button>
@@ -513,6 +514,47 @@ table.oc-guide td:first-child{white-space:nowrap;width:1%}
         </table>
       </div>
       <p class="hint" style="margin-top:12px">A reversal, not a continuation — <b>riskier</b> than Golden Guru because the trend was <i>down</i>. Treat the first reclaim bar as the signal: entry above its high, stop below the decline low. Best when volume on the reclaim dwarfs the sell-off volume and the wider market is turning up too; skip it outright in a Red regime. Many of these fail — size small and cut fast if it loses the 10-DMA again.</p>
+    </div>
+  </section>
+
+  <!-- DARVAS BOX -->
+  <section id="tab-darvas" hidden>
+    <div class="panel">
+      <div class="scan-head">
+        <h2>Darvas Box</h2>
+        <span class="scan-meta" id="dxMeta"></span>
+      </div>
+      <p class="hint">Nicolas Darvas's method from <i>How I Made $2,000,000 in the Stock Market</i>, the full checklist. A stock only appears here if <b>all</b> of these hold:</p>
+      <ul class="hint" style="margin:2px 0 8px 18px">
+        <li><b>A box</b> — a tight consolidation (≤18% deep, 3–45 sessions) with a defined ceiling and floor</li>
+        <li><b>Breaking the ceiling</b> — price is right at / just above the box top (0–6%), where Darvas placed his buy-stop</li>
+        <li><b>Rising volume</b> — the breakout comes on ≥1.5× the volume that preceded the box</li>
+        <li><b>New highs</b> — price is at or within 2% of its highest high; Darvas <i>never</i> bought anything else</li>
+        <li><b>Boxes stacked below</b> — earlier boxes at lower levels (rising bottoms) in a clear advance</li>
+      </ul>
+      <div class="scan-head" style="margin-top:2px">
+        <label class="chk"><input type="checkbox" id="dxEarn" checked> Earnings not shrinking</label>
+        <label class="chk" style="margin-left:0"><input type="checkbox" id="dxEarnStrict"> Earnings growing (Darvas's fundamental filter)</label>
+      </div>
+      <div class="summary" id="dxSummary" aria-live="polite"></div>
+      <div class="table-wrap">
+        <table id="dxTable">
+          <thead><tr>
+            <th>Symbol</th>
+            <th title="The box the stock is breaking out of: sessions × high-to-low depth">Box</th>
+            <th title="How far above the box ceiling price is now">Above box</th>
+            <th title="Breakout volume vs the average before the box formed">Volume</th>
+            <th title="At a new high?">New high</th>
+            <th title="Rising boxes / prior advance">Stacked</th>
+            <th title="Latest quarter's profit &amp; sales — Darvas's techno-fundamental filter">Earnings</th>
+            <th>RS</th>
+            <th title="Darvas's stop: just below the box floor">Stop</th>
+            <th></th>
+          </tr></thead>
+          <tbody id="dxBody"><tr><td colspan="10" class="empty">Run a scan (Screener → Scan now), then come back here.</td></tr></tbody>
+        </table>
+      </div>
+      <p class="hint" style="margin-top:12px"><b>Darvas's rules once you're in:</b> buy-stop just above the box top, stop-loss just below the box floor, then <b>trail the stop up</b> to the floor of each new box as it forms. <b>Pyramid</b> — add on each fresh box breakout, never average down. Sell when price breaks <i>down</i> out of a box or the trailing stop is hit. Turn on <b>Earnings growing</b> for his full "techno-fundamentalist" screen — he only bought new-high boxes in companies with rising earnings.</p>
     </div>
   </section>
 
@@ -867,6 +909,20 @@ GRANULES | 2026-08-18 | | From his 18-Aug retrospective table, self-graded &quot
       </ol>
       <p>Each row shows how far and how long it fell, sessions since the reclaim, the volume multiple, and the <b>decline low</b> (your stop). Entry above the reclaim bar's high, stop below that low. <b>This is the riskier of the two Gurus</b> — the trend was <i>down</i>, and many reversal attempts fail. It works best when the reclaim volume dwarfs the sell-off volume and the broader market is also turning; take nothing here in a Red regime, size small, and cut immediately if it loses the 10-DMA again. Golden Guru is a base breaking up; Silver Guru is a falling knife that just got caught — treat them differently.</p>
 
+      <h3>Darvas Box — its own tab</h3>
+      <p>Nicolas Darvas's method from <i>How I Made $2,000,000 in the Stock Market</i>, run as a strict checklist. A stock appears in the <b>Darvas Box</b> tab only when <i>every</i> box on his list is ticked:</p>
+      <table>
+        <tr><th>Darvas's rule</th><th>How the tool checks it</th></tr>
+        <tr><td><b>The box</b> — a stock that stops going up, holds a floor, and can't beat a ceiling for a stretch</td><td>A consolidation ≤18% deep lasting 3–45 sessions with a defined high (ceiling) and low (floor)</td></tr>
+        <tr><td><b>Breaking the ceiling</b> — "I bought on a stop-order just above the top of the box"</td><td>Price is 0–6% above the box top right now</td></tr>
+        <tr><td><b>Rising volume</b> — "the volume began to swell… that was my signal"</td><td>Breakout volume ≥1.5× the average that preceded the box</td></tr>
+        <tr><td><b>New highs only</b> — "I would never buy a stock that was not making new highs"</td><td>Price at or within 2% of its highest high in the fetched history</td></tr>
+        <tr><td><b>Rising boxes / a real advance</b> — boxes stack, each floor above the last</td><td>Earlier boxes at lower levels (rising bottoms) and/or price well above where it was ~3 months ago</td></tr>
+        <tr><td><b>Techno-fundamental filter</b> — "improving earnings, an industry with a future"</td><td>The <b>Earnings</b> column shows the latest quarter's profit/sales grade; toggle <b>Earnings growing</b> for his full screen (industry outlook you still judge yourself)</td></tr>
+      </table>
+      <p><b>Managing the trade, Darvas's way:</b> buy-stop just above the box top, stop-loss just under the box floor (the <b>Stop</b> column), then <b>trail the stop up</b> to the floor of each new box that forms above. <b>Pyramid</b> into the position on each fresh breakout; <b>never average down</b>. Exit when price breaks <i>down</i> out of a box or the trailing stop is hit. He held through the noise as long as the boxes kept rising.</p>
+      <p>Note this is the <i>book</i> method — distinct from the "DarvaX" (FinTwit / @AmitabhJha3) style baked into the <b>Setup</b> column and the HDF code, which borrows the box idea but adds all-time-high / low-float / Fibonacci overlays.</p>
+
       <h3>The 10-DMA coil — its own tab</h3>
       <p>A looser, earlier version of the same idea — you're watching for the base <i>before</i> it breaks, rather than the moment it does: <b>price ropes itself to a rising 10-day moving average</b> — candles small, top and bottom close together, volume drying up — and drifts like that for a week or more, then releases in one wide candle on heavy volume. Repeat. It's the staircase you see on UFLEX, LAURUSLABS and most sustained trends.</p>
       <p>The <b>10-DMA Coil</b> tab runs this over your last scan and splits it into two lists:</p>
@@ -1033,8 +1089,8 @@ GRANULES | 2026-08-18 | | From his 18-Aug retrospective table, self-graded &quot
   };
 
   var SAMPLE = [
-    "# cols: SYM,price,EMA20,EMA50,EMA200,RSI,volR,breakout,support,sector,macd,hhhl,resist,probT1,probT10,basePct,baseBars,stage2,RS,setup,trigger,trigWR,athPct,blueSky,revYoY,profYoY,epsYoY,qDate,profYoYPrev,ttmYoY,coil,mvt,gg,sg",
-    "HINDZINC, 627, 598, 560, 505, 69, 2.3, 620, 606, L, 1, 1, 0, 0.58, 0.33, 0.06, 22, 6, 88, HDF, inside-bar@0, 0.61, 0.01, 1, 0.19, 0.34, 0.31, 2026-06-30, 0.26, 0.3, ",
+    "# cols: SYM,price,EMA20,EMA50,EMA200,RSI,volR,breakout,support,sector,macd,hhhl,resist,probT1,probT10,basePct,baseBars,stage2,RS,setup,trigger,trigWR,athPct,blueSky,revYoY,profYoY,epsYoY,qDate,profYoYPrev,ttmYoY,coil,mvt,gg,sg,dx",
+    "HINDZINC, 627, 598, 560, 505, 69, 2.3, 620, 606, L, 1, 1, 0, 0.58, 0.33, 0.06, 22, 6, 88, HDF, inside-bar@0, 0.61, 0.01, 1, 0.19, 0.34, 0.31, 2026-06-30, 0.26, 0.3, , , , , 624|590|12|0.055|0.005|2.4|1|1|1",
     "BEL, 415, 402, 395, 360, 66, 1.9, 409, 391, L, 1, 1, 0, 0.55, 0.31, 0.07, 18, 6, 84, BOB, hammer@1, 0.62, 0.03, 1, 0.21, 0.28, 0.27, 2026-06-30, 0.33, 0.24, 14|coil|0.022|0.71|0.006|411||||0.09, , 12|0.06|1|3.6|0.04|420",
     "JINDALSTEL, 1175, 1120, 1090, 1010, 60, 1.4, 1160, 1120, L, 1, 1, 1240, 0.5, 0.27, 0.11, 26, 5, 76, LBB, , , 0.11, 0, 0.08, 0.12, 0.1, 2026-03-31, 0.21, 0.1, , 4.2|50|0.014|1|1|0.03|12|78",
     "MEESHO, 205, 198, 190, 0, 63, 1.4, 200, 191, I, 1, 1, 0, 0.5, 0.26, 0.08, 14, 5, 72, S2P, pin-bar@0, 0.58, 0.05, 0, 0.33, 99, 99, 2026-06-30, , , 9|pop|0.021|0.66|0.032|201|1|0.043|1.9|0.08",
@@ -1207,6 +1263,11 @@ GRANULES | 2026-08-18 | | From his 18-Aug retrospective table, self-graded &quot
       var sp2 = (p[33]||"").split("|");
       d.sg = (sp2[3] && +sp2[3]>=3) ? {
         fall:+sp2[0]||0, span:+sp2[1]||0, recAgo:+sp2[2]||0, volMult:+sp2[3]||0, lowRef:+sp2[4]||0, lowAgo:+sp2[5]||0, from10:+sp2[6]||0
+      } : null;
+      var dp = (p[34]||"").split("|");
+      d.dx = (dp[0] && +dp[0]>0) ? {
+        boxHi:+dp[0]||0, boxLo:+dp[1]||0, boxBars:+dp[2]||0, boxWidth:+dp[3]||0, ext:+dp[4]||0,
+        vBreak:+dp[5]||0, newHigh:dp[6]==="1", stacked:dp[7]==="1", uptrend:dp[8]==="1"
       } : null;
       var st = deriveStructure(d.price, d.breakout, d.basePct, d.baseBars, d.volRatio);
       d.structurePts=st.pts; d.structureLbl=st.label;
@@ -1619,6 +1680,49 @@ GRANULES | 2026-08-18 | | From his 18-Aug retrospective table, self-graded &quot
     }).join("") : '<tr><td colspan="8" class="empty">No stock currently passes both conditions'+(rsOn?' (with RS ≥ 30)':'')+'.</td></tr>';
 
     $$("#sgBody .openbtn").forEach(function(btn){
+      btn.addEventListener("click", function(){
+        var row = rows.filter(function(r){ return r.symbol===btn.getAttribute("data-sym"); })[0];
+        if(row){ loadIntoAnalyzer(row); switchTab("analyzer"); }
+      });
+    });
+  }
+
+  function renderDarvas(){
+    var body = $("#dxBody"); if(!body) return;
+    var rows = parseBatch($("#batchInput").value);
+    var earnOn = $("#dxEarn") && $("#dxEarn").checked;
+    var earnStrict = $("#dxEarnStrict") && $("#dxEarnStrict").checked;
+    var pool = rows.filter(function(d){
+      if(!d.dx) return false;
+      var rg = resultGrade(d).code;
+      if(earnStrict && !(rg==="good" || rg==="superb")) return false;
+      if(earnOn && !earnStrict && rg==="weak") return false;
+      return true;
+    }).sort(function(a,b){ return b.dx.vBreak - a.dx.vBreak || (a.dx.ext - b.dx.ext); });
+
+    if($("#dxMeta")) $("#dxMeta").textContent = rows.length ? (rows.length+" scanned · "+pool.length+" match") : "no scan data";
+    if($("#dxSummary")) $("#dxSummary").innerHTML = rows.length
+      ? '<span class="chip"><b>'+pool.length+'</b> Darvas box'+(pool.length===1?'':'es')+'</span>'+
+        (pool[0] ? '<span class="chip">strongest volume: <b>'+esc(pool[0].symbol)+'</b> ('+pool[0].dx.vBreak.toFixed(1)+'×)</span>' : '')
+      : '';
+
+    body.innerHTML = pool.length ? pool.map(function(d){
+      var g=d.dx, rg=resultGrade(d);
+      return '<tr>'+
+        '<td class="sym">'+esc(d.symbol)+'</td>'+
+        '<td class="num">'+g.boxBars+'d · '+(g.boxWidth*100).toFixed(0)+'%</td>'+
+        '<td class="num">'+pctSpan(g.ext)+'</td>'+
+        '<td class="num pos">'+g.vBreak.toFixed(1)+'×</td>'+
+        '<td class="num">'+(g.newHigh?'<span class="pos">yes</span>':'<span class="dim">near</span>')+'</td>'+
+        '<td class="num">'+(g.stacked?'<span class="pos">yes</span>':'<span class="dim">–</span>')+'</td>'+
+        '<td class="num"><span class="'+rg.cls+'" style="font-size:11px">'+esc(rg.label)+'</span></td>'+
+        '<td class="num">'+rsCell(d.rs)+'</td>'+
+        '<td class="num">'+(g.boxLo>0?nfmt(g.boxLo):'–')+'</td>'+
+        '<td><button class="openbtn" data-sym="'+esc(d.symbol)+'">Analyze →</button></td>'+
+      '</tr>';
+    }).join("") : '<tr><td colspan="10" class="empty">No stock currently passes the full Darvas checklist'+(earnStrict?' with growing earnings':'')+'.</td></tr>';
+
+    $$("#dxBody .openbtn").forEach(function(btn){
       btn.addEventListener("click", function(){
         var row = rows.filter(function(r){ return r.symbol===btn.getAttribute("data-sym"); })[0];
         if(row){ loadIntoAnalyzer(row); switchTab("analyzer"); }
@@ -3109,6 +3213,46 @@ GRANULES | 2026-08-18 | | From his 18-Aug retrospective table, self-graded &quot
     return { fall:fall, span:span, recAgo:n-1-rec, volMult:volMult,
              lowRef:loP, lowAgo:n-1-loIdx, from10: s10n ? (c[n-1]-s10n)/s10n : 0 };
   }
+  // Nicolas Darvas's box method, the whole checklist: a tight box (ceiling tested, floor held),
+  // price breaking ABOVE the ceiling on rising volume, at new highs, with earlier boxes stacked
+  // below (rising bottoms) in a clear advance. Stop = just under the box floor. Trend/MA is a
+  // proxy for "the stock is in strong motion"; the earnings filter is applied in the tab.
+  function darvasBox(o,h,l,c,v){
+    var n=c.length, price=c[n-1], i, k;
+    if(n < 66) return null;
+    // the box just before this breakout: the longest recent window (4-32 bars, ending the bar
+    // before now) that price sat inside with a high-to-low range ≤14% — ceiling and floor defined.
+    var boxHi=0, boxLo=0, boxBars=0, boxWidth=1;
+    for(var W=4; W<=32; W++){
+      var st=n-1-W;
+      if(st < 20) break;
+      var hi2=-1e9, lo2=1e9;
+      for(k=st; k<=n-2; k++){ if(h[k]>hi2) hi2=h[k]; if(l[k]<lo2) lo2=l[k]; }
+      var w = lo2>0 ? (hi2-lo2)/lo2 : 9;
+      if(w <= 0.14){ boxHi=hi2; boxLo=lo2; boxBars=W; boxWidth=w; }
+    }
+    if(boxBars < 4 || !(boxHi>0) || !(boxLo>0)) return null;
+    // breakout: price right at / just above the ceiling (Darvas bought on a stop just over the box top)
+    var ext = (price - boxHi)/boxHi;
+    var breakout = ext >= -0.006 && ext <= 0.06;
+    // volume rising into / on the breakout, vs the quiet volume before the box formed
+    var vPre = avgN(v.slice(0, Math.max(1, n-1-boxBars-2)), 30) || 1;
+    var vBreak = 0; for(k=Math.max(0,n-4); k<n; k++){ var m=v[k]/vPre; if(m>vBreak) vBreak=m; }
+    var volOK = vBreak >= 1.5;
+    // new highs — Darvas only ever bought a stock making new highs
+    var hh=-1e9; for(i=0;i<n-1;i++) if(h[i]>hh) hh=h[i];
+    var newHigh = price >= hh*0.98;
+    // stacked / rising boxes below (higher bottoms) + a real prior advance
+    var sb = stairBases(h,l,c);
+    var stacked = sb.stacked || (n>66 && c[n-1] > c[n-66]*1.10);
+    // "in strong motion" — above a rising 50-EMA, 50 over 200
+    var e50=emaLast(c,50), e200=emaLast(c,200), e50a=emaArr(c,50);
+    var e50rise = e50a[n-1]!=null && e50a[Math.max(0,n-15)]!=null && e50a[n-1] > e50a[Math.max(0,n-15)];
+    var uptrend = e200>0 && price > e50 && e50 > e200 && e50rise;
+    if(!(breakout && volOK && newHigh && (stacked || uptrend))) return null;
+    return { boxHi:boxHi, boxLo:boxLo, boxBars:boxBars, boxWidth:boxWidth, ext:ext,
+             vBreak:vBreak, newHigh:newHigh?1:0, stacked:stacked?1:0, uptrend:uptrend?1:0 };
+  }
   // Uncharted territory — price at / near the highest high of the whole fetched series,
   // and above every prior close. (Darvas: no overhead supply.)
   function blueSky(h,c){
@@ -3291,6 +3435,9 @@ GRANULES | 2026-08-18 | | From his 18-Aug retrospective table, self-graded &quot
     // Silver Guru: reclaim of the 10-DMA on 3× volume after a multi-day decline
     var sg = silverGuru(op,h,l,c,vol);
     var sgStr = sg ? [r3(sg.fall), sg.span, sg.recAgo, Math.round(sg.volMult*10)/10, r3(sg.lowRef), sg.lowAgo, r3(sg.from10)].join("|") : "";
+    // Nicolas Darvas box method — full checklist
+    var dx = darvasBox(op,h,l,c,vol);
+    var dxStr = dx ? [r3(dx.boxHi), r3(dx.boxLo), dx.boxBars, r3(dx.boxWidth), r3(dx.ext), Math.round(dx.vBreak*10)/10, dx.newHigh, dx.stacked, dx.uptrend].join("|") : "";
     // last ~400 bars kept for charting the top-ranked names — enough for a real EMA200 and a
     // usable weekly view (≈57 weeks). Rounded to keep localStorage small.
     var TB = 400, ts = Math.max(0, c.length - TB), rnd = function(x){ return Math.round(x*100)/100; };
@@ -3324,7 +3471,7 @@ GRANULES | 2026-08-18 | | From his 18-Aug retrospective table, self-graded &quot
       blueSky: (bsky.newHigh && bsky.above) ? 1 : 0,
       fibZone: fib ? fib.zone : "",
       fibRetr: fib ? Math.round(fib.retr*100)/100 : null,
-      coil: coilStr, mvt: mvtStr, gg: ggStr, sg: sgStr,
+      coil: coilStr, mvt: mvtStr, gg: ggStr, sg: sgStr, dx: dxStr,
       revYoY: null, profYoY: null, epsYoY: null, qDate: "", profYoYPrev: null, ttmYoY: null   // filled in later by applyFund()
     };
   }
@@ -3335,7 +3482,7 @@ GRANULES | 2026-08-18 | | From his 18-Aug retrospective table, self-graded &quot
       r.basePct||0, r.baseBars||0, r.stage2||0, (r.rs==null?"":r.rs), (r.setup||""),
       (r.trig||""), (r.trigWR==null?"":r.trigWR), (r.athPct==null?"":r.athPct), (r.blueSky||0),
       (r.revYoY==null?"":r.revYoY), (r.profYoY==null?"":r.profYoY), (r.epsYoY==null?"":r.epsYoY), (r.qDate||""),
-      (r.profYoYPrev==null?"":r.profYoYPrev), (r.ttmYoY==null?"":r.ttmYoY), (r.coil||""), (r.mvt||""), (r.gg||""), (r.sg||"")].join(", ");
+      (r.profYoYPrev==null?"":r.profYoYPrev), (r.ttmYoY==null?"":r.ttmYoY), (r.coil||""), (r.mvt||""), (r.gg||""), (r.sg||""), (r.dx||"")].join(", ");
   }
 
   /* ---------- auto-screen: fetch adapters ---------- */
@@ -3679,7 +3826,7 @@ GRANULES | 2026-08-18 | | From his 18-Aug retrospective table, self-graded &quot
     if(!force && state.scanCache && state.scanCache.date===today && state.scanCache.csv && state.scanCache.uniKey===uniKey){
       $("#batchInput").value = state.scanCache.csv;
       state.batchInput = state.scanCache.csv; save();
-      applyLeadingSectors(); renderScreener(); renderGolden(); renderSilver(); renderCoil(); renderSignals();
+      applyLeadingSectors(); renderScreener(); renderGolden(); renderSilver(); renderDarvas(); renderCoil(); renderSignals();
       setStatus("cached", false);
       $("#scanErrline").textContent = "Showing today's cached scan of these "+uni.length+" names — press “Force refresh” to re-fetch.";
       return;
@@ -3883,6 +4030,7 @@ GRANULES | 2026-08-18 | | From his 18-Aug retrospective table, self-graded &quot
       renderScreener();
       renderGolden();
       renderSilver();
+      renderDarvas();
       renderCoil();
       renderSignals();
       setStatus(aborted?"stopped":"done", false);
@@ -3960,9 +4108,10 @@ GRANULES | 2026-08-18 | | From his 18-Aug retrospective table, self-graded &quot
   /* ---------- tabs / theme / controls ---------- */
   function switchTab(name){
     $$("#tabs button").forEach(function(b){ b.classList.toggle("active", b.getAttribute("data-tab")===name); });
-    ["screener","golden","silver","coil","signals","analyzer","playbook"].forEach(function(t){ $("#tab-"+t).hidden = (t!==name); });
+    ["screener","golden","silver","darvas","coil","signals","analyzer","playbook"].forEach(function(t){ $("#tab-"+t).hidden = (t!==name); });
     if(name==="golden") renderGolden();
     if(name==="silver") renderSilver();
+    if(name==="darvas") renderDarvas();
     if(name==="coil") renderCoil();
     if(name==="signals"){ if($("#sig_date") && !$("#sig_date").value) $("#sig_date").value = new Date().toISOString().slice(0,10); renderSignals(); }
   }
@@ -4015,10 +4164,10 @@ GRANULES | 2026-08-18 | | From his 18-Aug retrospective table, self-graded &quot
       var b = e.target.closest("button"); if(b) switchTab(b.getAttribute("data-tab"));
     });
     $("#themeBtn").addEventListener("click", toggleTheme);
-    $("#scoreBtn").addEventListener("click", function(){ state.batchInput = $("#batchInput").value; save(); renderScreener(); renderGolden(); renderSilver(); renderCoil(); renderSignals(); });
+    $("#scoreBtn").addEventListener("click", function(){ state.batchInput = $("#batchInput").value; save(); renderScreener(); renderGolden(); renderSilver(); renderDarvas(); renderCoil(); renderSignals(); });
     $("#batchInput").addEventListener("change", function(){ state.batchInput = $("#batchInput").value; save(); });
-    $("#sampleBtn").addEventListener("click", function(){ $("#batchInput").value = SAMPLE; state.batchInput = SAMPLE; save(); renderScreener(); renderGolden(); renderSilver(); renderCoil(); renderSignals(); });
-    $("#clearBtn").addEventListener("click", function(){ $("#batchInput").value = ""; state.batchInput = ""; save(); renderScreener(); renderGolden(); renderSilver(); renderCoil(); renderSignals(); });
+    $("#sampleBtn").addEventListener("click", function(){ $("#batchInput").value = SAMPLE; state.batchInput = SAMPLE; save(); renderScreener(); renderGolden(); renderSilver(); renderDarvas(); renderCoil(); renderSignals(); });
+    $("#clearBtn").addEventListener("click", function(){ $("#batchInput").value = ""; state.batchInput = ""; save(); renderScreener(); renderGolden(); renderSilver(); renderDarvas(); renderCoil(); renderSignals(); });
     $("#onlyActionable").addEventListener("change", renderScreener);
     $("#onlyBreakout").addEventListener("change", renderScreener);
     $("#onlyStage2").addEventListener("change", renderScreener);
@@ -4029,6 +4178,8 @@ GRANULES | 2026-08-18 | | From his 18-Aug retrospective table, self-graded &quot
     if($("#coilUptrend")) $("#coilUptrend").addEventListener("change", renderCoil);
     if($("#ggUptrend")) $("#ggUptrend").addEventListener("change", renderGolden);
     if($("#sgRs")) $("#sgRs").addEventListener("change", renderSilver);
+    if($("#dxEarn")) $("#dxEarn").addEventListener("change", renderDarvas);
+    if($("#dxEarnStrict")) $("#dxEarnStrict").addEventListener("change", renderDarvas);
     if($("#sigAddBtn")) $("#sigAddBtn").addEventListener("click", addSignal);
     if($("#sigBulkBtn")) $("#sigBulkBtn").addEventListener("click", bulkImportSignals);
     $("#analyzeBtn").addEventListener("click", runAnalyzer);
