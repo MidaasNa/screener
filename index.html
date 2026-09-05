@@ -290,7 +290,7 @@ table.oc-guide td:first-child{white-space:nowrap;width:1%}
     <span class="mark" aria-hidden="true">₹</span>
     <div>
       <h1>The 10% Ledger</h1>
-      <p>Momentum + pullback screener · NSE swing setups <span style="opacity:.5;font-size:11px">· build 2026-09-08</span></p>
+      <p>Momentum + pullback screener · NSE swing setups <span style="opacity:.5;font-size:11px">· build 2026-09-08c</span></p>
     </div>
   </div>
   <div class="controls">
@@ -326,8 +326,10 @@ table.oc-guide td:first-child{white-space:nowrap;width:1%}
   <button data-tab="golden">Golden Guru</button>
   <button data-tab="silver">Silver Guru</button>
   <button data-tab="darvas">Darvas Box</button>
+  <button data-tab="hdf">High Dry Fry</button>
   <button data-tab="coil">10-DMA Coil</button>
   <button data-tab="signals">Signal Log</button>
+  <button data-tab="book">Chart Book</button>
   <button data-tab="analyzer">Analyzer</button>
   <button data-tab="playbook">Playbook</button>
 </nav>
@@ -437,7 +439,7 @@ table.oc-guide td:first-child{white-space:nowrap;width:1%}
       <details class="sub" id="rawBox">
         <summary>Raw data — paste your own or edit the scan output</summary>
         <p class="hint">One stock per line, comma or tab separated. First 6 fields required. Edit any row and press “Score all”.</p>
-        <code class="cols">SYM, price, EMA20, EMA50, EMA200, RSI, volR, breakout, support, sector, macd, hhhl, resist, probT1, probT10, basePct, baseBars, stage2, RS, setup, trigger, trigWR, athPct, blueSky(1/0), revYoY, profYoY, epsYoY, qDate, profYoYPrev, ttmYoY, coil(...), mvt(...), gg(...), sg(...), dx(boxHi|boxLo|boxBars|boxWidth|ext|vBreak|newHigh|stacked|uptrend)</code>
+        <code class="cols">SYM, price, EMA20, EMA50, EMA200, RSI, volR, breakout, support, sector, macd, hhhl, resist, probT1, probT10, basePct, baseBars, stage2, RS, setup, trigger, trigWR, athPct, blueSky(1/0), revYoY, profYoY, epsYoY, qDate, profYoYPrev, ttmYoY, coil(...), mvt(...), gg(...), sg(...), dx(...), hdf(thrust|correction|babyRange|volSurge|bars|hi|lo)</code>
         <textarea id="batchInput" spellcheck="false" aria-label="Stock data input"></textarea>
         <div class="row-actions">
           <button class="primary" id="scoreBtn">Score all</button>
@@ -558,6 +560,44 @@ table.oc-guide td:first-child{white-space:nowrap;width:1%}
     </div>
   </section>
 
+  <!-- HIGH DRY FRY -->
+  <section id="tab-hdf" hidden>
+    <div class="panel">
+      <div class="scan-head">
+        <h2>High Dry Fry</h2>
+        <span class="scan-meta" id="hdfMeta"></span>
+      </div>
+      <p class="hint">The DarvaX "High Dry Fry" — a big thrust drying into a baby-candle base, now breaking out:</p>
+      <ol class="hint" style="margin:2px 0 8px 18px">
+        <li>a <b>thrust of +18–90%</b> off a low, on a volume surge (≥1.3× prior)</li>
+        <li>a <b>correction of 6–32%</b> back from the thrust peak</li>
+        <li>a cluster of <b>tiny "baby" candles</b> (average range ≤5%) forming a tight base</li>
+        <li>price now <b>clearing that base</b> (−1.5% … +6% of the base top)</li>
+      </ol>
+      <div class="scan-head" style="margin-top:2px">
+        <label class="chk"><input type="checkbox" id="hdfAth" title="Only names also in uncharted territory (above every prior high)"> At all-time highs</label>
+        <label class="chk" style="margin-left:0"><input type="checkbox" id="hdfAplus" title="Only A+ grade (Stage-2 ≥ 5, RS ≥ 75, trigger not weak)"> A+ only</label>
+      </div>
+      <div class="summary" id="hdfSummary" aria-live="polite"></div>
+      <div class="table-wrap">
+        <table id="hdfTable">
+          <thead><tr>
+            <th>Symbol</th>
+            <th title="The advance off the low before the correction">Thrust</th>
+            <th title="How far price pulled back from the thrust peak">Correction</th>
+            <th title="Average daily range of the baby-candle base — smaller is tighter">Base range</th>
+            <th title="Volume on the thrust vs before it">Vol surge</th>
+            <th title="Base length × the base top (your entry / alert level)">Base</th>
+            <th>Grade</th><th>RS</th><th title="Odds of +10% before the stop, from this stock's history">Prob</th>
+            <th></th>
+          </tr></thead>
+          <tbody id="hdfBody"><tr><td colspan="10" class="empty">Run a scan (Screener → Scan now), then come back here.</td></tr></tbody>
+        </table>
+      </div>
+      <p class="hint" style="margin-top:12px">DarvaX's entry: a <b>buy-stop above the prior day's high</b> once it's clearing the base; stop <b>1% below entry</b> or under the base low, whichever is tighter. Add on strength, never average down; exit on a daily <i>close</i> below your chosen EMA. Best when it's also at all-time highs (no overhead supply) — turn on the filter. This is the pattern from his deck that produced the repeated 20–100% moves; the honest caveats (survivorship bias, low-float violence, bull-regime dependence) are in the Playbook.</p>
+    </div>
+  </section>
+
   <!-- 10-DMA COIL -->
   <section id="tab-coil" hidden>
     <div class="panel">
@@ -654,6 +694,47 @@ GRANULES | 2026-08-18 | | From his 18-Aug retrospective table, self-graded &quot
         </table>
       </div>
       <p class="hint" style="margin-top:10px">"Tool's read" only fills in for a symbol that's in your <b>current scan data</b> — run a scan (or paste raw data) that includes it. "Now" pulls the scanned price automatically when available; otherwise type it in and it's remembered. This log is decision <i>support</i> for judging a source's real hit rate over time — it doesn't validate or endorse any specific trader.</p>
+    </div>
+  </section>
+
+  <!-- CHART BOOK -->
+  <section id="tab-book" hidden>
+    <div class="panel">
+      <div class="scan-head">
+        <h2>Chart Book</h2>
+        <span class="scan-meta" id="bookMeta"></span>
+      </div>
+      <p class="hint">Flip through your last scan one chart at a time — like a printed chart book. Each page shows the candlestick chart, <b>which screens the stock passes</b>, and the full trade plan: entry, stop-loss, exit target, reward:risk and position size. Use <b>‹ Prev / Next ›</b> or the ← → arrow keys.</p>
+      <div class="scan-head" style="margin-top:2px;flex-wrap:wrap;gap:8px">
+        <label class="chk" style="margin-left:0">Show
+          <select id="bookScope" style="margin-left:6px">
+            <option value="all">All scanned — by score</option>
+            <option value="actionable">Buy setups only (score ≥ 80, R:R ≥ 2)</option>
+            <option value="setup">Any named setup</option>
+            <option value="golden">Golden Guru</option>
+            <option value="silver">Silver Guru</option>
+            <option value="darvas">Darvas Box</option>
+            <option value="hdf">High Dry Fry</option>
+            <option value="coil">10-DMA Coil</option>
+            <option value="watchlist">Watchlist</option>
+          </select>
+        </label>
+        <div class="seg" id="bookNav" role="group" aria-label="Chart book navigation">
+          <button id="bookPrev" title="Previous (←)">‹ Prev</button>
+          <button id="bookNext" title="Next (→)">Next ›</button>
+        </div>
+        <span class="scan-meta" id="bookPos"></span>
+        <div class="seg" id="bookTF" role="group" aria-label="Chart timeframe">
+          <button data-v="daily" aria-pressed="true">D</button>
+          <button data-v="weekly" aria-pressed="false">W</button>
+        </div>
+        <button id="bookRefreshLive" class="ghost" title="Fetch fresh candles for this stock">↻ live</button>
+        <button id="bookOpen" class="ghost" title="Open this stock in the Analyzer">Full analysis →</button>
+      </div>
+      <div id="bookHead" class="summary" aria-live="polite"></div>
+      <div id="bookChart"><p class="empty">Run a scan (Screener → Scan now), then come back here to page through the charts.</p></div>
+      <div id="bookPlan"></div>
+      <p class="hint" style="margin-top:10px">Entry / stop / targets are the tool's standard plan: entry at the breakout level (or your override in the Analyzer), stop under support or a fixed % if none, exit scaled at +5% / +7.5% / +10%, size fixed at 1% of capital at risk. For <b>Darvas Box</b> and <b>High Dry Fry</b> names the note above swaps in Darvas's own rule — a buy-stop above the prior day's high, stop 1% under entry or below the base low.</p>
     </div>
   </section>
 
@@ -947,7 +1028,7 @@ GRANULES | 2026-08-18 | | From his 18-Aug retrospective table, self-graded &quot
       <table>
         <tr><th>DarvaX rule</th><th>In the tool</th></tr>
         <tr><td><b>All-time-high / "uncharted territory"</b> — price above every prior high, no overhead supply</td><td>New <b>ATH</b> badge on the symbol + the <b>at ATH</b> chip in the summary bar. Raw field <code>blueSky</code>. On the chart there is no resistance line above price ("sky").</td></tr>
-        <tr><td><b>"High Dry Fry"</b> — stock thrusts +20–50% on huge volume, corrects −10–20% from the peak, then prints a cluster of tiny "baby candles", then breaks out of that mini-base</td><td>New setup code <b>HDF</b> (<code>High Dry Fry</code>) in the Setup cell. Detected by <code>highDryFry()</code>: a prior thrust of 18–90% on ≥1.3× volume, a 6–32% correction, a base of very small-range bars, and price now within −1.5%…+6% of the base high. Shows first in the Setup ranking; grades <b>A+</b> when Stage-2 ≥ 5 and RS ≥ 75.</td></tr>
+        <tr><td><b>"High Dry Fry"</b> — stock thrusts +20–50% on huge volume, corrects −10–20% from the peak, then prints a cluster of tiny "baby candles", then breaks out of that mini-base</td><td>New setup code <b>HDF</b> (<code>High Dry Fry</code>) in the Setup cell. Detected by <code>highDryFry()</code>: a prior thrust of 18–90% on ≥1.3× volume, a 6–32% correction, a base of very small-range bars, and price now within −1.5%…+6% of the base high. Shows first in the Setup ranking; grades <b>A+</b> when Stage-2 ≥ 5 and RS ≥ 75. Has its own <b>High Dry Fry</b> tab — the thrust %, correction %, baby-candle range, volume surge and base level for every HDF name in the scan, with "at ATH" and "A+ only" filters.</td></tr>
         <tr><td><b>Superb quarterly numbers</b> — profit &amp; sales growing hard, ideally accelerating</td><td><b>Now screened.</b> The scan pulls each stock's last ~5 quarters from Yahoo (revenue / net income / diluted EPS) and grades the latest quarter's <b>YoY</b> growth into the <b>Results</b> column: ★ strong (profit +25%+ &amp; sales growing), ▲ growing, · flat, ▼ shrinking. Raw fields <code>revYoY</code> / <code>profYoY</code> / <code>epsYoY</code> / <code>qDate</code>. A ▼ (contracting earnings) <b>blocks the A+ grade</b> — DarvaX never buys a new-high breakout on falling profit. Filter: <b>Strong results</b>. Toggle: <b>Fetch latest quarterly results</b> (on by default; roughly doubles scan time). Turn it off to skip.</td></tr>
         <tr><td><b>Low float + gigantic multi-year volumes</b></td><td><b>Still not screenable here</b> — the tool has no float or shares-outstanding data. The volume <i>surge</i> is captured (volRatio, the HDF volume test) but the multi-year "gigantic volume" context is not. Check free float and the delivery-volume trend on screener.in / trendlyne before entering.</td></tr>
         <tr><td><b>Darvas box + VCP + Fibonacci</b></td><td>Darvas box = <code>detectBase</code> / <code>stairBases</code>. VCP = the <code>VCP</code> setup code. Fibonacci = new <code>fibLevels()</code>: the Analyzer's "DarvaX read" states the current retracement and the chart draws the 38.2 / 50 / 61.8% lines.</td></tr>
@@ -1001,6 +1082,16 @@ GRANULES | 2026-08-18 | | From his 18-Aug retrospective table, self-graded &quot
 
       <h3>The chart</h3>
       <p>Open any stock with <b>Analyze →</b> and the Analyzer draws a candlestick chart: EMA 20/50 (and 200 when enough history), the detected <b>consolidation base as a shaded box</b>, plus dashed lines for your entry, stop and +10% target and dotted lines for the nearest support / resistance. The <b>D / W</b> toggle switches between daily candles (~6 months) and weekly candles (~20 months) — weekly is aggregated from the daily data on the fly. Charts for the <b>top ~30 scored names are kept from the scan</b> so they open instantly; for anything else it fetches on demand (needs a working data source). <b>↻ live</b> forces a fresh pull. Always eyeball this before taking a trade — the score is a filter, the chart is the veto.</p>
+
+      <h3>Chart Book — its own tab</h3>
+      <p>A review surface — flip through the charts from your last scan one at a time, the way you'd page through a printed chart book, instead of clicking <b>Analyze →</b> on each row. <b>‹ Prev / Next ›</b> or the <b>← →</b> arrow keys move between stocks; the position counter shows where you are (e.g. <i>7 / 41</i>).</p>
+      <ul>
+        <li><b>Show</b> picks the deck: <i>All scanned</i> (every name, ordered by score), <i>Buy setups only</i> (score ≥ 80 and R:R ≥ 2), <i>Any named setup</i>, or exactly one of the pattern tabs — Golden Guru, Silver Guru, Darvas Box, High Dry Fry, 10-DMA Coil — or your <i>Watchlist</i>.</li>
+        <li><b>Which screens it passes</b> — a row of chips under the title names every filter this stock currently appears in: its Screener verdict, its setup + confluence grade, and each pattern tab it qualifies for, plus ATH / ⚡ vol-thrust / results-due flags. One glance tells you why the stock is in front of you.</li>
+        <li><b>The trade plan</b> — entry, stop-loss (with the % distance), the +10% exit target and the reward:risk ratio up top; then the +5% / +7.5% scale-out levels, risk per share, position size at 1% capital, and the verdict. R:R below 2:1 is called out in red. For <b>Darvas Box</b> and <b>High Dry Fry</b> names it adds Darvas's own entry rule (buy-stop above the prior day's high, 1% stop).</li>
+        <li><b>D / W</b> toggles daily / weekly candles (shared with the Analyzer). <b>↻ live</b> forces a fresh candle pull for the stock on screen. <b>Full analysis →</b> loads it into the Analyzer for the scorecard, notes, hold-vs-exit and option-chain panels.</li>
+      </ul>
+      <p>Charts for the <b>top ~30 scored names</b> are kept from the scan and open instantly; paging to anything past that fetches on demand (needs a working data source, same as the Analyzer chart). It's the fastest way to eyeball a whole scan and throw out the ones that look wrong — the score is the filter, the chart is the veto.</p>
 
       <h3>Option chain</h3>
       <p>The open-interest picture does move stocks — but as a <b>range and a sentiment tool, not a direction predictor</b>. Two honest limits up front:</p>
@@ -1085,12 +1176,12 @@ GRANULES | 2026-08-18 | | From his 18-Aug retrospective table, self-graded &quot
     proxyCustom: "", apiKey: "", fmpKey: "", chartTF: "daily",
     universeSize: "200", customUniverse: "", leadingSectors: [],
     dropForming: true, fetchEvents: false, fetchResults: true, scanCache: null, hostOverride: false,
-    oc: {}, signals: []
+    oc: {}, signals: [], bookIdx: 0, bookScope: "all"
   };
 
   var SAMPLE = [
-    "# cols: SYM,price,EMA20,EMA50,EMA200,RSI,volR,breakout,support,sector,macd,hhhl,resist,probT1,probT10,basePct,baseBars,stage2,RS,setup,trigger,trigWR,athPct,blueSky,revYoY,profYoY,epsYoY,qDate,profYoYPrev,ttmYoY,coil,mvt,gg,sg,dx",
-    "HINDZINC, 627, 598, 560, 505, 69, 2.3, 620, 606, L, 1, 1, 0, 0.58, 0.33, 0.06, 22, 6, 88, HDF, inside-bar@0, 0.61, 0.01, 1, 0.19, 0.34, 0.31, 2026-06-30, 0.26, 0.3, , , , , 624|590|12|0.055|0.005|2.4|1|1|1",
+    "# cols: SYM,price,EMA20,EMA50,EMA200,RSI,volR,breakout,support,sector,macd,hhhl,resist,probT1,probT10,basePct,baseBars,stage2,RS,setup,trigger,trigWR,athPct,blueSky,revYoY,profYoY,epsYoY,qDate,profYoYPrev,ttmYoY,coil,mvt,gg,sg,dx,hdf",
+    "HINDZINC, 627, 598, 560, 505, 69, 2.3, 620, 606, L, 1, 1, 0, 0.58, 0.33, 0.06, 22, 6, 88, HDF, inside-bar@0, 0.61, 0.01, 1, 0.19, 0.34, 0.31, 2026-06-30, 0.26, 0.3, , , , , 624|590|12|0.055|0.005|2.4|1|1|1, 0.42|0.16|0.028|1.8|12|624|560",
     "BEL, 415, 402, 395, 360, 66, 1.9, 409, 391, L, 1, 1, 0, 0.55, 0.31, 0.07, 18, 6, 84, BOB, hammer@1, 0.62, 0.03, 1, 0.21, 0.28, 0.27, 2026-06-30, 0.33, 0.24, 14|coil|0.022|0.71|0.006|411||||0.09, , 12|0.06|1|3.6|0.04|420",
     "JINDALSTEL, 1175, 1120, 1090, 1010, 60, 1.4, 1160, 1120, L, 1, 1, 1240, 0.5, 0.27, 0.11, 26, 5, 76, LBB, , , 0.11, 0, 0.08, 0.12, 0.1, 2026-03-31, 0.21, 0.1, , 4.2|50|0.014|1|1|0.03|12|78",
     "MEESHO, 205, 198, 190, 0, 63, 1.4, 200, 191, I, 1, 1, 0, 0.5, 0.26, 0.08, 14, 5, 72, S2P, pin-bar@0, 0.58, 0.05, 0, 0.33, 99, 99, 2026-06-30, , , 9|pop|0.021|0.66|0.032|201|1|0.043|1.9|0.08",
@@ -1268,6 +1359,10 @@ GRANULES | 2026-08-18 | | From his 18-Aug retrospective table, self-graded &quot
       d.dx = (dp[0] && +dp[0]>0) ? {
         boxHi:+dp[0]||0, boxLo:+dp[1]||0, boxBars:+dp[2]||0, boxWidth:+dp[3]||0, ext:+dp[4]||0,
         vBreak:+dp[5]||0, newHigh:dp[6]==="1", stacked:dp[7]==="1", uptrend:dp[8]==="1"
+      } : null;
+      var hp = (p[35]||"").split("|");
+      d.hdf = (hp[0] && +hp[0]>0) ? {
+        thrust:+hp[0]||0, correction:+hp[1]||0, babyRange:+hp[2]||0, volSurge:+hp[3]||0, bars:+hp[4]||0, hi:+hp[5]||0, lo:+hp[6]||0
       } : null;
       var st = deriveStructure(d.price, d.breakout, d.basePct, d.baseBars, d.volRatio);
       d.structurePts=st.pts; d.structureLbl=st.label;
@@ -1730,6 +1825,54 @@ GRANULES | 2026-08-18 | | From his 18-Aug retrospective table, self-graded &quot
     });
   }
 
+  function renderHDF(){
+    var body = $("#hdfBody"); if(!body) return;
+    var rows = parseBatch($("#batchInput").value);
+    var athOn = $("#hdfAth") && $("#hdfAth").checked;
+    var aplusOn = $("#hdfAplus") && $("#hdfAplus").checked;
+    var pool = rows.filter(function(d){
+      if(d.setup !== "HDF") return false;
+      if(athOn && !d.blueSky) return false;
+      if(aplusOn && setupGrade(d) !== "A+") return false;
+      return true;
+    }).sort(function(a,b){
+      var ga = setupGrade(a)==="A+"?2:setupGrade(a)==="A"?1:0;
+      var gb = setupGrade(b)==="A+"?2:setupGrade(b)==="A"?1:0;
+      return gb-ga || (b.rs||0)-(a.rs||0);
+    });
+
+    if($("#hdfMeta")) $("#hdfMeta").textContent = rows.length ? (rows.length+" scanned · "+pool.length+" High Dry Fry") : "no scan data";
+    if($("#hdfSummary")) $("#hdfSummary").innerHTML = rows.length
+      ? '<span class="chip"><b>'+pool.length+'</b> High Dry Fry</span>'+
+        '<span class="chip"><b>'+pool.filter(function(d){return d.blueSky;}).length+'</b> at ATH</span>'+
+        '<span class="chip"><b>'+pool.filter(function(d){return setupGrade(d)==="A+";}).length+'</b> A+</span>'
+      : '';
+
+    body.innerHTML = pool.length ? pool.map(function(d){
+      var hd=d.hdf, base = hd ? (hd.bars+'d · '+nfmt(hd.hi)) : (d.baseBars?d.baseBars+'d':'–');
+      var prob = (d.probT10!=null) ? Math.round(d.probT10*100)+'%' : '<span class="dim">–</span>';
+      return '<tr>'+
+        '<td class="sym">'+esc(d.symbol)+(d.blueSky?' <span class="pos" style="font-size:9px">ATH</span>':'')+'</td>'+
+        '<td class="num pos">'+(hd?'+'+Math.round(hd.thrust*100)+'%':'–')+'</td>'+
+        '<td class="num">'+(hd?'-'+Math.round(hd.correction*100)+'%':'–')+'</td>'+
+        '<td class="num">'+(hd?(hd.babyRange*100).toFixed(1)+'%':'–')+'</td>'+
+        '<td class="num pos">'+(hd?hd.volSurge.toFixed(1)+'×':'–')+'</td>'+
+        '<td class="num">'+base+'</td>'+
+        '<td class="num">'+gradeBadge(setupGrade(d))+'</td>'+
+        '<td class="num">'+rsCell(d.rs)+'</td>'+
+        '<td class="num">'+prob+'</td>'+
+        '<td><button class="openbtn" data-sym="'+esc(d.symbol)+'">Analyze →</button></td>'+
+      '</tr>';
+    }).join("") : '<tr><td colspan="10" class="empty">No High Dry Fry setups in the current scan'+(athOn?' at all-time highs':'')+(aplusOn?' (A+ only)':'')+'.</td></tr>';
+
+    $$("#hdfBody .openbtn").forEach(function(btn){
+      btn.addEventListener("click", function(){
+        var row = rows.filter(function(r){ return r.symbol===btn.getAttribute("data-sym"); })[0];
+        if(row){ loadIntoAnalyzer(row); switchTab("analyzer"); }
+      });
+    });
+  }
+
   function renderCoil(){
     var rows = parseBatch($("#batchInput").value);
     var wl = {}; (state.watchlist||[]).forEach(function(w){ wl[w.symbol]=1; });
@@ -1788,6 +1931,179 @@ GRANULES | 2026-08-18 | | From his 18-Aug retrospective table, self-graded &quot
         var row = rows.filter(function(r){ return r.symbol===btn.getAttribute("data-sym"); })[0];
         if(row){ loadIntoAnalyzer(row); switchTab("analyzer"); }
       });
+    });
+  }
+
+  /* ---------- chart book: page through every scanned chart with its plan ---------- */
+  var bookPool = [];
+  var bookToken = 0;
+
+  function bookWL(){ var m={}; (state.watchlist||[]).forEach(function(w){ m[w.symbol]=1; }); return m; }
+
+  function bookInScope(d, scope){
+    switch(scope){
+      case "actionable": return evaluateRow(d).actionable;
+      case "setup":      return !!(d.setup && SETUP_LABEL[d.setup]);
+      case "golden":     return !!d.gg;
+      case "silver":     return !!d.sg;
+      case "darvas":     return !!d.dx;
+      case "hdf":        return d.setup==="HDF";
+      case "coil":       return !!d.coil;
+      case "watchlist":  return bookWL()[d.symbol]===1;
+      default:           return true;
+    }
+  }
+
+  // which screens / filters this stock currently passes — answers "appears in which filter"
+  function bookMembership(d){
+    var tags = [], e = evaluateRow(d);
+    if(e.actionable) tags.push({t:"Screener · "+e.v.label, c:"pos"});
+    else if(e.v.tier>=3) tags.push({t:"Screener · "+e.v.label, c:"warn"});
+    else tags.push({t:"Screener · "+e.v.label, c:"neg"});
+    if(d.setup && SETUP_LABEL[d.setup]){
+      var g=setupGrade(d);
+      tags.push({t:SETUP_LABEL[d.setup]+(g?" "+g:""), c:(d.setup==="COIL"||d.setup==="S2")?"warn":"pos"});
+    }
+    if(d.setup==="HDF") tags.push({t:"High Dry Fry tab", c:"pos"});
+    if(d.gg) tags.push({t:"Golden Guru tab", c:"pos"});
+    if(d.sg) tags.push({t:"Silver Guru tab", c:"pos"});
+    if(d.dx) tags.push({t:"Darvas Box tab", c:"pos"});
+    if(d.coil) tags.push({t:"10-DMA Coil tab ("+(d.coil.state==="pop"?"popped":"coiling")+")", c:d.coil.state==="pop"?"pos":"warn"});
+    if(d.mvt) tags.push({t:"⚡ vol thrust @ "+d.mvt.ma+"-MA", c:"pos"});
+    if(d.blueSky) tags.push({t:"All-time high", c:"pos"});
+    var rt = resultTiming(d.qDate);
+    if(rt && rt.dueSoon) tags.push({t:"⚠ result due ~"+rt.nextTxt, c:"neg"});
+    var rg = resultGrade(d);
+    if(rg.code==="superb") tags.push({t:"Results ★ strong growth", c:"pos"});
+    else if(rg.code==="weak") tags.push({t:"Results ▼ shrinking", c:"neg"});
+    return tags;
+  }
+
+  function bookGo(delta){
+    if(!bookPool.length) return;
+    var i = (state.bookIdx||0) + delta;
+    if(i<0) i=0; if(i>bookPool.length-1) i=bookPool.length-1;
+    if(i===state.bookIdx) return;
+    state.bookIdx = i; save();
+    renderBook();
+  }
+
+  function renderBook(){
+    var host = $("#bookChart"); if(!host) return;
+    if($("#tab-book") && $("#tab-book").hidden) return;   // don't fetch charts for a hidden tab
+    var scope = state.bookScope || "all";
+    if($("#bookScope") && $("#bookScope").value!==scope) $("#bookScope").value = scope;
+    $$("#bookTF button").forEach(function(x){ x.setAttribute("aria-pressed", String(x.getAttribute("data-v")===(state.chartTF||"daily"))); });
+    var rows = parseBatch($("#batchInput").value);
+    var pool = rows.filter(function(d){ return bookInScope(d, scope); });
+    pool.sort(function(a,b){ return scoreStock(b).total - scoreStock(a).total; });
+    bookPool = pool;
+
+    if($("#bookMeta")) $("#bookMeta").textContent = rows.length ? (rows.length+" scanned · "+pool.length+" in view") : "no scan data";
+
+    if(!pool.length){
+      if($("#bookPos")) $("#bookPos").textContent = "";
+      $("#bookHead").innerHTML = "";
+      $("#bookPlan").innerHTML = "";
+      host.innerHTML = '<p class="empty">'+(rows.length ? "No stock in your scan matches this filter — change the <b>Show</b> dropdown." : "Run a scan (Screener → Scan now), then come back here.")+'</p>';
+      return;
+    }
+    if(state.bookIdx==null || state.bookIdx<0) state.bookIdx = 0;
+    if(state.bookIdx > pool.length-1) state.bookIdx = pool.length-1;
+    var d = pool[state.bookIdx];
+
+    if($("#bookPos")) $("#bookPos").textContent = (state.bookIdx+1)+" / "+pool.length;
+    if($("#bookPrev")) $("#bookPrev").disabled = state.bookIdx<=0;
+    if($("#bookNext")) $("#bookNext").disabled = state.bookIdx>=pool.length-1;
+
+    var e = evaluateRow(d), sc = e.sc, tr = e.tr, v = e.v, ps = e.ps;
+
+    var tags = bookMembership(d);
+    $("#bookHead").innerHTML =
+      '<span class="chip"><b>'+esc(d.symbol)+'</b></span>'+
+      '<span class="chip">score <b>'+sc.total+'</b></span>'+
+      '<span class="chip">RS <b>'+(d.rs!=null?Math.round(d.rs):"–")+'</b></span>'+
+      '<span class="chip">'+esc(state.timeframe)+' swing</span>'+
+      tags.map(function(t){ return '<span class="chip '+(t.c||"")+'">'+esc(t.t)+'</span>'; }).join("");
+
+    var rrBad = tr.rr>0 && tr.rr<2;
+    $("#bookPlan").innerHTML =
+      '<div class="ladder">'+
+        '<div><span class="k">Entry</span><span class="v">'+inr(tr.entry)+'</span></div>'+
+        '<div><span class="k">Stop-loss ('+((tr.stop-tr.entry)/tr.entry*100).toFixed(1)+'%)</span><span class="v">'+inr(tr.stop)+'</span></div>'+
+        '<div><span class="k">Exit · target +10%</span><span class="v pos">'+inr(tr.t10)+'</span></div>'+
+        '<div><span class="k">Reward : Risk</span><span class="v '+(rrBad?"neg":"pos")+'">'+(tr.rr?tr.rr.toFixed(2)+" : 1":"–")+'</span></div>'+
+      '</div>'+
+      '<div class="posgrid">'+
+        '<div><div class="k">Scale-out +5% / +7.5%</div><div class="v pos">'+inr(tr.t5)+' / '+inr(tr.t75)+'</div></div>'+
+        '<div><div class="k">Risk / share</div><div class="v">'+inr(tr.risk)+'</div></div>'+
+        '<div><div class="k">Size · 1% of capital</div><div class="v">'+nfmt(ps.qty,0)+' sh · '+inr(ps.deploy)+'</div></div>'+
+        '<div><div class="k">Verdict</div><div class="v '+v.cls+'">'+esc(v.label)+'</div></div>'+
+      '</div>'+
+      (rrBad ? '<p class="note neg">Reward:risk is below the 2:1 gate — skip this one, or wait for a tighter entry / lower stop.</p>' : '')+
+      ((d.setup==="HDF"||d.dx) ? '<p class="note warn">Darvas / High Dry Fry entry: a <b>buy-stop just above the prior day’s high</b> once price is clearing the base; initial stop <b>1% under entry</b> or below the base low, whichever is tighter. Add on strength, never average down.</p>' : '');
+
+    bookDrawChart(d);
+  }
+
+  function bookDrawChart(d){
+    var host = $("#bookChart"); if(!host) return;
+    var myTok = ++bookToken;
+    var sym = d.symbol;
+    var tf = state.chartTF==="weekly" ? "weekly" : "daily";
+    var e = evaluateRow(d), tpx = trigParts(d);
+    var opts = {symbol:sym, entry:e.tr.entry, stop:e.tr.stop, t10:e.tr.t10,
+                support:d.support, resistance:d.resistance, weekly: tf==="weekly", trigAgo: tpx?tpx.ago:-1};
+    var _oc = readOC();
+    if(sym===(($("#a_sym").value||"").toUpperCase()) && ocHasSignal(_oc)){
+      opts.ocCall=_oc.call; opts.ocPut=_oc.put; opts.ocMaxpain=_oc.maxpain;
+      var _ocr = computeOC(d.price, _oc, e.tr.t10, e.tr.entry);
+      if(_ocr){ opts.ocEMlo=_ocr.lo; opts.ocEMhi=_ocr.hi; }
+    }
+    function chartAge(o){
+      if(!o || !o.d || !o.d.length) return 999;
+      var last=new Date(o.d[o.d.length-1]+"T00:00:00");
+      return isNaN(last) ? 999 : Math.floor((Date.now()-last.getTime())/86400000);
+    }
+    function draw(o, staleNote){
+      if(myTok!==bookToken) return;   // a later Prev/Next won this race
+      if(!o || !o.c || o.c.length<20){ host.innerHTML='<p class="empty">No chart data for '+esc(sym)+' — press <b>↻ live</b>, or it wasn’t among the charts kept from the scan (only the top names are cached).</p>'; return; }
+      var series = tf==="weekly" ? toWeekly(o) : o;
+      if(series.c.length<20){ host.innerHTML='<p class="empty">not enough history for a weekly chart</p>'; return; }
+      var age=chartAge(o), last=o.d[o.d.length-1];
+      opts.liveLast = !!o.liveLast;
+      opts.livePrice = o.liveLast ? o.c[o.c.length-1] : 0;
+      var meta = o.liveLast
+        ? '<div class="cx-asof">Live — last candle is today ('+esc(last)+'), still forming at '+nfmt(opts.livePrice)+'.</div>'
+        : (staleNote || age>3)
+          ? '<div class="cx-asof warn">Data only through '+esc(last)+' ('+age+' day'+(age===1?'':'s')+' old)'+(staleNote?' — couldn’t fetch fresh candles':'')+'. Press <b>↻ live</b>.</div>'
+          : '<div class="cx-asof">Data through '+esc(last)+(age>=1?' (last completed session)':'')+'.</div>';
+      var latest = o.c[o.c.length-1];
+      if(d.price>0 && latest>0){
+        var drift=(latest-d.price)/d.price;
+        if(Math.abs(drift)>=0.015)
+          meta += '<div class="cx-asof warn">Since this was scored, price moved '+(drift>0?'+':'')+(drift*100).toFixed(1)+'% ('+nfmt(d.price)+' → '+nfmt(latest)+') — re-scan before acting.</div>';
+      }
+      host.innerHTML = chartLegend(tf) + meta + buildChartSVG(series, opts);
+    }
+    var cached = chartCache[sym];
+    if(!cached){ var ex=getExtra(sym); if(ex && ex.chart && ex.chart.c && ex.chart.c.length>=30) cached = ex.chart; }
+    var fresh = cached && chartAge(cached) < 1;
+    var canFetch = !(isHosted && !state.hostOverride);
+    if(fresh){ draw(cached); return; }
+    if(!canFetch){
+      if(cached) draw(cached, true);
+      else host.innerHTML='<p class="empty">This hosted preview can’t fetch price data. Use the downloaded file or a self-hosted copy.</p>';
+      return;
+    }
+    host.innerHTML='<p class="empty">'+(cached?'refreshing chart…':'loading chart…')+'</p>';
+    fetchCandles(sym).then(function(o){
+      var norm={o:o.open||o.close,h:o.high,l:o.low,c:o.close,v:o.volume,d:o.dates,liveLast:!!o.liveLast};
+      chartCache[sym]=norm; draw(norm);
+    }).catch(function(err){
+      if(cached){ draw(cached,true); return; }
+      if(myTok!==bookToken) return;
+      host.innerHTML='<p class="empty">couldn’t load a chart for '+esc(sym)+': '+esc((err&&err.message)||"failed")+'. Run a scan first (top names keep their charts).</p>';
     });
   }
 
@@ -3438,6 +3754,8 @@ GRANULES | 2026-08-18 | | From his 18-Aug retrospective table, self-graded &quot
     // Nicolas Darvas box method — full checklist
     var dx = darvasBox(op,h,l,c,vol);
     var dxStr = dx ? [r3(dx.boxHi), r3(dx.boxLo), dx.boxBars, r3(dx.boxWidth), r3(dx.ext), Math.round(dx.vBreak*10)/10, dx.newHigh, dx.stacked, dx.uptrend].join("|") : "";
+    // High Dry Fry detail (only when the setup fired)
+    var hdfStr = (hdf && hdf.ok) ? [r3(hdf.thrust), r3(hdf.correction), r3(hdf.babyRange), Math.round(hdf.volSurge*10)/10, hdf.bars, r3(hdf.hi), r3(hdf.lo)].join("|") : "";
     // last ~400 bars kept for charting the top-ranked names — enough for a real EMA200 and a
     // usable weekly view (≈57 weeks). Rounded to keep localStorage small.
     var TB = 400, ts = Math.max(0, c.length - TB), rnd = function(x){ return Math.round(x*100)/100; };
@@ -3471,7 +3789,7 @@ GRANULES | 2026-08-18 | | From his 18-Aug retrospective table, self-graded &quot
       blueSky: (bsky.newHigh && bsky.above) ? 1 : 0,
       fibZone: fib ? fib.zone : "",
       fibRetr: fib ? Math.round(fib.retr*100)/100 : null,
-      coil: coilStr, mvt: mvtStr, gg: ggStr, sg: sgStr, dx: dxStr,
+      coil: coilStr, mvt: mvtStr, gg: ggStr, sg: sgStr, dx: dxStr, hdf: hdfStr,
       revYoY: null, profYoY: null, epsYoY: null, qDate: "", profYoYPrev: null, ttmYoY: null   // filled in later by applyFund()
     };
   }
@@ -3482,7 +3800,7 @@ GRANULES | 2026-08-18 | | From his 18-Aug retrospective table, self-graded &quot
       r.basePct||0, r.baseBars||0, r.stage2||0, (r.rs==null?"":r.rs), (r.setup||""),
       (r.trig||""), (r.trigWR==null?"":r.trigWR), (r.athPct==null?"":r.athPct), (r.blueSky||0),
       (r.revYoY==null?"":r.revYoY), (r.profYoY==null?"":r.profYoY), (r.epsYoY==null?"":r.epsYoY), (r.qDate||""),
-      (r.profYoYPrev==null?"":r.profYoYPrev), (r.ttmYoY==null?"":r.ttmYoY), (r.coil||""), (r.mvt||""), (r.gg||""), (r.sg||""), (r.dx||"")].join(", ");
+      (r.profYoYPrev==null?"":r.profYoYPrev), (r.ttmYoY==null?"":r.ttmYoY), (r.coil||""), (r.mvt||""), (r.gg||""), (r.sg||""), (r.dx||""), (r.hdf||"")].join(", ");
   }
 
   /* ---------- auto-screen: fetch adapters ---------- */
@@ -3826,7 +4144,7 @@ GRANULES | 2026-08-18 | | From his 18-Aug retrospective table, self-graded &quot
     if(!force && state.scanCache && state.scanCache.date===today && state.scanCache.csv && state.scanCache.uniKey===uniKey){
       $("#batchInput").value = state.scanCache.csv;
       state.batchInput = state.scanCache.csv; save();
-      applyLeadingSectors(); renderScreener(); renderGolden(); renderSilver(); renderDarvas(); renderCoil(); renderSignals();
+      applyLeadingSectors(); renderScreener(); renderGolden(); renderSilver(); renderDarvas(); renderHDF(); renderCoil(); renderSignals(); renderBook();
       setStatus("cached", false);
       $("#scanErrline").textContent = "Showing today's cached scan of these "+uni.length+" names — press “Force refresh” to re-fetch.";
       return;
@@ -4031,8 +4349,10 @@ GRANULES | 2026-08-18 | | From his 18-Aug retrospective table, self-graded &quot
       renderGolden();
       renderSilver();
       renderDarvas();
+      renderHDF();
       renderCoil();
       renderSignals();
+      renderBook();
       setStatus(aborted?"stopped":"done", false);
       scanMetaFromCache();
       if(!ok.length){
@@ -4108,10 +4428,12 @@ GRANULES | 2026-08-18 | | From his 18-Aug retrospective table, self-graded &quot
   /* ---------- tabs / theme / controls ---------- */
   function switchTab(name){
     $$("#tabs button").forEach(function(b){ b.classList.toggle("active", b.getAttribute("data-tab")===name); });
-    ["screener","golden","silver","darvas","coil","signals","analyzer","playbook"].forEach(function(t){ $("#tab-"+t).hidden = (t!==name); });
+    ["screener","golden","silver","darvas","hdf","coil","signals","book","analyzer","playbook"].forEach(function(t){ $("#tab-"+t).hidden = (t!==name); });
+    if(name==="book") renderBook();
     if(name==="golden") renderGolden();
     if(name==="silver") renderSilver();
     if(name==="darvas") renderDarvas();
+    if(name==="hdf") renderHDF();
     if(name==="coil") renderCoil();
     if(name==="signals"){ if($("#sig_date") && !$("#sig_date").value) $("#sig_date").value = new Date().toISOString().slice(0,10); renderSignals(); }
   }
@@ -4164,10 +4486,10 @@ GRANULES | 2026-08-18 | | From his 18-Aug retrospective table, self-graded &quot
       var b = e.target.closest("button"); if(b) switchTab(b.getAttribute("data-tab"));
     });
     $("#themeBtn").addEventListener("click", toggleTheme);
-    $("#scoreBtn").addEventListener("click", function(){ state.batchInput = $("#batchInput").value; save(); renderScreener(); renderGolden(); renderSilver(); renderDarvas(); renderCoil(); renderSignals(); });
+    $("#scoreBtn").addEventListener("click", function(){ state.batchInput = $("#batchInput").value; save(); renderScreener(); renderGolden(); renderSilver(); renderDarvas(); renderHDF(); renderCoil(); renderSignals(); renderBook(); });
     $("#batchInput").addEventListener("change", function(){ state.batchInput = $("#batchInput").value; save(); });
-    $("#sampleBtn").addEventListener("click", function(){ $("#batchInput").value = SAMPLE; state.batchInput = SAMPLE; save(); renderScreener(); renderGolden(); renderSilver(); renderDarvas(); renderCoil(); renderSignals(); });
-    $("#clearBtn").addEventListener("click", function(){ $("#batchInput").value = ""; state.batchInput = ""; save(); renderScreener(); renderGolden(); renderSilver(); renderDarvas(); renderCoil(); renderSignals(); });
+    $("#sampleBtn").addEventListener("click", function(){ $("#batchInput").value = SAMPLE; state.batchInput = SAMPLE; save(); renderScreener(); renderGolden(); renderSilver(); renderDarvas(); renderHDF(); renderCoil(); renderSignals(); renderBook(); });
+    $("#clearBtn").addEventListener("click", function(){ $("#batchInput").value = ""; state.batchInput = ""; save(); renderScreener(); renderGolden(); renderSilver(); renderDarvas(); renderHDF(); renderCoil(); renderSignals(); renderBook(); });
     $("#onlyActionable").addEventListener("change", renderScreener);
     $("#onlyBreakout").addEventListener("change", renderScreener);
     $("#onlyStage2").addEventListener("change", renderScreener);
@@ -4180,6 +4502,33 @@ GRANULES | 2026-08-18 | | From his 18-Aug retrospective table, self-graded &quot
     if($("#sgRs")) $("#sgRs").addEventListener("change", renderSilver);
     if($("#dxEarn")) $("#dxEarn").addEventListener("change", renderDarvas);
     if($("#dxEarnStrict")) $("#dxEarnStrict").addEventListener("change", renderDarvas);
+    if($("#hdfAth")) $("#hdfAth").addEventListener("change", renderHDF);
+    if($("#hdfAplus")) $("#hdfAplus").addEventListener("change", renderHDF);
+    if($("#bookScope")) $("#bookScope").addEventListener("change", function(){ state.bookScope = this.value; state.bookIdx = 0; save(); renderBook(); });
+    if($("#bookPrev")) $("#bookPrev").addEventListener("click", function(){ bookGo(-1); });
+    if($("#bookNext")) $("#bookNext").addEventListener("click", function(){ bookGo(1); });
+    if($("#bookOpen")) $("#bookOpen").addEventListener("click", function(){ var d=bookPool[state.bookIdx]; if(d){ loadIntoAnalyzer(d); switchTab("analyzer"); } });
+    if($("#bookRefreshLive")) $("#bookRefreshLive").addEventListener("click", function(){
+      var d=bookPool[state.bookIdx]; if(!d) return;
+      delete chartCache[d.symbol]; var ex=getExtra(d.symbol); if(ex) delete ex.chart;
+      $("#bookChart").innerHTML='<p class="empty">fetching fresh candles…</p>';
+      bookDrawChart(d);
+    });
+    $$("#bookTF button").forEach(function(b){
+      b.addEventListener("click", function(){
+        var val=b.getAttribute("data-v");
+        state.chartTF = val; save();
+        $$("#bookTF button").forEach(function(x){ x.setAttribute("aria-pressed", String(x.getAttribute("data-v")===val)); });
+        $$("#chartTF button").forEach(function(x){ x.setAttribute("aria-pressed", String(x.getAttribute("data-v")===val)); });
+        renderBook();
+      });
+    });
+    document.addEventListener("keydown", function(e){
+      if(!$("#tab-book") || $("#tab-book").hidden) return;
+      if(/^(input|select|textarea)$/i.test((e.target && e.target.tagName) || "")) return;
+      if(e.key==="ArrowLeft"){ e.preventDefault(); bookGo(-1); }
+      else if(e.key==="ArrowRight"){ e.preventDefault(); bookGo(1); }
+    });
     if($("#sigAddBtn")) $("#sigAddBtn").addEventListener("click", addSignal);
     if($("#sigBulkBtn")) $("#sigBulkBtn").addEventListener("click", bulkImportSignals);
     $("#analyzeBtn").addEventListener("click", runAnalyzer);
@@ -4199,6 +4548,8 @@ GRANULES | 2026-08-18 | | From his 18-Aug retrospective table, self-graded &quot
       });
     });
     setSeg("chartTF", state.chartTF, "chartTF");
+    $$("#bookTF button").forEach(function(x){ x.setAttribute("aria-pressed", String(x.getAttribute("data-v")===state.chartTF)); });
+    if($("#bookScope")) $("#bookScope").value = state.bookScope || "all";
     $$("#chartTF button").forEach(function(b){
       b.addEventListener("click", function(){
         setSeg("chartTF", b.getAttribute("data-v"), "chartTF", function(){
