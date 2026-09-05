@@ -290,7 +290,7 @@ table.oc-guide td:first-child{white-space:nowrap;width:1%}
     <span class="mark" aria-hidden="true">₹</span>
     <div>
       <h1>The 10% Ledger</h1>
-      <p>Momentum + pullback screener · NSE swing setups <span style="opacity:.5;font-size:11px">· build 2026-09-05</span></p>
+      <p>Momentum + pullback screener · NSE swing setups <span style="opacity:.5;font-size:11px">· build 2026-09-06</span></p>
     </div>
   </div>
   <div class="controls">
@@ -399,7 +399,7 @@ table.oc-guide td:first-child{white-space:nowrap;width:1%}
         <label class="chk" style="margin-left:0"><input type="checkbox" id="onlyTriggered"> Triggered</label>
         <label class="chk" style="margin-left:0"><input type="checkbox" id="onlyBreakout"> Breakouts</label>
         <label class="chk" style="margin-left:0"><input type="checkbox" id="onlyResults" title="Only stocks whose latest quarter shows growing profit and sales"> Strong results</label>
-        <label class="chk" style="margin-left:0"><input type="checkbox" id="onlyMaVol" title="A volume thrust of 3× or more on an up bar while price sits on the 10 / 50 / 200 moving average"> 3× vol @ MA</label>
+        <label class="chk" style="margin-left:0"><input type="checkbox" id="onlyMaVol" title="Fresh 10/50-SMA golden cross + price riding the rising 10-SMA + a 3×-volume up-bar on the 10/50 SMA (the RATNAVEER pattern)"> 3× vol @ MA</label>
         <label class="chk" style="margin-left:0"><input type="checkbox" id="onlyActionable"> Actionable</label>
       </div>
       <div class="summary" id="summary" aria-live="polite"></div>
@@ -429,12 +429,12 @@ table.oc-guide td:first-child{white-space:nowrap;width:1%}
           </tbody>
         </table>
       </div>
-      <p class="hint" style="margin-top:10px"><b>RS</b> = 6-month relative-strength rank (0–99) vs everything scanned — the single best "something is happening here" tell; want 80+. <b>Setup</b> names the Stage-2 continuation pattern: <code>base-on-base</code> (stacked tight bases, higher lows — the LAURUSLABS staircase), <code>pullback→MA</code> (uptrend resting on a rising EMA), <code>long-base brk</code>, <code>VCP breakout</code>, <code>coiling</code> (tight, near trigger, not out yet). Use <b>"Stage-2 setups"</b> to see only these. * <b>Prob</b> = historical follow-through rate (not a forecast). <b>Support / Resist</b> = nearest swing levels. <b>Results</b> = latest reported quarter's YoY profit &amp; sales growth (from Yahoo) — ★ strong, ▲ growing, · flat, ▼ shrinking; the number shown is profit/EPS YoY, hover for sales. It also shows roughly how long ago the result landed, and <b>⚠ result ~Nd</b> when the next quarterly result is estimated to be due soon — hover that for whether the market looks positioned for a beat or a miss (earnings trajectory + how the stock is trading into the print). The <b>⚡N×@MA</b> badge next to a symbol = a volume thrust of N times average on an up bar while price was sitting right on the 10 / 50 / 200 moving average (the UNIVCABLES power-bar-off-the-MA); filter to just those with <b>"3× vol @ MA"</b>.</p>
+      <p class="hint" style="margin-top:10px"><b>RS</b> = 6-month relative-strength rank (0–99) vs everything scanned — the single best "something is happening here" tell; want 80+. <b>Setup</b> names the Stage-2 continuation pattern: <code>base-on-base</code> (stacked tight bases, higher lows — the LAURUSLABS staircase), <code>pullback→MA</code> (uptrend resting on a rising EMA), <code>long-base brk</code>, <code>VCP breakout</code>, <code>coiling</code> (tight, near trigger, not out yet). Use <b>"Stage-2 setups"</b> to see only these. * <b>Prob</b> = historical follow-through rate (not a forecast). <b>Support / Resist</b> = nearest swing levels. <b>Results</b> = latest reported quarter's YoY profit &amp; sales growth (from Yahoo) — ★ strong, ▲ growing, · flat, ▼ shrinking; the number shown is profit/EPS YoY, hover for sales. It also shows roughly how long ago the result landed, and <b>⚠ result ~Nd</b> when the next quarterly result is estimated to be due soon — hover that for whether the market looks positioned for a beat or a miss (earnings trajectory + how the stock is trading into the print). The <b>⚡N×@10/50</b> badge = the RATNAVEER trigger: a fresh 10/50-SMA golden cross (10 now above 50), price riding the rising 10-SMA, and an N× volume up-bar right on the 10 or 50 SMA. Filter with <b>"3× vol @ MA"</b>; hover the badge for the golden-cross age.</p>
 
       <details class="sub" id="rawBox">
         <summary>Raw data — paste your own or edit the scan output</summary>
         <p class="hint">One stock per line, comma or tab separated. First 6 fields required. Edit any row and press “Score all”.</p>
-        <code class="cols">SYM, price, EMA20, EMA50, EMA200, RSI, volR, breakout, support, sector, macd, hhhl, resist, probT1, probT10, basePct, baseBars, stage2, RS, setup, trigger, trigWR, athPct, blueSky(1/0), revYoY, profYoY, epsYoY, qDate, profYoYPrev, ttmYoY, coil(len|state|tight|volR|from10|rangeHi|popAgo|popGain|popVol), mvt(mult|ma|dist|ago|up|from)</code>
+        <code class="cols">SYM, price, EMA20, EMA50, EMA200, RSI, volR, breakout, support, sector, macd, hhhl, resist, probT1, probT10, basePct, baseBars, stage2, RS, setup, trigger, trigWR, athPct, blueSky(1/0), revYoY, profYoY, epsYoY, qDate, profYoYPrev, ttmYoY, coil(len|state|tight|volR|from10|rangeHi|popAgo|popGain|popVol), mvt(mult|ma|dist|ago|up|from|gcAgo|track)</code>
         <textarea id="batchInput" spellcheck="false" aria-label="Stock data input"></textarea>
         <div class="row-actions">
           <button class="primary" id="scoreBtn">Score all</button>
@@ -789,9 +789,15 @@ GRANULES | 2026-08-18 | | From his 18-Aug retrospective table, self-graded &quot
       </ul>
       <p>Filters: <b>Watchlist only</b> (just names you've saved) and <b>Uptrend only</b> (RS ≥ 45 — skip coils in downtrends, which usually break down). The edge: you enter on the release with a stop just under the tight range (a small, well-defined risk), and the coil's own tightness tells you the move that follows is usually several times that risk. It fails when the 10-DMA rolls over or the market regime turns Red — don't take coils into a falling market.</p>
 
-      <h3>Volume thrust at the moving average — the ⚡ badge</h3>
-      <p>The related, faster signal: <b>a single bar where volume jumps to 3× or more of its 50-day average, on an up close, while price is sitting right on the 10, 50 or 200-period moving average</b>. That's the big green volume bar you see on UNIVCABLES just before it ran — a large buyer stepping in to defend the MA, in size. The tool flags it with a <b>⚡N×@MA</b> badge on the symbol (N = the volume multiple, MA = which line it was on), a <b>"3× vol @ MA"</b> filter on the Screener, and a summary count. The scanner checks the last three sessions, so you catch it the day of or the day after.</p>
-      <p>How to trade it: it's <i>confirmation</i>, not a standalone trigger. Best when the MA is <i>rising</i> and RS is strong — then a fat volume bar off it is accumulation and you enter on a hold above that bar's high, stop below its low or the MA (whichever is tighter). A 3× down bar at the MA is the opposite (distribution) — the tool only flags up bars, but still eyeball the chart. Against a falling 200-MA in a weak name, a volume spike is often a blow-off, not a buy.</p>
+      <h3>Volume thrust at the moving average — the ⚡ badge (the RATNAVEER pattern)</h3>
+      <p>A tight, high-quality trigger for a stock right at the start of a run. All of these have to be true:</p>
+      <ul>
+        <li><b>A fresh 10/50-SMA golden cross</b> — the 10-day simple moving average crossed <i>above</i> the 50-day within the last ~30 sessions, and is still above it and rising. The trend has just turned up.</li>
+        <li><b>Price roped to the rising 10-SMA</b> — since that cross, price has closed at or above the 10-SMA on most bars, hasn't blown off more than ~16% above it, and has come back to touch it at least once. It's <i>riding</i> the MA, not running away from it.</li>
+        <li><b>A ≥3× volume up-bar on the 10 or 50 SMA</b> in the last 3 sessions — the big green volume bar (RATNAVEER late-July, UNIVCABLES) that says a large buyer stepped in in size, right at support.</li>
+      </ul>
+      <p>Flagged with a <b>⚡N×@10</b> or <b>⚡N×@50</b> badge on the symbol (N = the volume multiple), the <b>"3× vol @ MA"</b> filter, and a summary count. Hover the badge for how long ago the golden cross was and how tightly price tracked the 10-SMA. The Analyzer note spells out the entry: <i>hold above that volume bar's high, stop under its low or the 10-SMA</i>.</p>
+      <p>Still <i>confirmation</i>, not a full system — check RS is strong and don't take it in a Red market regime. It won't fire on a stock that's already extended, in a downtrend, or where the 10/50 haven't crossed — by design.</p>
 
       <h3>The DarvaX method — mapped into the tool</h3>
       <p>The DarvaX author runs a specific, narrow version of exactly this pattern. Every rule he uses is either already in the screen or has now been added. Here is his method, item by item, and where it lives here:</p>
@@ -943,7 +949,7 @@ GRANULES | 2026-08-18 | | From his 18-Aug retrospective table, self-graded &quot
     "# cols: SYM,price,EMA20,EMA50,EMA200,RSI,volR,breakout,support,sector,macd,hhhl,resist,probT1,probT10,basePct,baseBars,stage2,RS,setup,trigger,trigWR,athPct,blueSky,revYoY,profYoY,epsYoY,qDate,profYoYPrev,ttmYoY,coil,mvt",
     "HINDZINC, 627, 598, 560, 505, 69, 2.3, 620, 606, L, 1, 1, 0, 0.58, 0.33, 0.06, 22, 6, 88, HDF, inside-bar@0, 0.61, 0.01, 1, 0.19, 0.34, 0.31, 2026-06-30, 0.26, 0.3, ",
     "BEL, 415, 402, 395, 360, 66, 1.9, 409, 391, L, 1, 1, 0, 0.55, 0.31, 0.07, 18, 6, 84, BOB, hammer@1, 0.62, 0.03, 1, 0.21, 0.28, 0.27, 2026-06-30, 0.33, 0.24, 14|coil|0.022|0.71|0.006|411|||",
-    "JINDALSTEL, 1175, 1120, 1090, 1010, 60, 1.4, 1160, 1120, L, 1, 1, 1240, 0.5, 0.27, 0.11, 26, 5, 76, LBB, , , 0.11, 0, 0.08, 0.12, 0.1, 2026-03-31, 0.21, 0.1, , 4.2|50|0.014|1|1|0.03",
+    "JINDALSTEL, 1175, 1120, 1090, 1010, 60, 1.4, 1160, 1120, L, 1, 1, 1240, 0.5, 0.27, 0.11, 26, 5, 76, LBB, , , 0.11, 0, 0.08, 0.12, 0.1, 2026-03-31, 0.21, 0.1, , 4.2|50|0.014|1|1|0.03|12|78",
     "MEESHO, 205, 198, 190, 0, 63, 1.4, 200, 191, I, 1, 1, 0, 0.5, 0.26, 0.08, 14, 5, 72, S2P, pin-bar@0, 0.58, 0.05, 0, 0.33, 99, 99, 2026-06-30, , , 9|pop|0.021|0.66|0.032|201|1|0.043|1.9",
     "SAIL, 195, 190, 185, 132, 55, 0.9, 201, 188, L, 1, 0, 201, 0.44, 0.22, 0.06, 20, 5, 66, COIL, , , 0.14, 0, -0.04, -0.22, -0.21, 2026-06-30, -0.1, -0.15, ",
     "NYKAA, 341, 333, 325, 300, 58, 1.3, 339, 328, I, 1, 1, 360, 0.47, 0.24, 0.09, 20, 4, 55, , , , 0.16, 0, 0.24, 0.55, 0.5, 2026-06-30, 0.4, 0.48, 8|coil|0.028|0.85|0.011|338|||",
@@ -1104,7 +1110,8 @@ GRANULES | 2026-08-18 | | From his 18-Aug retrospective table, self-graded &quot
       } : null;
       var mp = (p[31]||"").split("|");
       d.mvt = (mp[0] && +mp[0]>=3) ? {
-        mult:+mp[0]||0, ma:mp[1]||"", dist:+mp[2]||0, ago:+mp[3]||0, up:mp[4]==="1", from:+mp[5]||0
+        mult:+mp[0]||0, ma:mp[1]||"", dist:+mp[2]||0, ago:+mp[3]||0, up:mp[4]==="1", from:+mp[5]||0,
+        gcAgo:(mp[6]===""||mp[6]==null?null:+mp[6]), track:(mp[7]===""||mp[7]==null?null:+mp[7])
       } : null;
       var st = deriveStructure(d.price, d.breakout, d.basePct, d.baseBars, d.volRatio);
       d.structurePts=st.pts; d.structureLbl=st.label;
@@ -1376,7 +1383,7 @@ GRANULES | 2026-08-18 | | From his 18-Aug retrospective table, self-graded &quot
         var ex = getExtra(e.d.symbol);
         return '<tr class="tier'+e.v.tier+'">'+
           '<td class="sym">'+esc(e.d.symbol)+(e.d.blueSky?' <span class="pos" title="uncharted territory — price above all prior highs, no overhead supply" style="font-size:9px">ATH</span>':'')+
-            (e.d.mvt?' <span class="pos" title="'+esc(e.d.mvt.mult+'× volume on an up bar '+(e.d.mvt.ago===0?'today':e.d.mvt.ago+' session'+(e.d.mvt.ago>1?'s':'')+' ago')+', right on the '+e.d.mvt.ma+'-MA')+'" style="font-size:9px">⚡'+e.d.mvt.mult+'×@'+e.d.mvt.ma+'</span>':'')+'</td>'+
+            (e.d.mvt?' <span class="pos" title="'+esc(e.d.mvt.mult+'× volume on an up bar '+(e.d.mvt.ago===0?'today':e.d.mvt.ago+' session'+(e.d.mvt.ago>1?'s':'')+' ago')+' on the '+e.d.mvt.ma+'-SMA'+(e.d.mvt.gcAgo!=null?' · 10/50 golden cross '+e.d.mvt.gcAgo+' sessions ago':'')+(e.d.mvt.track!=null?' · price tracked the 10-SMA '+e.d.mvt.track+'% of bars since':''))+'" style="font-size:9px">⚡'+e.d.mvt.mult+'×@'+e.d.mvt.ma+'</span>':'')+'</td>'+
           '<td class="num">'+e.sc.total+'</td>'+
           '<td class="num">'+rsCell(e.d.rs)+'</td>'+
           '<td><span class="pill '+e.v.cls+'">'+esc(e.v.label.replace(/ —.*/,""))+'</span></td>'+
@@ -1748,7 +1755,9 @@ GRANULES | 2026-08-18 | | From his 18-Aug retrospective table, self-graded &quot
     }
     if(d.mvt){
       var mAgo = d.mvt.ago===0 ? "today" : d.mvt.ago+" session"+(d.mvt.ago>1?"s":"")+" ago";
-      notes.push({c:"warn", t:"Volume thrust: a "+d.mvt.mult+"× bar (vs 50-day average) printed "+mAgo+" on an up close, right on the "+d.mvt.ma+"-period moving average — the accumulation footprint from the UNIVCABLES-type power bar. It says a large buyer stepped in defending that MA. Enter on a hold above that bar's high; stop below its low or the MA, whichever is tighter. It's a confirmation, not a setup on its own — pair it with the trend and RS."});
+      notes.push({c:"warn", t:"Volume thrust @ MA (the RATNAVEER pattern): a "+d.mvt.mult+"× bar (vs 50-day average) printed "+mAgo+" on an up close, on the "+d.mvt.ma+"-SMA"+
+        (d.mvt.gcAgo!=null?" — and this comes "+d.mvt.gcAgo+" sessions after a fresh 10/50-SMA golden cross, with price tracking the rising 10-SMA "+(d.mvt.track!=null?d.mvt.track+"% of bars since":"closely"):"")+
+        ". This is the launch-window footprint: trend just turned up, price roped to the 10-SMA, a large buyer stepping in on volume. Enter on a hold above that bar's high; stop below its low or the 10-SMA. Still confirm RS and that the broader market isn't Red."});
     }
     // latest reported quarter — the "superb quarterly numbers" check DarvaX / CANSLIM demand
     var rg = resultGrade(d);
@@ -2777,29 +2786,51 @@ GRANULES | 2026-08-18 | | From his 18-Aug retrospective table, self-graded &quot
       return {len:run, state:"coil", tight:tightPct, volR:volR, from10:from10, rangeHi:rangeHi};
     return null;
   }
-  // A volume thrust (≥3× the 50-bar average) on an up bar while price is sitting on one of the
-  // 10 / 50 / 200 moving averages — the "power bar off the MA" in the UNIVCABLES screenshot.
+  // The RATNAVEER pattern: a recent 10/50-SMA golden cross (10 now above 50), price
+  // riding close to the rising 10-SMA, and a ≥3× volume up-bar right on the 10 or 50 SMA.
   function maVolThrust(o,h,l,c,v){
     var n=c.length;
-    if(n < 55) return null;
-    function sma(p,i){ if(i<p-1) return null; var s=0,k; for(k=i-p+1;k<=i;k++) s+=c[k]; return s/p; }
-    var e50=emaArr(c,50), e200=emaArr(c,200);
-    var vAvg = avgN(v.slice(0, Math.max(1,n-3)), 50) || 1;   // baseline that ignores the recent spike
-    var best=null, i;
-    for(i=n-1; i>=n-3 && i>=1; i--){
+    if(n < 70) return null;
+    var s10=[], s50=[], k, i, sum;
+    for(i=0;i<n;i++){
+      if(i>=9){ sum=0; for(k=i-9;k<=i;k++) sum+=c[k]; s10.push(sum/10); } else s10.push(null);
+      if(i>=49){ sum=0; for(k=i-49;k<=i;k++) sum+=c[k]; s50.push(sum/50); } else s50.push(null);
+    }
+    // 1) most recent 10-over-50 golden cross — must be reasonably recent and still valid
+    var gcAgo = -1;
+    for(i=n-1; i>=51; i--){
+      if(s10[i]==null || s50[i]==null || s10[i-1]==null || s50[i-1]==null) break;
+      if(s10[i-1] <= s50[i-1] && s10[i] > s50[i]){ gcAgo = n-1-i; break; }
+    }
+    if(gcAgo < 2 || gcAgo > 55) return null;                 // no cross, too fresh to trust, or trend already old
+    if(!(s10[n-1] > s50[n-1])) return null;                  // 10 must still be above 50
+    if(!(s10[n-1] > s10[Math.max(0,n-6)])) return null;      // 10-SMA rising
+    var gcIdx = n-1-gcAgo;
+    if(!(s50[n-1] > s50[gcIdx]*1.01)) return null;           // the 50-SMA itself is rising — a real uptrend, not noise
+    if(!(c[n-1] > c[gcIdx]*1.05)) return null;               // price actually advanced since the cross
+    if((c[n-1]-s10[n-1])/s10[n-1] > 0.15) return null;       // not blown off — still entry-able near the 10-SMA
+    // 2) price tracking the rising 10-SMA since the cross (holding it on pullbacks, not running away)
+    var from = Math.max(10, n-1-Math.min(gcAgo+3, 26)), above=0, tot=0, maxExt=0, touched=0;
+    for(i=from;i<n;i++){
+      if(s10[i]==null) continue;
+      tot++;
+      if(c[i] >= s10[i]*0.985) above++;
+      var ext=(c[i]-s10[i])/s10[i]; if(ext>maxExt) maxExt=ext;
+      if(Math.abs(c[i]-s10[i])/s10[i] <= 0.05) touched++;
+    }
+    if(tot < 4 || above/tot < 0.55 || maxExt > 0.22 || touched < 2) return null;
+    // 3) a ≥3× volume up-bar on / near the 10 or 50 SMA in the last ~8 sessions
+    var vAvg = avgN(v.slice(0, Math.max(1,n-8)), 50) || 1;
+    var best=null;
+    for(i=n-1; i>=n-8 && i>=1; i--){
       var mult = v[i]/vAvg;
-      if(mult < 3) continue;
-      if(c[i] < o[i]*0.997) continue;                        // up / neutral bar only (accumulation, not distribution)
-      var cands=[], s10=sma(10,i);
-      if(s10!=null) cands.push(["10", s10]);
-      if(e50[i]!=null) cands.push(["50", e50[i]]);
-      if(e200[i]!=null) cands.push(["200", e200[i]]);
-      var near=null;
-      cands.forEach(function(p){ var d=Math.abs(c[i]-p[1])/p[1]; if(d<=0.03 && (!near || d<near.d)) near={ma:p[0], d:d}; });
-      if(near){
-        var cand={mult:mult, ma:near.ma, dist:near.d, ago:n-1-i, up:c[i]>o[i], from:(c[n-1]-c[i])/(c[i]||1)};
-        if(!best || cand.mult>best.mult) best=cand;
-      }
+      if(mult < 3 || c[i] < o[i]*0.997) continue;
+      var d10 = Math.abs(c[i]-s10[i])/s10[i], d50 = Math.abs(c[i]-s50[i])/s50[i];
+      var ma = d10<=d50 ? "10" : "50", dist = Math.min(d10,d50);
+      if(!(d10 <= 0.06 || d50 <= 0.05)) continue;            // the volume bar is on / hugging one of the MAs
+      var cand={mult:mult, ma:ma, dist:dist, ago:n-1-i, up:c[i]>o[i],
+        from:(c[n-1]-c[i])/(c[i]||1), gcAgo:gcAgo, track:Math.round(above/tot*100)};
+      if(!best || cand.mult>best.mult) best=cand;
     }
     return best;
   }
@@ -2978,7 +3009,7 @@ GRANULES | 2026-08-18 | | From his 18-Aug retrospective table, self-graded &quot
       (dc.popVol==null?"":Math.round(dc.popVol*100)/100)].join("|") : "";
     // volume thrust (≥3×) on an up bar at the 10/50/200 MA
     var mvt = maVolThrust(op,h,l,c,vol);
-    var mvtStr = mvt ? [Math.round(mvt.mult*10)/10, mvt.ma, r3(mvt.dist), mvt.ago, (mvt.up?1:0), r3(mvt.from)].join("|") : "";
+    var mvtStr = mvt ? [Math.round(mvt.mult*10)/10, mvt.ma, r3(mvt.dist), mvt.ago, (mvt.up?1:0), r3(mvt.from), (mvt.gcAgo==null?"":mvt.gcAgo), (mvt.track==null?"":mvt.track)].join("|") : "";
     // last ~400 bars kept for charting the top-ranked names — enough for a real EMA200 and a
     // usable weekly view (≈57 weeks). Rounded to keep localStorage small.
     var TB = 400, ts = Math.max(0, c.length - TB), rnd = function(x){ return Math.round(x*100)/100; };
@@ -3357,19 +3388,19 @@ GRANULES | 2026-08-18 | | From his 18-Aug retrospective table, self-graded &quot
     }
     buildSectorMap(universeText());
     var uni = parseUniverse(universeText());
-    if(state.universeSize!=="custom"){
-      var lim = parseInt(state.universeSize,10);
-      if(isFinite(lim)) uni = uni.slice(0, lim);
+    if(state.universeSize==="50" || state.universeSize==="100"){
+      uni = uni.slice(0, parseInt(state.universeSize,10));   // 50/100 are top-N slices of the Nifty-200 list
     }
     if(!uni.length){ $("#scanErrline").textContent = "Universe list is empty."; return; }
 
     var today = new Date().toISOString().slice(0,10);
-    if(!force && state.scanCache && state.scanCache.date===today && state.scanCache.csv){
+    var uniKey = state.universeSize + ":" + uni.length;
+    if(!force && state.scanCache && state.scanCache.date===today && state.scanCache.csv && state.scanCache.uniKey===uniKey){
       $("#batchInput").value = state.scanCache.csv;
       state.batchInput = state.scanCache.csv; save();
       applyLeadingSectors(); renderScreener(); renderCoil(); renderSignals();
       setStatus("cached", false);
-      $("#scanErrline").textContent = "Showing today's cached scan — press “Force refresh” to re-fetch.";
+      $("#scanErrline").textContent = "Showing today's cached scan of these "+uni.length+" names — press “Force refresh” to re-fetch.";
       return;
     }
 
@@ -3563,6 +3594,7 @@ GRANULES | 2026-08-18 | | From his 18-Aug retrospective table, self-graded &quot
       });
       if(ok.length){
         state.scanCache = {date:today, csv:csv, ok:ok.length, failed:failed, source:state.scanSource,
+          uniKey: state.universeSize + ":" + uni.length,
           extra: Object.keys(extra).length ? extra : (state.scanCache && state.scanCache.extra || null),
           at:new Date().toISOString()};
       }
@@ -3631,8 +3663,7 @@ GRANULES | 2026-08-18 | | From his 18-Aug retrospective table, self-graded &quot
   function syncSourceUI(){
     $("#proxyCustomWrap").hidden = state.proxyChoice!=="custom";
     var total = parseUniverse(universeText()).length;
-    var lim = parseInt(state.universeSize,10);
-    var n = (state.universeSize==="custom" || !isFinite(lim)) ? total : Math.min(lim, total);
+    var n = (state.universeSize==="50" || state.universeSize==="100") ? Math.min(parseInt(state.universeSize,10), total) : total;
     var cc = ((state.universeSize==="500" || state.universeSize==="tm") && !state.customUniverse) ? 4 : 6;
     if(state.proxyChoice==="custom" && state.proxyCustom){
       var secs = Math.max(15, Math.ceil(n/cc)) * (state.fetchResults!==false ? 2 : 1);
