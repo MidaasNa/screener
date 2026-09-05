@@ -290,7 +290,7 @@ table.oc-guide td:first-child{white-space:nowrap;width:1%}
     <span class="mark" aria-hidden="true">₹</span>
     <div>
       <h1>The 10% Ledger</h1>
-      <p>Momentum + pullback screener · NSE swing setups <span style="opacity:.5;font-size:11px">· build 2026-09-04b</span></p>
+      <p>Momentum + pullback screener · NSE swing setups <span style="opacity:.5;font-size:11px">· build 2026-09-05</span></p>
     </div>
   </div>
   <div class="controls">
@@ -357,7 +357,9 @@ table.oc-guide td:first-child{white-space:nowrap;width:1%}
           <select id="universeSize">
             <option value="50">Nifty 50 (top 50)</option>
             <option value="100">Nifty 100 (top 100)</option>
-            <option value="200" selected>Nifty 200 (full list)</option>
+            <option value="200" selected>Nifty 200 (~235)</option>
+            <option value="500">Nifty 500 (~500) — slower</option>
+            <option value="tm">Nifty Total Market (~750) — slowest, incl. small &amp; micro caps</option>
             <option value="custom">Custom list…</option>
           </select>
         </label>
@@ -889,6 +891,7 @@ GRANULES | 2026-08-18 | | From his 18-Aug retrospective table, self-graded &quot
         <li>Test it works: open <code>&lt;your-url&gt;/?url=https://query1.finance.yahoo.com/v8/finance/chart/RELIANCE.NS</code> in a browser tab — you should see JSON.</li>
       </ol>
       <p>Cloudflare's free tier is 100,000 requests/day — you will never hit it. A Nifty-200 scan takes ~30 seconds for prices, ~60 with <b>Fetch latest quarterly results</b> on (it makes a second request per stock to Yahoo's <code>fundamentals-timeseries</code> feed — the pass-through Worker above handles it with no changes). If the results feed ever stops responding the scan gives up on it after a dozen misses and finishes on prices alone.</p>
+      <p><b>Bigger universes.</b> The Universe dropdown also has <b>Nifty 500</b> (~500 names, ~3 min with results) and <b>Nifty Total Market</b> (~750, incl. small &amp; micro caps, ~6–7 min). Concurrency drops to 4 on these to avoid Yahoo rate-limiting your Worker's IP; some names still fail and get one retry. Go wider only if you'll actually trade the extra names — below the Nifty 500, Yahoo's data gets patchy, spreads widen, and low-float stocks are where manipulation lives. For a specific sub-universe (a Chartink / screener.in list, an F&O list), paste it into <b>Custom list</b> instead.</p>
       <p><b>Or paste your own data</b> from your broker terminal, <a href="https://www.tradingview.com" target="_blank" rel="noopener">TradingView</a>, <a href="https://www.screener.in" target="_blank" rel="noopener">screener.in</a> or a <a href="https://chartink.com" target="_blank" rel="noopener">Chartink</a> scan into the “Raw data” box.</p>
       <p>The auto-screener's breakout / support / resistance / MACD / higher-high-low reads are rule-based approximations from the candle series — always eyeball the chart before acting.</p>
 
@@ -2414,6 +2417,139 @@ GRANULES | 2026-08-18 | | From his 18-Aug retrospective table, self-graded &quot
     "LAURUSLABS|Pharma","GRANULES|Pharma","ABBOTINDIA|Pharma","PATANJALI|FMCG","OLECTRA|Auto"
   ].join("\n");
 
+  var UNIVERSE500 = [
+    "360ONE|Financials","3MINDIA","ABB|CapGoods","ACC|Infra","ACMESOLAR|Power","AIAENG|CapGoods","APLAPOLLO|CapGoods","AUBANK|Bank","AWL|FMCG","AADHARHFC|Financials",
+    "AARTIIND|Chemicals","AAVAS|Financials","ABBOTINDIA|Pharma","ACE|CapGoods","ACUTAAS|Pharma","ADANIENSOL|Power","ADANIENT|Metal","ADANIGREEN|Power","ADANIPORTS","ADANIPOWER|Power",
+    "ATGL|OilGas","ABCAPITAL|Financials","ABFRL|Consumer","ABLBL|Consumer","ABREL|Realty","ABSLAMC|Financials","CPPLUS|CapGoods","AEGISLOG|OilGas","AEGISVOPAK|OilGas","AFCONS|Infra",
+    "AFFLE|IT","AJANTPHARM|Pharma","ALKEM|Pharma","ABDL|FMCG","ARE&M|Auto","AMBER|Consumer","AMBUJACEM|Infra","ANANDRATHI|Financials","ANANTRAJ|Realty","ANGELONE|Financials",
+    "ANTHEM|Pharma","ANURAS|Chemicals","APARINDS|CapGoods","APOLLOHOSP|Pharma","APOLLOTYRE|Auto","APTUS|Financials","ASAHIINDIA|Auto","ASHOKLEY|CapGoods","ASIANPAINT|Consumer","ASTERDM|Pharma",
+    "ASTRAL|CapGoods","ATHERENERG|Auto","ATUL|Chemicals","AUROPHARMA|Pharma","AIIL|Financials","DMART|Consumer","AXISBANK|Bank","BEML|CapGoods","BLS|Consumer","BSE|Financials",
+    "BAJAJ-AUTO|Auto","BAJFINANCE|Financials","BAJAJFINSV|Financials","BAJAJHLDNG|Financials","BAJAJHFL|Financials","BALKRISIND|Auto","BALRAMCHIN|FMCG","BANDHANBNK|Bank","BANKBARODA|Bank","BANKINDIA|Bank",
+    "MAHABANK|Bank","BATAINDIA|Consumer","BAYERCROP|Chemicals","BELRISE|Auto","BERGEPAINT|Consumer","BDL|CapGoods","BEL|CapGoods","BHARATFORG|Auto","BHEL|CapGoods","BPCL|OilGas",
+    "BHARTIARTL|Telecom","BHARTIHEXA|Telecom","BIKAJI|FMCG","GROWW|Financials","BIOCON|Pharma","BSOFT|IT","BLUEDART","BLUEJET|Pharma","BLUESTARCO|Consumer","BBTC|FMCG",
+    "BOSCHLTD|Auto","FIRSTCRY|Consumer","BRIGADE|Realty","BRITANNIA|FMCG","MAPMYINDIA|IT","CCL|FMCG","CESC|Power","CGPOWER|CapGoods","CIEINDIA|Auto","CRISIL|Financials",
+    "CANFINHOME|Financials","CANBK|Bank","CANHLIFE|Financials","CAPLIPOINT|Pharma","CGCL|Financials","CARBORUNIV|CapGoods","CARTRADE|Consumer","CASTROLIND|OilGas","CEATLTD|Auto","CEMPRO|Infra",
+    "CENTRALBK|Bank","CDSL|Financials","CHALET|Consumer","CHAMBLFERT|Chemicals","CHENNPETRO|OilGas","CHOICEIN|Financials","CHOLAHLDNG|Financials","CHOLAFIN|Financials","CIPLA|Pharma","CUB|Bank",
+    "CLEAN|Chemicals","COALINDIA|OilGas","COCHINSHIP|CapGoods","COFORGE|IT","COHANCE|Pharma","COLPAL|FMCG","CAMS|Financials","CONCORDBIO|Pharma","CONCOR","COROMANDEL|Chemicals",
+    "CRAFTSMAN|Auto","CREDITACC|Financials","CROMPTON|Consumer","CUMMINSIND|CapGoods","CYIENT|IT","DCMSHRIRAM","DLF|Realty","DOMS|FMCG","DABUR|FMCG","DALBHARAT|Infra",
+    "DATAPATTNS|CapGoods","DEEPAKFERT|Chemicals","DEEPAKNTR|Chemicals","DELHIVERY","DEVYANI|Consumer","DIVISLAB|Pharma","DIXON|Consumer","LALPATHLAB|Pharma","DRREDDY|Pharma","DUMMYHEG|Metal",
+    "EIDPARRY|FMCG","EIHOTEL|Consumer","EICHERMOT|Auto","ELECON|CapGoods","ELGIEQUIP|CapGoods","EMAMILTD|FMCG","EMCURE|Pharma","EMMVEE|CapGoods","ENDURANCE|Auto","ENGINERSIN|Infra",
+    "ERIS|Pharma","ESCORTS|CapGoods","ETERNAL|Consumer","EXIDEIND|Auto","NYKAA|Consumer","FEDERALBNK|Bank","FACT|Chemicals","FINCABLES|CapGoods","FSL","FIVESTAR|Financials",
+    "FORCEMOT|Auto","FORTIS|Pharma","GAIL|OilGas","GVT&D|CapGoods","GMRAIRPORT","GABRIEL|Auto","GALLANTT|CapGoods","GRSE|CapGoods","GICRE|Financials","GILLETTE|FMCG",
+    "GLAND|Pharma","GLAXO|Pharma","GLENMARK|Pharma","MEDANTA|Pharma","GODIGIT|Financials","GPIL|CapGoods","GODFRYPHLP|FMCG","GODREJCP|FMCG","GODREJIND","GODREJPROP|Realty",
+    "GRANULES|Pharma","GRAPHITE|CapGoods","GRASIM|Infra","GRAVITA|Metal","GESHIP","FLUOROCHEM|Chemicals","GMDCLTD|Metal","HEG|CapGoods","HBLENGINE|CapGoods","HCLTECH|IT",
+    "HDBFS|Financials","HDFCAMC|Financials","HDFCBANK|Bank","HDFCLIFE|Financials","HFCL|Telecom","HAVELLS|Consumer","HEROMOTOCO|Auto","HEXT|IT","HSCL|Chemicals","HINDALCO|Metal",
+    "HAL|CapGoods","HINDCOPPER|Metal","HINDPETRO|OilGas","HINDUNILVR|FMCG","HINDZINC|Metal","POWERINDIA|CapGoods","HOMEFIRST|Financials","HONASA|FMCG","HONAUT|CapGoods","HUDCO|Financials",
+    "HYUNDAI|Auto","ICICIBANK|Bank","ICICIGI|Financials","ICICIAMC|Financials","ICICIPRULI|Financials","IDBI|Bank","IDFCFIRSTB|Bank","IFCI|Financials","IIFL|Financials","IRB|Infra",
+    "IRCON|Infra","ITCHOTELS|Consumer","ITC|FMCG","ITI|Telecom","INDGN|Pharma","INDIACEM|Infra","INDIAMART|Consumer","INDIANB|Bank","IEX|Financials","INDHOTEL|Consumer",
+    "IOC|OilGas","IOB|Financials","IRCTC|Consumer","IRFC|Financials","IREDA|Financials","IGL|OilGas","INDUSTOWER|Telecom","INDUSINDBK|Bank","NAUKRI|Consumer","INFY|IT",
+    "INOXWIND|CapGoods","INTELLECT|IT","INDIGO","IGIL","IKS|IT","IPCALAB|Pharma","JKCEMENT|Infra","JBMA|Auto","JKTYRE|Auto","JMFINANCIL|Financials",
+    "JSWCEMENT|Infra","JSWDULUX|Consumer","JSWENERGY|Power","JSWINFRA","JSWSTEEL|Metal","JAINREC|Metal","JPPOWER|Power","J&KBANK|Bank","JINDALSAW|CapGoods","JSL|Metal",
+    "JINDALSTEL|Metal","JIOFIN|Financials","JUBLFOOD|Consumer","JUBLINGREA|Chemicals","JUBLPHARMA|Pharma","JWL|CapGoods","JYOTICNC|CapGoods","KPRMILL","KEI|CapGoods","KPITTECH|IT",
+    "KAJARIACER|Consumer","KPIL|Infra","KALYANKJIL|Consumer","KARURVYSYA|Bank","KAYNES|CapGoods","KEC|Infra","KFINTECH|Financials","KIRLOSENG|CapGoods","KOTAKBANK|Bank","KIMS|Pharma",
+    "LTF|Financials","LTTS|IT","LGEINDIA|Consumer","LICHSGFIN|Financials","LTFOODS|FMCG","LTM|IT","LT|Infra","LATENTVIEW|IT","LAURUSLABS|Pharma","THELEELA|Consumer",
+    "LEMONTREE|Consumer","LENSKART|Consumer","LICI|Financials","LINDEINDIA|Chemicals","LLOYDSME|Metal","LODHA|Realty","LUPIN|Pharma","MMTC","MRF|Auto","MGL|OilGas",
+    "M&MFIN|Financials","M&M|Auto","MANAPPURAM|Financials","MRPL|OilGas","MANKIND|Pharma","MARICO|FMCG","MARUTI|Auto","MFSL|Financials","MAXHEALTH|Pharma","MAZDOCK|CapGoods",
+    "MEESHO|Consumer","MINDACORP|Auto","MSUMI|Auto","MOTILALOFS|Financials","MPHASIS|IT","MCX|Financials","MUTHOOTFIN|Financials","NATCOPHARM|Pharma","NBCC|Infra","NCC|Infra",
+    "NHPC|Power","NLCINDIA|Power","NMDC|Metal","NSLNISP|Metal","NTPCGREEN|Power","NTPC|Power","NH|Pharma","NATIONALUM|Metal","NAVA|Power","NAVINFLUOR|Chemicals",
+    "NESTLEIND|FMCG","NETWEB|IT","NEULANDLAB|Pharma","NEWGEN|IT","NAM-INDIA|Financials","NIVABUPA|Financials","NUVAMA|Financials","NUVOCO|Infra","OBEROIRLTY|Realty","ONGC|OilGas",
+    "OIL|OilGas","OLAELEC|Auto","OLECTRA|Auto","PAYTM|Financials","ONESOURCE|Pharma","OFSS|IT","POLICYBZR|Financials","PCBL|Chemicals","PGEL|Consumer","PIIND|Chemicals",
+    "PNBHOUSING|Financials","PTCIL|CapGoods","PVRINOX","PAGEIND","PARADEEP|Chemicals","PATANJALI|FMCG","PERSISTENT|IT","PETRONET|OilGas","PFIZER|Pharma","PHOENIXLTD|Realty",
+    "PWL|Consumer","PIDILITIND|Chemicals","PINELABS|Financials","PIRAMALFIN|Financials","PPLPHARMA|Pharma","POLYMED|Pharma","POLYCAB|CapGoods","POONAWALLA|Financials","PFC|Financials","POWERGRID|Power",
+    "PREMIERENE|CapGoods","PRESTIGE|Realty","PFOCUS","PNB|Bank","RRKABEL|CapGoods","RBLBANK|Bank","RECLTD|Financials","RHIM|CapGoods","RITES|Infra","RADICO|FMCG",
+    "RVNL|Infra","RAILTEL|Telecom","RAINBOW|Pharma","RKFORGE|Auto","REDINGTON","RELIANCE|OilGas","RPOWER|Power","SBFC|Financials","SBICARD|Financials","SBILIFE|Financials",
+    "SJVN|Power","SRF|Chemicals","SAGILITY|IT","SAILIFE|Pharma","SAMMAANCAP|Financials","MOTHERSON|Auto","SAPPHIRE|Consumer","SARDAEN|Metal","SAREGAMA","SCHAEFFLER|Auto",
+    "SCHNEIDER|CapGoods","SCI","SHREECEM|Infra","SHRIRAMFIN|Financials","SHYAMMETL|CapGoods","ENRIN|CapGoods","SIEMENS|CapGoods","SIGNATURE|Realty","SOBHA|Realty","SOLARINDS|Chemicals",
+    "SONACOMS|Auto","SONATSOFTW|IT","STARHEALTH|Financials","SBIN|Bank","SAIL|Metal","SUMICHEM|Chemicals","SUNPHARMA|Pharma","SUNTV","SUNDARMFIN|Financials","SUPREMEIND|CapGoods",
+    "SPLPETRO|Chemicals","SUZLON|CapGoods","SWANCORP|Chemicals","SWIGGY|Consumer","SYNGENE|Pharma","SYRMA|CapGoods","TBOTEK|Consumer","TVSMOTOR|Auto","TATACAP|Financials","TATACHEM|Chemicals",
+    "TATACOMM|Telecom","TCS|IT","TATACONSUM|FMCG","TATAELXSI|IT","TATAINVEST|Financials","TMCV|CapGoods","TMPV|Auto","TATAPOWER|Power","TATASTEEL|Metal","TATATECH|IT",
+    "TTML|Telecom","TECHM|IT","TECHNOE|Infra","TEGA|CapGoods","TEJASNET|Telecom","TENNIND|Auto","NIACL|Financials","RAMCOCEM|Infra","THERMAX|CapGoods","TIMKEN|CapGoods",
+    "TITAGARH|CapGoods","TITAN|Consumer","TORNTPHARM|Pharma","TORNTPOWER|Power","TARIL|CapGoods","TRAVELFOOD|Consumer","TRENT|Consumer","TRIDENT","TRITURBINE|CapGoods","TIINDIA|Auto",
+    "UCOBANK|Bank","UNOMINDA|Auto","UPL|Chemicals","UTIAMC|Financials","ULTRACEMCO|Infra","UNIONBANK|Bank","UBL|FMCG","UNITDSPR|FMCG","URBANCO|Consumer","USHAMART|CapGoods",
+    "VTL","VBL|FMCG","VEDL|Metal","VIJAYA|Pharma","VMM|Consumer","IDEA|Telecom","VOLTAS|Consumer","WAAREEENER|CapGoods","WELCORP|CapGoods","WELSPUNLIV",
+    "WHIRLPOOL|Consumer","WIPRO|IT","WOCKPHARMA|Pharma","YESBANK|Bank","ZFCVINDIA|Auto","ZEEL","ZENTEC|CapGoods","ZENSARTECH|IT","ZYDUSLIFE|Pharma","ZYDUSWELL|FMCG",
+    "ECLERX"
+  ].join("\n");
+
+  var UNIVERSE_TM = [
+    "360ONE|Financials","3MINDIA","ABB|CapGoods","ACC|Infra","ACMESOLAR|Power","AIAENG|CapGoods","APLAPOLLO|CapGoods","ASKAUTOLTD|Auto","AUBANK|Bank","AWL|FMCG",
+    "AXISCADES|CapGoods","AADHARHFC|Financials","AARTIDRUGS|Pharma","AARTIIND|Chemicals","AARTIPHARM|Pharma","AAVAS|Financials","ABBOTINDIA|Pharma","ACE|CapGoods","ACUTAAS|Pharma","ADANIENSOL|Power",
+    "ADANIENT|Metal","ADANIGREEN|Power","ADANIPORTS","ADANIPOWER|Power","ATGL|OilGas","ABCAPITAL|Financials","ABFRL|Consumer","ABLBL|Consumer","ABREL|Realty","ABSLAMC|Financials",
+    "CPPLUS|CapGoods","AVL|Consumer","ADVENZYMES|Pharma","AEGISLOG|OilGas","AEGISVOPAK|OilGas","AEQUS|CapGoods","AETHER|Chemicals","AFCONS|Infra","AFFLE|IT","AHLUCONT|Infra",
+    "AJANTPHARM|Pharma","AKUMS|Pharma","APLLTD|Pharma","ALIVUS|Pharma","ALKEM|Pharma","ALKYLAMINE|Chemicals","ABDL|FMCG","ALOKINDS","ARE&M|Auto","AMBER|Consumer",
+    "AMBUJACEM|Infra","ANANDRATHI|Financials","ANANTRAJ|Realty","ANGELONE|Financials","ANTHEM|Pharma","ANURAS|Chemicals","APARINDS|CapGoods","APOLLOHOSP|Pharma","APOLLO|CapGoods","APOLLOTYRE|Auto",
+    "APTUS|Financials","ACI|Chemicals","ARVINDFASN|Consumer","ARVIND","ASAHIINDIA|Auto","ASHAPURMIN|Metal","ASHOKLEY|CapGoods","ASHOKA|Infra","ASIANPAINT|Consumer","ASTERDM|Pharma",
+    "ASTRAMICRO|CapGoods","ASTRAL|CapGoods","ATHERENERG|Auto","ATLANTAELE|CapGoods","ATUL|Chemicals","AURIONPRO|IT","AUROPHARMA|Pharma","AIIL|Financials","AVALON|CapGoods","AVANTIFEED|FMCG",
+    "DMART|Consumer","CCAVENUE|Financials","AWFIS","AXISBANK|Bank","AZAD|CapGoods","BEML|CapGoods","BLS|Consumer","BSE|Financials","BAJAJ-AUTO|Auto","BAJAJELEC|Consumer",
+    "BAJFINANCE|Financials","BAJAJFINSV|Financials","BAJAJHLDNG|Financials","BAJAJHFL|Financials","BALAMINES|Chemicals","BALKRISIND|Auto","BALRAMCHIN|FMCG","BALUFORGE|CapGoods","BANCOINDIA|Auto","BANDHANBNK|Bank",
+    "BANKBARODA|Bank","BANKINDIA|Bank","MAHABANK|Bank","BATAINDIA|Consumer","BAYERCROP|Chemicals","BELRISE|Auto","BERGEPAINT|Consumer","BDL|CapGoods","BEL|CapGoods","BHARATFORG|Auto",
+    "BHEL|CapGoods","BPCL|OilGas","BHARTIARTL|Telecom","BHARTIHEXA|Telecom","BIKAJI|FMCG","GROWW|Financials","BIOCON|Pharma","BIRLACORPN|Infra","BSOFT|IT","BBOX|IT",
+    "BLACKBUCK","BLUEDART","BLUEJET|Pharma","BLUESTARCO|Consumer","BLUESTONE|Consumer","BBTC|FMCG","BORORENEW|CapGoods","BOSCHLTD|Auto","FIRSTCRY|Consumer","BRIGADE|Realty",
+    "BRITANNIA|FMCG","MAPMYINDIA|IT","CCL|FMCG","CESC|Power","CGPOWER|CapGoods","CIEINDIA|Auto","CMSINFO","CORONA|Pharma","CRISIL|Financials","CSBBANK|Bank",
+    "CAMPUS|Consumer","CANFINHOME|Financials","CANBK|Bank","CANHLIFE|Financials","CRAMC|Financials","CAPILLARY|IT","CAPLIPOINT|Pharma","CGCL|Financials","CARBORUNIV|CapGoods","CARTRADE|Consumer",
+    "CASTROLIND|OilGas","CEATLTD|Auto","CELLO|Consumer","CEMPRO|Infra","CENTRALBK|Bank","CDSL|Financials","CENTURYPLY|Consumer","CERA|Consumer","CHALET|Consumer","CHAMBLFERT|Chemicals",
+    "CHENNPETRO|OilGas","CHOICEIN|Financials","CHOLAHLDNG|Financials","CHOLAFIN|Financials","CIPLA|Pharma","CUB|Bank","CLEAN|Chemicals","COALINDIA|OilGas","COCHINSHIP|CapGoods","COFORGE|IT",
+    "COHANCE|Pharma","COLPAL|FMCG","CAMS|Financials","CONCORDBIO|Pharma","CONCOR","COROMANDEL|Chemicals","CRAFTSMAN|Auto","CREDITACC|Financials","CRIZAC|Consumer","CROMPTON|Consumer",
+    "CUMMINSIND|CapGoods","CUPID|FMCG","CYIENT|IT","DCBBANK|Bank","DCMSHRIRAM","DLF|Realty","DOMS|FMCG","DABUR|FMCG","DALBHARAT|Infra","DATAPATTNS|CapGoods",
+    "DATAMATICS|IT","DEEPAKFERT|Chemicals","DEEPAKNTR|Chemicals","DELHIVERY","DEVYANI|Consumer","DIACABS|CapGoods","DBL|Infra","DIVISLAB|Pharma","DIXON|Consumer","AGARWALEYE|Pharma",
+    "LALPATHLAB|Pharma","DRREDDY|Pharma","DUMMYHEG|Metal","DUMMYINGL1|Pharma","DUMMYINGL2|FMCG","DUMMYINXGN|Infra","DUMMYTRVN|CapGoods","DYNAMATECH|CapGoods","EIDPARRY|FMCG","EIHOTEL|Consumer",
+    "EPL|CapGoods","EDELWEISS|Financials","EICHERMOT|Auto","ELECON|CapGoods","EMIL|Consumer","ELECTCAST|CapGoods","ELGIEQUIP|CapGoods","ELLEN|Chemicals","EMAMILTD|FMCG","EMBDL|Realty",
+    "EMCURE|Pharma","EMMVEE|CapGoods","ENDURANCE|Auto","ENGINERSIN|Infra","ENTERO|Consumer","EIEL","EQUITASBNK|Bank","ERIS|Pharma","ESCORTS|CapGoods","ETERNAL|Consumer",
+    "ETHOSLTD|Consumer","EUREKAFORB|Consumer","EXIDEIND|Auto","NYKAA|Consumer","FEDFINA|Financials","FEDERALBNK|Bank","FACT|Chemicals","FIEMIND|Auto","FINCABLES|CapGoods","FINPIPE|CapGoods",
+    "FSL","FIVESTAR|Financials","FORCEMOT|Auto","FORTIS|Pharma","UTLSOLAR|CapGoods","GAIL|OilGas","GVT&D|CapGoods","GHCL|Chemicals","GMMPFAUDLR|CapGoods","GMRAIRPORT",
+    "GMRP&UI|Power","GABRIEL|Auto","GALLANTT|CapGoods","GRSE|CapGoods","GRWRHITECH|CapGoods","GICRE|Financials","GILLETTE|FMCG","GLAND|Pharma","GLAXO|Pharma","GLENMARK|Pharma",
+    "MEDANTA|Pharma","GODIGIT|Financials","GPIL|CapGoods","GODFRYPHLP|FMCG","GODREJAGRO|FMCG","GODREJCP|FMCG","GODREJIND","GODREJPROP|Realty","GOKEX","GOKULAGRO|FMCG",
+    "GRANULES|Pharma","GRAPHITE|CapGoods","GRASIM|Infra","GRAVITA|Metal","GESHIP","GREAVESCOT|CapGoods","GRINDWELL|CapGoods","GAEL|FMCG","FLUOROCHEM|Chemicals","GMDCLTD|Metal",
+    "GNFC|Chemicals","GPPL","GSFC|Chemicals","HEG|CapGoods","HGINFRA|Infra","HBLENGINE|CapGoods","HCLTECH|IT","HDBFS|Financials","HDFCAMC|Financials","HDFCBANK|Bank",
+    "HDFCLIFE|Financials","HFCL|Telecom","HAPPSTMNDS|IT","HAVELLS|Consumer","HCG|Pharma","HEMIPROP","HERITGFOOD|FMCG","HEROMOTOCO|Auto","HEXT|IT","HSCL|Chemicals",
+    "HINDALCO|Metal","HAL|CapGoods","HCC|Infra","HINDCOPPER|Metal","HINDPETRO|OilGas","HINDUNILVR|FMCG","HINDZINC|Metal","POWERINDIA|CapGoods","HOMEFIRST|Financials","HONASA|FMCG",
+    "HONAUT|CapGoods","HUDCO|Financials","HYUNDAI|Auto","ICICIBANK|Bank","ICICIGI|Financials","ICICIAMC|Financials","ICICIPRULI|Financials","IDBI|Bank","IDFCFIRSTB|Bank","IFBIND|Consumer",
+    "IFCI|Financials","IIFLCAPS|Financials","IIFL|Financials","INOXINDIA|CapGoods","IRB|Infra","IRCON|Infra","ITCHOTELS|Consumer","ITC|FMCG","ITI|Telecom","INDGN|Pharma",
+    "INDIACEM|Infra","INDIAGLYCO|FMCG","INDIASHLTR|Financials","INDIAMART|Consumer","INDIANB|Bank","IEX|Financials","INDHOTEL|Consumer","IMFA|Metal","IOC|OilGas","IOB|Financials",
+    "IRCTC|Consumer","IRFC|Financials","IREDA|Financials","INDIGOPNTS|Consumer","ICIL","IGL|OilGas","INDUSTOWER|Telecom","INDUSINDBK|Bank","NAUKRI|Consumer","INFY|IT",
+    "INOXGREEN","INOXWIND|CapGoods","INTELLECT|IT","INDIGO","IGIL","IKS|IT","IONEXCHANG","IPCALAB|Pharma","JKCEMENT|Infra","JAIBALAJI|Metal",
+    "JBMA|Auto","JKLAKSHMI|Infra","JKPAPER","JKTYRE|Auto","JMFINANCIL|Financials","JSWCEMENT|Infra","JSWDULUX|Consumer","JSWENERGY|Power","JSWINFRA","JSWSTEEL|Metal",
+    "JAINREC|Metal","JPPOWER|Power","J&KBANK|Bank","JAMNAAUTO|Auto","JSFB|Financials","JAYNECOIND|CapGoods","JSLL|Consumer","JINDALSAW|CapGoods","JSL|Metal","JINDALSTEL|Metal",
+    "JIOFIN|Financials","JUBLFOOD|Consumer","JUBLINGREA|Chemicals","JUBLPHARMA|Pharma","JLHL|Pharma","JWL|CapGoods","JUSTDIAL|Consumer","JYOTHYLAB|FMCG","JYOTICNC|CapGoods","KPRMILL",
+    "KEI|CapGoods","KNRCON|Infra","KPIGREEN|Power","KPITTECH|IT","KRBL|FMCG","KRN|CapGoods","KSB|CapGoods","KAJARIACER|Consumer","KPIL|Infra","KALYANKJIL|Consumer",
+    "KANSAINER|Consumer","KTKBANK|Bank","KARURVYSYA|Bank","KSCL|FMCG","KAYNES|CapGoods","KEC|Infra","KFINTECH|Financials","KIRLOSBROS|CapGoods","KIRLOSENG|CapGoods","KIRLPNU|CapGoods",
+    "KITEX","KOTAKBANK|Bank","KIMS|Pharma","LTF|Financials","LTTS|IT","LGEINDIA|Consumer","LICHSGFIN|Financials","LTFOODS|FMCG","LTM|IT","LT|Infra",
+    "LATENTVIEW|IT","LAURUSLABS|Pharma","LXCHEM|Chemicals","IXIGO|Consumer","THELEELA|Consumer","LEMONTREE|Consumer","LENSKART|Consumer","LICI|Financials","LINDEINDIA|Chemicals","LLOYDSENGG|CapGoods",
+    "LLOYDSENT|Metal","LLOYDSME|Metal","LODHA|Realty","LUMAXTECH|Auto","LUPIN|Pharma","MMTC","MOIL|Metal","MRF|Auto","MSTCLTD","MTARTECH|CapGoods",
+    "MGL|OilGas","MAHSCOOTER|Financials","MAHSEAMLES|CapGoods","M&MFIN|Financials","M&M|Auto","MANAPPURAM|Financials","MRPL|OilGas","MANKIND|Pharma","MANORAMA|FMCG","MARICO|FMCG",
+    "MARKSANS|Pharma","MARUTI|Auto","MASTEK|IT","MFSL|Financials","MAXHEALTH|Pharma","MAZDOCK|CapGoods","MEDPLUS|Consumer","MEESHO|Consumer","METROPOLIS|Pharma","MINDACORP|Auto",
+    "MIDHANI|CapGoods","MSUMI|Auto","MOTILALOFS|Financials","MPHASIS|IT","BECTORFOOD|FMCG","MCX|Financials","MUTHOOTFIN|Financials","NATCOPHARM|Pharma","NBCC|Infra","NCC|Infra",
+    "NEOGEN|Chemicals","NESCO","NHPC|Power","NLCINDIA|Power","NMDC|Metal","NSLNISP|Metal","NTPCGREEN|Power","NTPC|Power","NH|Pharma","NATIONALUM|Metal",
+    "NFL|Chemicals","NAVA|Power","NAVINFLUOR|Chemicals","NAZARA","NESTLEIND|FMCG","NETWEB|IT","NETWORK18","NEULANDLAB|Pharma","NEWGEN|IT","NAM-INDIA|Financials",
+    "NIVABUPA|Financials","NUVAMA|Financials","NUVOCO|Infra","OBEROIRLTY|Realty","ONGC|OilGas","OIL|OilGas","OLAELEC|Auto","OLECTRA|Auto","PAYTM|Financials","ONESOURCE|Pharma",
+    "OPTIEMUS|Telecom","OFSS|IT","ORIENTCEM|Infra","ORKLAINDIA|FMCG","OSWALPUMPS|CapGoods","PNGJL|Consumer","POLICYBZR|Financials","PCJEWELLER|Consumer","PCBL|Chemicals","PGEL|Consumer",
+    "PIIND|Chemicals","PNBHOUSING|Financials","PNCINFRA|Infra","PTC|Power","PTCIL|CapGoods","PVRINOX","PAGEIND","PARADEEP|Chemicals","PARAS|CapGoods","PARKHOSPS|Pharma",
+    "PATANJALI|FMCG","PGIL","PERSISTENT|IT","PETRONET|OilGas","PFIZER|Pharma","PHOENIXLTD|Realty","PWL|Consumer","PICCADIL|FMCG","PIDILITIND|Chemicals","PINELABS|Financials",
+    "PIRAMALFIN|Financials","PPLPHARMA|Pharma","POLYMED|Pharma","POLYCAB|CapGoods","POONAWALLA|Financials","PFC|Financials","POWERGRID|Power","POWERMECH|Infra","PRAJIND|CapGoods","PREMIERENE|CapGoods",
+    "PRESTIGE|Realty","PRICOLLTD|Auto","PFOCUS","PRSMJOHNSN|Infra","PRIVISCL|Chemicals","PRUDENT|Financials","PNB|Bank","PURVA|Realty","QPOWER|CapGoods","QUESS",
+    "RRKABEL|CapGoods","RBLBANK|Bank","RECLTD|Financials","RHIM|CapGoods","RITES|Infra","RADICO|FMCG","RVNL|Infra","RAILTEL|Telecom","RAIN|Chemicals","RAINBOW|Pharma",
+    "RALLIS|Chemicals","RKFORGE|Auto","RCF|Chemicals","RATEGAIN|IT","RATNAMANI|CapGoods","RTNINDIA|Consumer","RTNPOWER|Power","RAYMONDLSL","REDINGTON","REDTAPE|Consumer",
+    "REFEX","RELAXO|Consumer","RELIANCE|OilGas","RPOWER|Power","RELIGARE|Financials","RBA|Consumer","ROUTE|Telecom","RUBICON|Pharma","SBFC|Financials","SBICARD|Financials",
+    "SBILIFE|Financials","SJVN|Power","SKFINDUS|CapGoods","SKFINDIA|Auto","SKYGOLD|Consumer","SMLMAH|CapGoods","SHRIPISTON|Auto","SRF|Chemicals","LOTUSDEV|Realty","SAATVIKGL|CapGoods",
+    "SAFARI|Consumer","SAGILITY|IT","SAILIFE|Pharma","SAMHI|Consumer","SAMMAANCAP|Financials","MOTHERSON|Auto","SANDUMA|Metal","SANOFICONR|Pharma","SANSERA|Auto","SAPPHIRE|Consumer",
+    "SARDAEN|Metal","SAREGAMA","SCHAEFFLER|Auto","SCHNEIDER|CapGoods","SENCO|Consumer","STYL|Financials","SHAILY|Consumer","SHAKTIPUMP|CapGoods","SHARDACROP|Chemicals","SHAREINDIA|Financials",
+    "SFL|Consumer","SHILPAMED|Pharma","SCI","SHREECEM|Infra","RENUKA|FMCG","SHRIRAMFIN|Financials","SHYAMMETL|CapGoods","ENRIN|CapGoods","SIEMENS|CapGoods","SIGNATURE|Realty",
+    "SKIPPER|CapGoods","SMARTWORKS","SOBHA|Realty","SOLARINDS|Chemicals","SONACOMS|Auto","SONATSOFTW|IT","SOUTHBANK|Bank","STARCEMENT|Infra","STARHEALTH|Financials","SBIN|Bank",
+    "SAIL|Metal","SWSOLAR|Infra","STLTECH|Telecom","STAR|Pharma","STYRENIX|Chemicals","SUBROS|CapGoods","SUDARSCHEM|Chemicals","SUDEEPPHRM|Chemicals","SUMICHEM|Chemicals","SPARC|Pharma",
+    "SUNPHARMA|Pharma","SUNTV","SUNDARMFIN|Financials","SUNTECK|Realty","SUPREMEIND|CapGoods","SPLPETRO|Chemicals","SUPRIYA|Pharma","SURYAROSNI|CapGoods","SUZLON|CapGoods","SWANCORP|Chemicals",
+    "SWIGGY|Consumer","SYNGENE|Pharma","SYRMA|CapGoods","TARC|Realty","TBOTEK|Consumer","TDPOWERSYS|CapGoods","TSFINV|Financials","TVSMOTOR|Auto","TVSSCS","TMB|Bank",
+    "TANLA|IT","TATACAP|Financials","TATACHEM|Chemicals","TATACOMM|Telecom","TCS|IT","TATACONSUM|FMCG","TATAELXSI|IT","TATAINVEST|Financials","TMCV|CapGoods","TMPV|Auto",
+    "TATAPOWER|Power","TATASTEEL|Metal","TATATECH|IT","TTML|Telecom","TECHM|IT","TECHNOE|Infra","TEGA|CapGoods","TEJASNET|Telecom","TENNIND|Auto","TEXRAIL|CapGoods",
+    "THANGAMAYL|Consumer","ANUP|CapGoods","NIACL|Financials","RAMCOCEM|Infra","THERMAX|CapGoods","THOMASCOOK|Consumer","THYROCARE|Pharma","TI|FMCG","TIMETECHNO|CapGoods","TIMKEN|CapGoods",
+    "TIPSMUSIC","TITAGARH|CapGoods","TITAN|Consumer","TORNTPHARM|Pharma","TORNTPOWER|Power","TARIL|CapGoods","TRANSRAILL|CapGoods","TRAVELFOOD|Consumer","TRENT|Consumer","TRIDENT",
+    "TRIVENI|FMCG","TRITURBINE|CapGoods","TIINDIA|Auto","UCOBANK|Bank","UNOMINDA|Auto","UPL|Chemicals","UTIAMC|Financials","UJJIVANSFB|Bank","ULTRACEMCO|Infra","UNIONBANK|Bank",
+    "UBL|FMCG","UNITDSPR|FMCG","URBANCO|Consumer","USHAMART|CapGoods","VGUARD|Consumer","VMART|Consumer","VIPIND|Consumer","V2RETAIL|Consumer","DBREALTY|Realty","WABAG",
+    "VAIBHAVGBL|Consumer","VTL","VARROC|Auto","VBL|FMCG","MANYAVAR|Consumer","VEDL|Metal","VIJAYA|Pharma","VIKRAMSOLR|CapGoods","VMM|Consumer","VIYASH|Pharma",
+    "IDEA|Telecom","VOLTAMP|CapGoods","VOLTAS|Consumer","WAAREEENER|CapGoods","WAAREERTL|CapGoods","WAKEFIT|Consumer","WEWORK","WEBELSOLAR|CapGoods","WELCORP|CapGoods","WELENT|Infra",
+    "WELSPUNLIV","WESTLIFE|Consumer","WHIRLPOOL|Consumer","WIPRO|IT","WOCKPHARMA|Pharma","YATHARTH|Pharma","YESBANK|Bank","ZFCVINDIA|Auto","ZAGGLE|IT","ZEEL",
+    "ZENTEC|CapGoods","ZENSARTECH|IT","ZYDUSLIFE|Pharma","ZYDUSWELL|FMCG","ECLERX"
+  ].join("\n");
+
   var uniSectorMap = null;
   function buildSectorMap(txt){
     uniSectorMap = {};
@@ -2427,7 +2563,12 @@ GRANULES | 2026-08-18 | | From his 18-Aug retrospective table, self-graded &quot
       .map(function(l){ var p=l.split(/[|,\t]/); return {sym:(p[0]||"").trim().toUpperCase(), sector:(p[1]||"").trim()}; })
       .filter(function(x){ return x.sym; });
   }
-  function universeText(){ return state.customUniverse && state.customUniverse.trim() ? state.customUniverse : UNIVERSE; }
+  function baseUniverse(){
+    if(state.universeSize==="tm") return UNIVERSE_TM;
+    if(state.universeSize==="500") return UNIVERSE500;
+    return UNIVERSE;
+  }
+  function universeText(){ return state.customUniverse && state.customUniverse.trim() ? state.customUniverse : baseUniverse(); }
 
   /* ---------- auto-screen: indicators ---------- */
   function emaLast(v,n){
@@ -3242,7 +3383,8 @@ GRANULES | 2026-08-18 | | From his 18-Aug retrospective table, self-graded &quot
     var isFMP = state.scanSource==="fmp";
     var ownWorker = state.scanSource==="proxy" && state.proxyChoice==="custom";
     var fetcher = isTD ? fetchTwelve : (isFMP ? fetchFMP : fetchYahoo);
-    var conc = isTD ? 1 : (isFMP ? 3 : (ownWorker ? 6 : 2));
+    var bigUniverse = (state.universeSize==="500" || state.universeSize==="tm") && !state.customUniverse;
+    var conc = isTD ? 1 : (isFMP ? 3 : (ownWorker ? (bigUniverse ? 4 : 6) : 2));   // gentler on Yahoo for the 500/750 lists
 
     var wantEvents = state.fetchEvents && isTD;
     var wantResults = !isTD && !isFMP && state.fetchResults!==false;   // pull quarterly results via the same proxy
@@ -3468,11 +3610,16 @@ GRANULES | 2026-08-18 | | From his 18-Aug retrospective table, self-graded &quot
     $("#universeSize").addEventListener("change", function(){
       state.universeSize=this.value; save();
       if(this.value==="custom") $("#universeEditBox").open = true;
+      else { state.customUniverse = ""; save(); }
+      buildSectorMap(universeText());
+      $("#universeEdit").value = universeText();
+      $("#uniCount").textContent = parseUniverse(universeText()).length;
+      renderSectorChips();
       syncSourceUI();
     });
     $("#universeEdit").addEventListener("input", function(){
       state.customUniverse = this.value;
-      if(this.value.trim()===UNIVERSE.trim()) state.customUniverse = "";
+      if(this.value.trim()===baseUniverse().trim()) state.customUniverse = "";
       save();
       buildSectorMap(universeText());
       $("#uniCount").textContent = parseUniverse(universeText()).length;
@@ -3483,11 +3630,14 @@ GRANULES | 2026-08-18 | | From his 18-Aug retrospective table, self-graded &quot
   }
   function syncSourceUI(){
     $("#proxyCustomWrap").hidden = state.proxyChoice!=="custom";
-    var n = state.universeSize==="custom" ? parseUniverse(universeText()).length
-          : Math.min(parseInt(state.universeSize,10)||200, parseUniverse(universeText()).length);
+    var total = parseUniverse(universeText()).length;
+    var lim = parseInt(state.universeSize,10);
+    var n = (state.universeSize==="custom" || !isFinite(lim)) ? total : Math.min(lim, total);
+    var cc = ((state.universeSize==="500" || state.universeSize==="tm") && !state.customUniverse) ? 4 : 6;
     if(state.proxyChoice==="custom" && state.proxyCustom){
-      var secs = Math.max(15, Math.ceil(n/6)) * (state.fetchResults!==false ? 2 : 1);
-      $("#scanMeta").textContent = "· your own Worker/proxy → ~"+secs+"s for "+n+" names"+(state.fetchResults!==false?" (incl. quarterly results)":"")+", no limits";
+      var secs = Math.max(15, Math.ceil(n/cc)) * (state.fetchResults!==false ? 2 : 1);
+      var tt = secs>=90 ? "~"+Math.round(secs/60)+" min" : "~"+secs+"s";
+      $("#scanMeta").textContent = "· your own Worker/proxy → "+tt+" for "+n+" names"+(state.fetchResults!==false?" (incl. quarterly results)":"")+", no limits";
     } else if(!state.scanCache){
       $("#scanMeta").textContent = "";
     }
