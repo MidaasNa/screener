@@ -102,8 +102,10 @@ button.primary:hover{background:var(--btn-hi)}
 button.primary:active{transform:translateY(1px)}
 .row-actions button:not(.primary),.field-actions button:not(.primary){background:var(--btn-soft);border:1px solid transparent;color:var(--btn);font-weight:500;padding:9px 13px;border-radius:7px;transition:background .15s ease}
 .row-actions button:not(.primary):hover,.field-actions button:not(.primary):hover{background:var(--btn-hi);color:var(--btn-ink)}
-button.ghost{color:var(--btn)}
-button.ghost:hover{color:var(--btn-hi)}
+button.ghost{background:var(--btn-soft);color:var(--btn);border:1px solid transparent;border-radius:6px;padding:7px 12px;font-weight:500;transition:background .15s ease}
+button.ghost:hover{background:var(--btn-hi);color:var(--btn-ink)}
+button.ghost.pos{background:var(--pos-bg);color:var(--pos)}
+button.ghost.pos:hover{background:var(--pos);color:#fff}
 .chk{display:flex;gap:6px;align-items:center;font-size:12.5px;color:var(--muted);margin-left:auto;cursor:pointer}
 
 /* summary + banner */
@@ -316,7 +318,7 @@ table.oc-guide td:first-child{white-space:nowrap;width:1%}
     <span class="mark" aria-hidden="true">₹</span>
     <div>
       <h1>The 10% Ledger</h1>
-      <p>Momentum + pullback screener · NSE swing setups <span style="opacity:.5;font-size:11px">· build 2026-09-08v</span></p>
+      <p>Momentum + pullback screener · NSE swing setups <span style="opacity:.5;font-size:11px">· build 2026-09-08w</span></p>
     </div>
   </div>
   <div class="controls">
