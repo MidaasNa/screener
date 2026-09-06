@@ -308,7 +308,7 @@ table.oc-guide td:first-child{white-space:nowrap;width:1%}
     <span class="mark" aria-hidden="true">₹</span>
     <div>
       <h1>The 10% Ledger</h1>
-      <p>Momentum + pullback screener · NSE swing setups <span style="opacity:.5;font-size:11px">· build 2026-09-08t</span></p>
+      <p>Momentum + pullback screener · NSE swing setups <span style="opacity:.5;font-size:11px">· build 2026-09-08u</span></p>
     </div>
   </div>
   <div class="controls">
@@ -348,7 +348,7 @@ table.oc-guide td:first-child{white-space:nowrap;width:1%}
   <button data-tab="coil">10-DMA Coil</button>
   <button data-tab="candles">DarvaX Candles</button>
   <button data-tab="mb">Multibagger Radar</button>
-  <button data-tab="signals">Signal Log</button>
+  <button data-tab="journal">Trading Journal</button>
   <button data-tab="book">Chart Book</button>
   <button data-tab="analyzer">Analyzer</button>
   <button data-tab="playbook">Playbook</button>
@@ -508,7 +508,7 @@ table.oc-guide td:first-child{white-space:nowrap;width:1%}
           <tbody id="ggBody"><tr><td colspan="9" class="empty">Run a scan (Screener → Scan now), then come back here.</td></tr></tbody>
         </table>
       </div>
-      <p class="hint" style="margin-top:12px">This is the launch moment — the trade is <i>above the cross bar's high</i>, stop under the base low or the 10-DMA. It's rare by design; a scan may return only a handful or none. Confirm RS is strong and the market regime isn't Red. Named after DarvaX / @AmitabhJha3's golden-cross plays — logging his calls in <b>Signal Log</b> lets you check whether his picks actually show this footprint.</p>
+      <p class="hint" style="margin-top:12px">This is the launch moment — the trade is <i>above the cross bar's high</i>, stop under the base low or the 10-DMA. It's rare by design; a scan may return only a handful or none. Confirm RS is strong and the market regime isn't Red. Named after DarvaX / @AmitabhJha3's golden-cross plays.</p>
     </div>
   </section>
 
@@ -786,57 +786,74 @@ table.oc-guide td:first-child{white-space:nowrap;width:1%}
     </div>
   </section>
 
-  <!-- SIGNAL LOG -->
-  <section id="tab-signals" hidden>
+  <!-- TRADING JOURNAL -->
+  <section id="tab-journal" hidden>
     <div class="panel">
-      <h2>Signal Log</h2>
-      <p class="hint">Track calls from traders you follow (DarvaX / @AmitabhJha3 or anyone) against what this tool independently sees. Paste each call in <b>as it happens</b> — ticker, date, source, their stated reason — and check back later for the real return. This builds an honest, verified track record instead of guessing at someone's history (there's no reliable way to pull a trader's past tweets automatically).</p>
-      <div class="form-grid" id="sigForm">
-        <label>Symbol
-          <input id="sig_sym" type="text" placeholder="e.g. TITAN" autocomplete="off">
-        </label>
-        <label>Date called
-          <input id="sig_date" type="date">
-        </label>
-        <label>Source
-          <input id="sig_source" type="text" placeholder="@AmitabhJha3" value="@AmitabhJha3" autocomplete="off">
-        </label>
-        <label>Price at call (₹, optional)
-          <input id="sig_price" type="text" inputmode="decimal" placeholder="if known">
-        </label>
-        <label class="full">Their stated reason — paste the tweet text or your own note
-          <textarea id="sig_reason" rows="2" placeholder="e.g. “High Dry Fry breakout, RS leader, base held the 20-EMA”"></textarea>
-        </label>
-      </div>
-      <div class="field-actions"><button class="primary" id="sigAddBtn">Log this call</button></div>
+      <div class="scan-head"><h2>Trading Journal</h2><span class="scan-meta" id="jSyncMeta"></span></div>
+      <p class="hint">Log every position. For each <b>open</b> trade the journal reads your <b>latest scan</b> and tells you whether the setup is still intact, where the trailing stop should be now, and <b>how far the move can still run</b> (next resistance, measured move, and this stock's own historical run). Optionally syncs to a Google Sheet so the log lives outside your browser.</p>
 
-      <details class="sub" id="sigBulkBox">
-        <summary>Bulk import — paste several calls at once</summary>
-        <p class="hint">One per line: <code>SYMBOL | DATE (YYYY-MM-DD) | PRICE | REASON | SOURCE</code>. Only <code>SYMBOL</code> is required — leave the rest blank between pipes (e.g. <code>JGCHEM | 2026-08-05 | 547 | DarvaX Coin 8</code>). Lines starting with <code>#</code> are ignored.</p>
-        <textarea id="sigBulk" rows="5" spellcheck="false" placeholder="JGCHEM | 2026-08-05 | 547 | DarvaX Coin 8, results due 8 Aug; later self-graded &quot;Blaster Jackpot&quot;
-MUFIN | 2026-08-12 | | Target level 120 per his post; results were due 11 Aug
-URBANCO | 2026-09-03 | 177 | DarvaX Coin 11, teased via likes/reposts before reveal
-GRANULES | 2026-08-18 | | From his 18-Aug retrospective table, self-graded &quot;Jackpot&quot; — original call date not shown"></textarea>
-        <div class="row-actions">
-          <button id="sigBulkBtn">Import lines</button>
-          <span class="hint" id="sigBulkStatus"></span>
+      <details class="sub" id="jSetup">
+        <summary>Connect a Google Sheet (optional — one-time setup)</summary>
+        <ol class="hint" style="margin:4px 0 8px 18px">
+          <li>New Google Sheet → rename the first tab <code>Trades</code> → put this header in row 1:<br>
+            <code>id, symbol, entryDate, entryPrice, stop, qty, setup, status, exitDate, exitPrice, notes</code></li>
+          <li><b>Extensions → Apps Script</b>, delete the sample, paste the code below, <b>Save</b>.</li>
+          <li><b>Deploy → New deployment → Web app</b> · Execute as: <b>Me</b> · Who has access: <b>Anyone</b> → Deploy → authorise → <b>copy the Web app URL</b> (ends in <code>/exec</code>).</li>
+          <li>Paste that URL below and hit <b>Save &amp; test</b>.</li>
+        </ol>
+        <textarea readonly rows="7" style="font-size:11px" onclick="this.select()">const T='Trades';
+function _s(){return SpreadsheetApp.getActiveSpreadsheet().getSheetByName(T);}
+function doGet(){var v=_s().getDataRange().getValues(),h=v.shift();return ContentService.createTextOutput(JSON.stringify(v.filter(r=>r[0]!=='').map(r=>{var o={};h.forEach((k,i)=>o[k]=r[i]);return o;}))).setMimeType(ContentService.MimeType.JSON);}
+function doPost(e){var s=_s(),b=JSON.parse(e.postData.contents),v=s.getDataRange().getValues(),h=v[0];
+if(b.action=='add'){s.appendRow(h.map(k=>b.row[k]!==undefined?b.row[k]:''));}
+else if(b.action=='update'){for(var i=1;i<v.length;i++){if(String(v[i][0])==String(b.id)){h.forEach((k,c)=>{if(b.row[k]!==undefined)s.getRange(i+1,c+1).setValue(b.row[k]);});break;}}}
+else if(b.action=='delete'){for(var i=v.length-1;i>=1;i--){if(String(v[i][0])==String(b.id)){s.deleteRow(i+1);break;}}}
+return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(ContentService.MimeType.JSON);}</textarea>
+        <div class="scan-grid" style="margin-top:8px">
+          <label for="jUrl">Google Sheet Web app URL
+            <input id="jUrl" type="text" placeholder="https://script.google.com/macros/s/…/exec" autocomplete="off">
+          </label>
         </div>
+        <div class="row-actions"><button id="jSaveUrl">Save &amp; test</button><button id="jPull" class="ghost">Pull from sheet</button><span class="hint" id="jUrlStatus"></span></div>
+        <p class="hint">The URL is stored only in this browser. With no sheet connected the journal still works fully — it's just kept in local storage.</p>
       </details>
 
-      <div class="summary" id="sigSummary" aria-live="polite" style="margin-top:14px"></div>
+      <div class="form-grid" id="jForm" style="margin-top:12px">
+        <label>Symbol <input id="j_sym" type="text" placeholder="e.g. HINDZINC" autocomplete="off"></label>
+        <label>Entry date <input id="j_date" type="date"></label>
+        <label>Entry price ₹ <input id="j_entry" type="text" inputmode="decimal"></label>
+        <label>Initial stop ₹ <input id="j_stop" type="text" inputmode="decimal"></label>
+        <label>Quantity <input id="j_qty" type="text" inputmode="numeric"></label>
+        <label>Setup <input id="j_setup" type="text" placeholder="e.g. BOB breakout / HDF" autocomplete="off"></label>
+        <label class="full">Notes <textarea id="j_notes" rows="2" placeholder="why you took it, market regime, anything to check later"></textarea></label>
+      </div>
+      <div class="field-actions"><button class="primary" id="jAddBtn">Add position</button> <button id="jFillFromAnalyzer" class="ghost" title="Use the symbol / entry / stop currently in the Analyzer">◀ from Analyzer</button></div>
+
+      <div class="summary" id="jSummary" aria-live="polite" style="margin-top:14px"></div>
+
+      <h3 style="margin:14px 0 4px">Open positions</h3>
       <div class="table-wrap">
-        <table id="sigTable">
+        <table id="jOpenTable">
           <thead><tr>
-            <th>Symbol</th><th>Date</th><th>Days</th><th>Price@call</th>
-            <th title="Editable — type today's price if it's not in your last scan">Now</th>
-            <th>Return</th>
-            <th title="Cross-checked against your last scan: does the tool independently see this as a setup?">Tool's read</th>
-            <th>Source / reason</th><th></th>
+            <th></th><th>Symbol</th><th>Entry</th><th>Now</th><th title="Unrealised P&amp;L">P&amp;L</th>
+            <th title="How many multiples of your initial risk (entry − stop) you're up">R</th>
+            <th title="Is the swing trend still intact, from your latest scan">Trend</th>
+            <th title="Where the trailing stop should sit now">Trail to</th>
+            <th title="How much further the move can realistically run — verdict + ceiling">Ride</th>
+            <th></th>
           </tr></thead>
-          <tbody id="sigBody"><tr><td colspan="9" class="empty">No signals logged yet — log one above.</td></tr></tbody>
+          <tbody id="jOpenBody"><tr><td colspan="10" class="empty">No open positions. Add one above.</td></tr></tbody>
         </table>
       </div>
-      <p class="hint" style="margin-top:10px">"Tool's read" only fills in for a symbol that's in your <b>current scan data</b> — run a scan (or paste raw data) that includes it. "Now" pulls the scanned price automatically when available; otherwise type it in and it's remembered. This log is decision <i>support</i> for judging a source's real hit rate over time — it doesn't validate or endorse any specific trader.</p>
+
+      <h3 style="margin:18px 0 4px">Closed</h3>
+      <div class="table-wrap">
+        <table id="jClosedTable">
+          <thead><tr><th>Symbol</th><th>Held</th><th>Entry → Exit</th><th>Return</th><th>R</th><th>Setup / notes</th><th></th></tr></thead>
+          <tbody id="jClosedBody"><tr><td colspan="7" class="empty">Nothing closed yet.</td></tr></tbody>
+        </table>
+      </div>
+      <p class="hint" style="margin-top:10px">The <b>Ride</b> verdict and the <b>Trail to</b> level are computed from the row for that symbol in your <b>most recent scan / raw data</b> — run a scan that includes your open positions to keep them live. Exit on the <b>trailing stop</b> or a <b>trend break</b>, never on a P&amp;L feeling.</p>
     </div>
   </section>
 
@@ -1141,7 +1158,7 @@ GRANULES | 2026-08-18 | | From his 18-Aug retrospective table, self-graded &quot
         <li><b>It just came out of a tight consolidation near the moving average</b> — a 6–24 session base riding the 10-DMA: ≤17% high-to-low, drifting sideways (net move ≤11%), most bars hugging the line with a small daily range on quiet volume.</li>
         <li><b>The 10-DMA crossed above the 50-DMA 1–3 sessions ago, on ≥3× volume</b> — the base resolving up, right now, with institutions behind it.</li>
       </ol>
-      <p>Each row shows the base (length × width), how many sessions since the golden cross, the volume multiple, and the <b>base top</b> (a re-entry level). This is the launch moment — <b>the trade is a buy-stop above the cross bar's high, stop under the base low or the 10-DMA</b>. It is rare by construction: a full scan may turn up a handful or none. The RS ≥ 45 filter is on by default; still confirm RS is genuinely strong and skip it in a Red market regime. It's named after DarvaX / @AmitabhJha3's golden-cross style — pair it with the <b>Signal Log</b> to check whether his actual picks show this footprint or not.</p>
+      <p>Each row shows the base (length × width), how many sessions since the golden cross, the volume multiple, and the <b>base top</b> (a re-entry level). This is the launch moment — <b>the trade is a buy-stop above the cross bar's high, stop under the base low or the 10-DMA</b>. It is rare by construction: a full scan may turn up a handful or none. The RS ≥ 45 filter is on by default; still confirm RS is genuinely strong and skip it in a Red market regime. It's named after DarvaX / @AmitabhJha3's golden-cross style.</p>
 
       <h3>Silver Guru — its own tab</h3>
       <p>The mirror image: a <b>reversal off a sell-off</b>, not a continuation. A stock appears in the <b>Silver Guru</b> tab only if:</p>
@@ -1291,6 +1308,18 @@ GRANULES | 2026-08-18 | | From his 18-Aug retrospective table, self-graded &quot
       <h3>The chart</h3>
       <p>Open any stock with <b>Analyze →</b> and the Analyzer draws a candlestick chart: EMA 20/50 (and 200 when enough history), the detected <b>consolidation base as a shaded box</b>, plus dashed lines for your entry, stop and +10% target and dotted lines for the nearest support / resistance. The <b>D / W</b> toggle switches between daily candles (~6 months) and weekly candles (~20 months) — weekly is aggregated from the daily data on the fly. Charts for the <b>top ~30 scored names are kept from the scan</b> so they open instantly; for anything else it fetches on demand (needs a working data source). <b>↻ live</b> forces a fresh pull. Always eyeball this before taking a trade — the score is a filter, the chart is the veto.</p>
 
+      <h3>Trading Journal — its own tab</h3>
+      <p>Log every position you take — symbol, entry date, entry price, initial stop, quantity, setup, notes. The <b>◀ from Analyzer</b> button fills the form from whatever you're looking at.</p>
+      <p>For each <b>open</b> position the journal pulls that symbol's row from your <b>latest scan</b> and gives you a live read: current price and unrealised P&amp;L, your <b>R-multiple</b> (how many multiples of the initial risk you're up), whether the swing <b>trend</b> is still intact (EMA stack), where the <b>trailing stop</b> should sit now (the higher of: under support, just below the 20-EMA, or 2.5× ATR), and a <b>Ride verdict</b>:</p>
+      <ul>
+        <li><b>HOLD &amp; RIDE</b> — trend intact, not at a ceiling. It names the room left: the next resistance, the measured-move target, or "+10% — this stock reaches that N% of the time from setups like this".</li>
+        <li><b>TRIM / TIGHTEN</b> — price is at a resistance / measured-move ceiling. Book part, trail the rest.</li>
+        <li><b>HOLD — cut size</b> — a quarterly result is due within ~3 weeks (a binary event).</li>
+        <li><b>EXIT</b> — the trend has broken (below the 50 / 200 EMA).</li>
+      </ul>
+      <p>The rule the verdict enforces: <b>exit on the trailing stop or a trend break, never on a P&amp;L feeling</b> — a position at break-even that is still trending up is a hold, not a sell.</p>
+      <p><b>Google Sheet sync (optional).</b> Open <i>Connect a Google Sheet</i>, follow the four steps (create the sheet with the given header, paste the Apps Script, deploy it as a Web app with access "Anyone", paste the <code>/exec</code> URL). Every add / close / remove then also writes to your sheet, and <b>Pull from sheet</b> reloads from it — so the log survives a cleared browser and you can edit it from your phone. With no sheet connected the journal still works fully; it just lives in this browser's local storage. The URL is never saved into the file.</p>
+
       <h3>Chart Book — its own tab</h3>
       <p>A review surface — flip through the charts from your last scan one at a time, the way you'd page through a printed chart book, instead of clicking <b>Analyze →</b> on each row. <b>‹ Prev / Next ›</b> or the <b>← →</b> arrow keys move between stocks; the position counter shows where you are (e.g. <i>7 / 41</i>). The <b>Find</b> box jumps straight to a symbol (with autocomplete from the scanned names) — if it's in the scan but outside the current <i>Show</i> filter, the filter flips to <i>All scanned</i> so it's reachable.</p>
       <ul>
@@ -1384,7 +1413,7 @@ GRANULES | 2026-08-18 | | From his 18-Aug retrospective table, self-graded &quot
     proxyCustom: "", apiKey: "", fmpKey: "", chartTF: "daily",
     universeSize: "200", customUniverse: "", leadingSectors: [],
     dropForming: true, fetchEvents: false, fetchResults: true, fetchDeep: true, scanCache: null, hostOverride: false,
-    oc: {}, signals: [], bookIdx: 0, bookScope: "all",
+    oc: {}, journal: [], journalUrl: "", bookIdx: 0, bookScope: "all",
     mbMinScore: 55, mbNoFlags: false, mbOpen: {}
   };
 
@@ -2743,113 +2772,181 @@ GRANULES | 2026-08-18 | | From his 18-Aug retrospective table, self-graded &quot
     });
   }
 
-  /* ---------- signal log: track outside calls against what the tool independently sees ---------- */
-  function addSignal(){
-    var sym = ($("#sig_sym").value||"").trim().toUpperCase();
-    if(!sym){ $("#sig_sym").focus(); return; }
-    var entry = {
-      id: Date.now().toString(36)+Math.random().toString(36).slice(2,7),
-      symbol: sym,
-      date: $("#sig_date").value || new Date().toISOString().slice(0,10),
-      source: ($("#sig_source").value||"").trim() || "@AmitabhJha3",
-      reason: ($("#sig_reason").value||"").trim(),
-      priceAtCall: parseFloat($("#sig_price").value) || null,
-      priceNow: null
+  /* ---------- trading journal (local + optional Google Sheet) ---------- */
+  var JCOLS = ["id","symbol","entryDate","entryPrice","stop","qty","setup","status","exitDate","exitPrice","notes"];
+  function jList(){ return state.journal || (state.journal = []); }
+  function jSave(){ save(); }
+  function jId(){ return Date.now().toString(36) + Math.random().toString(36).slice(2,6); }
+
+  // push one change to the sheet (best effort — local storage is always the source of truth)
+  function jPush(payload){
+    var url = (state.journalUrl||"").trim();
+    if(!url) return Promise.resolve(false);
+    return fetch(url, { method:"POST", redirect:"follow", headers:{"Content-Type":"text/plain;charset=utf-8"}, body: JSON.stringify(payload) })
+      .then(function(r){ return r.ok; }, function(){ return false; });
+  }
+  function journalPull(){
+    var url = (state.journalUrl||"").trim(), st = $("#jUrlStatus");
+    if(!url){ if(st) st.textContent = "no URL set"; return; }
+    if(st) st.textContent = "pulling…";
+    fetch(url, { redirect:"follow", cache:"no-store" })
+      .then(function(r){ if(!r.ok) throw new Error("HTTP "+r.status); return r.json(); })
+      .then(function(rows){
+        if(!Array.isArray(rows)) throw new Error("unexpected reply");
+        state.journal = rows.map(function(r){
+          return { id:String(r.id||jId()), symbol:String(r.symbol||"").toUpperCase(),
+            entryDate:r.entryDate||"", entryPrice:+r.entryPrice||0, stop:+r.stop||0, qty:+r.qty||0,
+            setup:r.setup||"", status:(r.status||"open"), exitDate:r.exitDate||"", exitPrice:+r.exitPrice||0, notes:r.notes||"" };
+        });
+        jSave(); renderJournal();
+        if(st) st.textContent = "pulled "+state.journal.length+" rows";
+      })
+      .catch(function(e){ if(st) st.textContent = "pull failed: "+(e.message||e)+" — check the URL and that access = Anyone"; });
+  }
+  function journalAdd(){
+    var sym = ($("#j_sym").value||"").trim().toUpperCase();
+    if(!sym){ $("#j_sym").focus(); return; }
+    var e = {
+      id: jId(), symbol: sym,
+      entryDate: $("#j_date").value || new Date().toISOString().slice(0,10),
+      entryPrice: parseFloat($("#j_entry").value) || 0,
+      stop: parseFloat($("#j_stop").value) || 0,
+      qty: parseFloat($("#j_qty").value) || 0,
+      setup: ($("#j_setup").value||"").trim(),
+      status: "open", exitDate: "", exitPrice: 0,
+      notes: ($("#j_notes").value||"").trim()
     };
-    state.signals = state.signals || [];
-    state.signals.unshift(entry);
-    save();
-    $("#sig_sym").value = ""; $("#sig_price").value = ""; $("#sig_reason").value = "";
-    renderSignals();
+    jList().unshift(e); jSave();
+    jPush({ action:"add", row: e });
+    ["j_sym","j_entry","j_stop","j_qty","j_setup","j_notes"].forEach(function(id){ if($("#"+id)) $("#"+id).value=""; });
+    renderJournal();
   }
-  function bulkImportSignals(){
-    var txt = ($("#sigBulk").value || "");
-    var lines = txt.split(/\r?\n/).map(function(l){ return l.trim(); }).filter(Boolean);
-    var added = 0, skipped = 0;
-    state.signals = state.signals || [];
-    lines.forEach(function(line, idx){
-      if(line.charAt(0)==="#") return;
-      var p = line.split("|").map(function(s){ return s.trim(); });
-      var sym = (p[0]||"").toUpperCase();
-      if(!sym){ skipped++; return; }
-      var date = (p[1] && /^\d{4}-\d{2}-\d{2}$/.test(p[1])) ? p[1] : new Date().toISOString().slice(0,10);
-      var price = p[2] ? parseFloat(p[2]) : null;
-      state.signals.unshift({
-        id: Date.now().toString(36)+Math.random().toString(36).slice(2,7)+idx,
-        symbol: sym, date: date,
-        source: p[4] || "@AmitabhJha3",
-        reason: p[3] || "",
-        priceAtCall: (isFinite(price) && price>0) ? price : null,
-        priceNow: null
-      });
-      added++;
-    });
-    save();
-    var status = $("#sigBulkStatus");
-    if(status) status.textContent = added ? ("imported "+added+(skipped?", skipped "+skipped+" (no symbol)":"")) : "nothing to import";
-    if(added) $("#sigBulk").value = "";
-    renderSignals();
+  function journalUpdate(id, patch){
+    var row = jList().filter(function(x){ return x.id===id; })[0];
+    if(!row) return;
+    for(var k in patch) row[k]=patch[k];
+    jSave(); jPush({ action:"update", id:id, row: patch }); renderJournal();
   }
-  function renderSignals(){
-    var body = $("#sigBody"), summary = $("#sigSummary");
-    if(!body) return;
-    var list = state.signals || [];
-    if(!list.length){
-      body.innerHTML = '<tr><td colspan="9" class="empty">No signals logged yet — log one above.</td></tr>';
-      if(summary) summary.innerHTML = "";
-      return;
+  function journalRemove(id){
+    state.journal = jList().filter(function(x){ return x.id!==id; });
+    jSave(); jPush({ action:"delete", id:id }); renderJournal();
+  }
+
+  // ---- HOLD / RIDE verdict from the latest scan row ----
+  // trend from EMA stack; trail stop from support / 20-EMA / ATR(≈ADR); ride ceiling from
+  // resistance, measured move, and this stock's historical +N% follow-through (probT10).
+  function holdRide(pos, d){
+    if(!d || !(d.price>0)) return { has:false };
+    var p=d.price, e20=d.ema20||0, e50=d.ema50||0, e200=d.ema200||0;
+    var trend = (e20>0 && e50>0 && p>e20 && e20>e50 && (e200<=0 || e50>e200)) ? {s:"intact", c:"pos"}
+              : (e50>0 && p>e50) ? {s:"pausing", c:"warn"}
+              : (e200>0 && p>e200) ? {s:"at risk", c:"neg"}
+              : {s:"broken", c:"neg"};
+    // trailing stop candidates below price
+    var atr = (d.adr>0 ? d.adr/100 : (d.atrRatio>0?0.03:0.03)) * p;
+    var cands = [];
+    if(d.support>0 && d.support < p*0.997) cands.push({v:d.support, why:"under support"});
+    if(e20>0 && e20*0.965 < p*0.997) cands.push({v:e20*0.965, why:"just under the 20-EMA"});
+    if(atr>0) cands.push({v:p - 2.5*atr, why:"2.5× ATR"});
+    cands = cands.filter(function(x){ return x.v>0 && x.v<p*0.995; });
+    var trail = cands.length ? cands.reduce(function(a,b){ return b.v>a.v?b:a; }) : {v:p*0.92, why:"−8%"};
+    // ride ceiling
+    var ceils = [];
+    if(d.resistance>0 && d.resistance>p*1.01) ceils.push({v:d.resistance, why:"next resistance"});
+    if(d.breakout>0 && d.support>0 && d.breakout>d.support){ var mm=d.breakout+(d.breakout-d.support); if(mm>p*1.01) ceils.push({v:mm, why:"measured move"}); }
+    if(d.probT10!=null && d.probT10>=0.35) ceils.push({v:p*1.10, why:"this stock hits +10% "+Math.round(d.probT10*100)+"% of the time from setups like this"});
+    if(d.blueSky && !ceils.length) ceils.push({v:p*(1+Math.max(0.12,(d.adr||3)/100*12)), why:"blue sky — no overhead supply; ~"+Math.round(Math.max(12,(d.adr||3)*12))+"% typical run"});
+    ceils.sort(function(a,b){ return a.v-b.v; });
+    var ceil = ceils[0] || null;
+    // R / P&L
+    var R = (pos.entryPrice>0 && pos.stop>0 && pos.entryPrice>pos.stop) ? (p-pos.entryPrice)/(pos.entryPrice-pos.stop) : null;
+    var pnl = pos.entryPrice>0 ? (p-pos.entryPrice)/pos.entryPrice : null;
+    // verdict
+    var v, vc, ride;
+    var rt = resultTiming(d.qDate), earnSoon = rt && rt.dueSoon;
+    if(trend.s==="broken" || trend.s==="at risk"){ v="EXIT"; vc="neg"; ride="Trend "+trend.s+" — take it off, or sell the bounce into the 20-EMA."; }
+    else if(ceil && p >= ceil.v*0.985){ v="TRIM / TIGHTEN"; vc="warn"; ride="At "+inr(ceil.v)+" ("+ceil.why+"). Book part, trail the rest to "+inr(trail.v)+"."; }
+    else if(earnSoon){ v="HOLD — cut size"; vc="warn"; ride="Result due ~"+rt.nextTxt+" — a binary event. Trim into it or tighten to "+inr(trail.v)+"."; }
+    else {
+      v="HOLD & RIDE"; vc="pos";
+      ride = "Trend "+trend.s+". Trail to "+inr(trail.v)+". "+
+        (ceil ? "Room to <b>"+inr(ceil.v)+"</b> (+"+Math.round((ceil.v/p-1)*100)+"%, "+ceil.why+")." : "No clear ceiling from the scan — ride the trail stop until the trend breaks.");
     }
-    var rows = parseBatch($("#batchInput").value);
-    var bySym = {}; rows.forEach(function(r){ bySym[r.symbol] = r; });
-    var rets = [];
-    body.innerHTML = list.map(function(s){
-      var d = bySym[s.symbol];
-      var now = s.priceNow!=null ? s.priceNow : (d && d.price>0 ? d.price : null);
-      var days = Math.max(0, Math.round((Date.now() - new Date(s.date+"T00:00:00").getTime())/86400000));
-      var ret = (s.priceAtCall>0 && now>0) ? (now-s.priceAtCall)/s.priceAtCall : null;
-      if(ret!=null) rets.push(ret);
-      var readCell = d
-        ? gradeBadge(setupGrade(d))+'<span style="font-size:11px">'+esc(rowSetup(d).label)+'</span> <span class="dim">RS '+(d.rs!=null?Math.round(d.rs):'–')+' · S2 '+(d.stage2||0)+'/7</span>'
-        : '<span class="dim">not in last scan</span>';
+    return { has:true, trend:trend, trail:trail, ceil:ceil, R:R, pnl:pnl, verdict:v, vcls:vc, ride:ride, price:p };
+  }
+
+  function renderJournal(){
+    var openBody=$("#jOpenBody"), closedBody=$("#jClosedBody"); if(!openBody) return;
+    if($("#jUrl") && !$("#jUrl").value) $("#jUrl").value = state.journalUrl||"";
+    if($("#jSyncMeta")) $("#jSyncMeta").textContent = state.journalUrl ? "Google Sheet connected" : "local only";
+    var rows = parseBatch($("#batchInput").value), bySym={};
+    rows.forEach(function(r){ bySym[r.symbol]=r; });
+    var list = jList();
+    var open = list.filter(function(x){ return x.status!=="closed"; });
+    var closed = list.filter(function(x){ return x.status==="closed"; });
+
+    openBody.innerHTML = open.length ? open.map(function(pos){
+      var d = bySym[pos.symbol], hr = holdRide(pos, d);
+      var now = hr.has ? hr.price : null;
+      var pnlTxt = (hr.pnl!=null) ? pctSpan(hr.pnl) : '<span class="dim">–</span>';
+      var rTxt = (hr.R!=null) ? '<b class="'+(hr.R>=1?"pos":hr.R>=0?"":"neg")+'">'+hr.R.toFixed(1)+'R</b>' : '<span class="dim">–</span>';
       return '<tr>'+
-        '<td class="sym">'+esc(s.symbol)+'</td>'+
-        '<td>'+esc(s.date)+'</td>'+
-        '<td class="num">'+days+'d</td>'+
-        '<td class="num">'+(s.priceAtCall?nfmt(s.priceAtCall):'<span class="dim">–</span>')+'</td>'+
-        '<td class="num"><input type="text" inputmode="decimal" class="sigNow" data-id="'+s.id+'" value="'+(now!=null?now:"")+'" style="width:72px;text-align:right"></td>'+
-        '<td class="num">'+(ret!=null?pctSpan(ret):'<span class="dim">–</span>')+'</td>'+
-        '<td>'+readCell+'</td>'+
-        '<td class="dim" style="max-width:240px;white-space:normal;font-size:11.5px">'+esc(s.source)+(s.reason?' — '+esc(s.reason):'')+'</td>'+
-        '<td><button class="openbtn" data-sym="'+esc(s.symbol)+'">Analyze →</button> <button class="x" data-id="'+s.id+'">remove</button></td>'+
+        '<td><button class="x" data-id="'+pos.id+'" data-act="close" title="mark closed at the current price">✓ close</button></td>'+
+        '<td class="sym">'+esc(pos.symbol)+'<div class="dim" style="font-size:10px">'+esc(pos.entryDate)+(pos.setup?' · '+esc(pos.setup):'')+'</div></td>'+
+        '<td class="num">'+(pos.entryPrice?nfmt(pos.entryPrice):'–')+'<div class="dim" style="font-size:10px">stop '+(pos.stop?nfmt(pos.stop):'–')+'</div></td>'+
+        '<td class="num">'+(now!=null?nfmt(now):'<span class="dim">not in scan</span>')+'</td>'+
+        '<td class="num">'+pnlTxt+'</td>'+
+        '<td class="num">'+rTxt+'</td>'+
+        '<td class="num">'+(hr.has?'<span class="'+hr.trend.c+'">'+hr.trend.s+'</span>':'<span class="dim">–</span>')+'</td>'+
+        '<td class="num">'+(hr.has?nfmt(hr.trail.v)+' <span class="dim" style="font-size:10px">'+esc(hr.trail.why)+'</span>':'<span class="dim">–</span>')+'</td>'+
+        '<td style="max-width:320px;white-space:normal;font-size:11.5px">'+(hr.has?'<b class="'+hr.vcls+'">'+hr.verdict+'</b> — '+hr.ride:'<span class="dim">run a scan that includes '+esc(pos.symbol)+' for a verdict</span>')+'</td>'+
+        '<td><button class="openbtn" data-sym="'+esc(pos.symbol)+'">Analyze →</button> <button class="x" data-id="'+pos.id+'" data-act="del">remove</button></td>'+
       '</tr>';
-    }).join("");
-    if(summary){
-      var wins = rets.filter(function(r){ return r>0; }).length;
-      var avg = rets.length ? rets.reduce(function(a,b){ return a+b; },0)/rets.length : null;
-      summary.innerHTML = '<span class="chip"><b>'+list.length+'</b> logged</span>'+
-        (rets.length
-          ? '<span class="chip"><b>'+wins+'/'+rets.length+'</b> positive so far</span><span class="chip">avg '+pctSpan(avg)+'</span>'
-          : '<span class="chip dim">add a price at call, or run a scan, to start tracking returns</span>');
+    }).join("") : '<tr><td colspan="10" class="empty">No open positions. Add one above.</td></tr>';
+
+    closedBody.innerHTML = closed.length ? closed.map(function(pos){
+      var ret = (pos.entryPrice>0 && pos.exitPrice>0) ? (pos.exitPrice-pos.entryPrice)/pos.entryPrice : null;
+      var R = (pos.entryPrice>0 && pos.stop>0 && pos.exitPrice>0 && pos.entryPrice>pos.stop) ? (pos.exitPrice-pos.entryPrice)/(pos.entryPrice-pos.stop) : null;
+      var held = (pos.entryDate && pos.exitDate) ? Math.max(0,Math.round((new Date(pos.exitDate)-new Date(pos.entryDate))/86400000))+'d' : '–';
+      return '<tr>'+
+        '<td class="sym">'+esc(pos.symbol)+'</td>'+
+        '<td class="num">'+held+'</td>'+
+        '<td class="num">'+(pos.entryPrice?nfmt(pos.entryPrice):'–')+' → '+(pos.exitPrice?nfmt(pos.exitPrice):'–')+'</td>'+
+        '<td class="num">'+(ret!=null?pctSpan(ret):'–')+'</td>'+
+        '<td class="num">'+(R!=null?'<b class="'+(R>=0?"pos":"neg")+'">'+R.toFixed(1)+'R</b>':'–')+'</td>'+
+        '<td class="dim" style="max-width:280px;white-space:normal;font-size:11px">'+esc(pos.setup||"")+(pos.notes?' — '+esc(pos.notes):'')+'</td>'+
+        '<td><button class="x" data-id="'+pos.id+'" data-act="del">remove</button></td>'+
+      '</tr>';
+    }).join("") : '<tr><td colspan="7" class="empty">Nothing closed yet.</td></tr>';
+
+    if($("#jSummary")){
+      var closedRets = closed.map(function(p){ return (p.entryPrice>0&&p.exitPrice>0)?(p.exitPrice-p.entryPrice)/p.entryPrice:null; }).filter(function(x){return x!=null;});
+      var wins = closedRets.filter(function(r){return r>0;}).length;
+      var openRisk = open.reduce(function(t,p){ return t + ((p.entryPrice>0&&p.stop>0&&p.qty>0)? Math.max(0,(p.entryPrice-p.stop)*p.qty) : 0); }, 0);
+      $("#jSummary").innerHTML =
+        '<span class="chip"><b>'+open.length+'</b> open</span>'+
+        '<span class="chip"><b>'+closed.length+'</b> closed'+(closedRets.length?' · '+wins+'/'+closedRets.length+' win':'')+'</span>'+
+        (openRisk>0?'<span class="chip">open risk if all stops hit: <b>'+inr(openRisk)+'</b></span>':'')+
+        (state.journalUrl?'<span class="chip pos">synced</span>':'<span class="chip dim">local only</span>');
     }
-    $$("#sigBody .sigNow").forEach(function(inp){
-      inp.addEventListener("change", function(){
-        var id = inp.getAttribute("data-id"), v = parseFloat(inp.value);
-        var sig = (state.signals||[]).filter(function(x){ return x.id===id; })[0];
-        if(sig){ sig.priceNow = isFinite(v) ? v : null; save(); renderSignals(); }
+
+    $$("#jOpenBody .x, #jClosedBody .x").forEach(function(btn){
+      btn.addEventListener("click", function(){
+        var id=btn.getAttribute("data-id"), act=btn.getAttribute("data-act");
+        if(act==="del"){ if(confirm("Remove this position from the journal?")) journalRemove(id); return; }
+        if(act==="close"){
+          var pos = jList().filter(function(x){return x.id===id;})[0]; if(!pos) return;
+          var d = bySym[pos.symbol];
+          var px = prompt("Exit price for "+pos.symbol+":", d && d.price>0 ? d.price : (pos.entryPrice||""));
+          if(px==null) return;
+          journalUpdate(id, { status:"closed", exitPrice: parseFloat(px)||0, exitDate: new Date().toISOString().slice(0,10) });
+        }
       });
     });
-    $$("#sigBody .x").forEach(function(btn){
+    $$("#jOpenBody .openbtn").forEach(function(btn){
       btn.addEventListener("click", function(){
-        var id = btn.getAttribute("data-id");
-        state.signals = (state.signals||[]).filter(function(x){ return x.id!==id; });
-        save(); renderSignals();
-      });
-    });
-    $$("#sigBody .openbtn").forEach(function(btn){
-      btn.addEventListener("click", function(){
-        var sym = btn.getAttribute("data-sym"), row = bySym[sym];
-        if(row){ loadIntoAnalyzer(row); }
-        else { $("#a_sym").value = sym; }
+        var sym=btn.getAttribute("data-sym"), row=bySym[sym];
+        if(row) loadIntoAnalyzer(row); else $("#a_sym").value=sym;
         switchTab("analyzer");
       });
     });
@@ -5266,7 +5363,7 @@ GRANULES | 2026-08-18 | | From his 18-Aug retrospective table, self-graded &quot
     if(!force && state.scanCache && state.scanCache.date===today && state.scanCache.csv && state.scanCache.uniKey===uniKey){
       $("#batchInput").value = state.scanCache.csv;
       state.batchInput = state.scanCache.csv; save();
-      applyLeadingSectors(); renderScreener(); renderGolden(); renderSilver(); renderDarvas(); renderHDF(); renderCoil(); renderCandles(); renderMultibagger(); renderSignals(); renderBook();
+      applyLeadingSectors(); renderScreener(); renderGolden(); renderSilver(); renderDarvas(); renderHDF(); renderCoil(); renderCandles(); renderMultibagger(); renderJournal(); renderBook();
       setStatus("cached", false);
       $("#scanErrline").textContent = "Showing today's cached scan of these "+uni.length+" names — press “Force refresh” to re-fetch.";
       return;
@@ -5478,7 +5575,7 @@ GRANULES | 2026-08-18 | | From his 18-Aug retrospective table, self-graded &quot
       renderCoil();
       renderCandles();
       renderMultibagger();
-      renderSignals();
+      renderJournal();
       renderBook();
       setStatus(aborted?"stopped":"done", false);
       scanMetaFromCache();
@@ -5504,6 +5601,7 @@ GRANULES | 2026-08-18 | | From his 18-Aug retrospective table, self-graded &quot
     if($("#fetchDeep")) $("#fetchDeep").checked = state.fetchDeep!==false;
     if($("#mbMinScore")){ $("#mbMinScore").value = state.mbMinScore==null?55:state.mbMinScore; if($("#mbMinScoreVal")) $("#mbMinScoreVal").textContent = $("#mbMinScore").value; }
     if($("#mbNoFlags")) $("#mbNoFlags").checked = !!state.mbNoFlags;
+    if($("#jUrl")) $("#jUrl").value = state.journalUrl || "";
     renderSectorChips();
     syncSourceUI();
 
@@ -5559,7 +5657,7 @@ GRANULES | 2026-08-18 | | From his 18-Aug retrospective table, self-graded &quot
   /* ---------- tabs / theme / controls ---------- */
   function switchTab(name){
     $$("#tabs button").forEach(function(b){ b.classList.toggle("active", b.getAttribute("data-tab")===name); });
-    ["screener","golden","silver","darvas","hdf","coil","candles","mb","signals","book","analyzer","playbook"].forEach(function(t){ $("#tab-"+t).hidden = (t!==name); });
+    ["screener","golden","silver","darvas","hdf","coil","candles","mb","journal","book","analyzer","playbook"].forEach(function(t){ $("#tab-"+t).hidden = (t!==name); });
     if(name==="candles") renderCandles();
     if(name==="mb") renderMultibagger();
     if(name==="book") renderBook();
@@ -5568,7 +5666,7 @@ GRANULES | 2026-08-18 | | From his 18-Aug retrospective table, self-graded &quot
     if(name==="darvas") renderDarvas();
     if(name==="hdf") renderHDF();
     if(name==="coil") renderCoil();
-    if(name==="signals"){ if($("#sig_date") && !$("#sig_date").value) $("#sig_date").value = new Date().toISOString().slice(0,10); renderSignals(); }
+    if(name==="journal"){ if($("#j_date") && !$("#j_date").value) $("#j_date").value = new Date().toISOString().slice(0,10); renderJournal(); }
   }
 
   function applyTheme(){
@@ -5619,10 +5717,10 @@ GRANULES | 2026-08-18 | | From his 18-Aug retrospective table, self-graded &quot
       var b = e.target.closest("button"); if(b) switchTab(b.getAttribute("data-tab"));
     });
     $("#themeBtn").addEventListener("click", toggleTheme);
-    $("#scoreBtn").addEventListener("click", function(){ state.batchInput = $("#batchInput").value; save(); renderScreener(); renderGolden(); renderSilver(); renderDarvas(); renderHDF(); renderCoil(); renderCandles(); renderMultibagger(); renderSignals(); renderBook(); });
+    $("#scoreBtn").addEventListener("click", function(){ state.batchInput = $("#batchInput").value; save(); renderScreener(); renderGolden(); renderSilver(); renderDarvas(); renderHDF(); renderCoil(); renderCandles(); renderMultibagger(); renderJournal(); renderBook(); });
     $("#batchInput").addEventListener("change", function(){ state.batchInput = $("#batchInput").value; save(); });
-    $("#sampleBtn").addEventListener("click", function(){ $("#batchInput").value = SAMPLE; state.batchInput = SAMPLE; save(); renderScreener(); renderGolden(); renderSilver(); renderDarvas(); renderHDF(); renderCoil(); renderCandles(); renderMultibagger(); renderSignals(); renderBook(); });
-    $("#clearBtn").addEventListener("click", function(){ $("#batchInput").value = ""; state.batchInput = ""; save(); renderScreener(); renderGolden(); renderSilver(); renderDarvas(); renderHDF(); renderCoil(); renderCandles(); renderMultibagger(); renderSignals(); renderBook(); });
+    $("#sampleBtn").addEventListener("click", function(){ $("#batchInput").value = SAMPLE; state.batchInput = SAMPLE; save(); renderScreener(); renderGolden(); renderSilver(); renderDarvas(); renderHDF(); renderCoil(); renderCandles(); renderMultibagger(); renderJournal(); renderBook(); });
+    $("#clearBtn").addEventListener("click", function(){ $("#batchInput").value = ""; state.batchInput = ""; save(); renderScreener(); renderGolden(); renderSilver(); renderDarvas(); renderHDF(); renderCoil(); renderCandles(); renderMultibagger(); renderJournal(); renderBook(); });
     $("#onlyActionable").addEventListener("change", renderScreener);
     $("#onlyBreakout").addEventListener("change", renderScreener);
     $("#onlyStage2").addEventListener("change", renderScreener);
@@ -5676,8 +5774,19 @@ GRANULES | 2026-08-18 | | From his 18-Aug retrospective table, self-graded &quot
       if(e.key==="ArrowLeft"){ e.preventDefault(); bookGo(-1); }
       else if(e.key==="ArrowRight"){ e.preventDefault(); bookGo(1); }
     });
-    if($("#sigAddBtn")) $("#sigAddBtn").addEventListener("click", addSignal);
-    if($("#sigBulkBtn")) $("#sigBulkBtn").addEventListener("click", bulkImportSignals);
+    if($("#jAddBtn")) $("#jAddBtn").addEventListener("click", journalAdd);
+    if($("#jPull")) $("#jPull").addEventListener("click", journalPull);
+    if($("#jSaveUrl")) $("#jSaveUrl").addEventListener("click", function(){
+      state.journalUrl = ($("#jUrl").value||"").trim(); save();
+      if($("#jSyncMeta")) $("#jSyncMeta").textContent = state.journalUrl ? "Google Sheet connected" : "local only";
+      if(state.journalUrl) journalPull(); else if($("#jUrlStatus")) $("#jUrlStatus").textContent = "cleared — local only";
+    });
+    if($("#jFillFromAnalyzer")) $("#jFillFromAnalyzer").addEventListener("click", function(){
+      var g=function(id){ return ($("#"+id)&&$("#"+id).value)||""; };
+      if($("#j_sym")) $("#j_sym").value = (g("a_sym")||"").toUpperCase();
+      if($("#j_entry")) $("#j_entry").value = g("a_bo") || g("a_price");
+      if($("#j_stop")) $("#j_stop").value = g("a_sup");
+    });
     $("#analyzeBtn").addEventListener("click", runAnalyzer);
     $("#addWatchBtn").addEventListener("click", addToWatchlist);
     $("#chartRefresh").addEventListener("click", refreshChartLive);
