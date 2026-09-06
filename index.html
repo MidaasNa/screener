@@ -212,6 +212,17 @@ details.sub textarea{width:100%;min-height:116px;margin-top:8px;background:var(-
 .book-prob .pbar i{display:block;height:100%;border-radius:999px;background:var(--muted)}
 .book-prob .pbar i.pos{background:var(--pos)} .book-prob .pbar i.warn{background:var(--warn)} .book-prob .pbar i.neg{background:var(--neg)}
 .book-prob b{font-family:"IBM Plex Mono",monospace;font-variant-numeric:tabular-nums;color:var(--ink)}
+tr.mb-detail td{background:var(--surface-2);padding:12px 14px}
+.mb-pills{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:5px 18px;max-width:780px}
+.mb-p{display:grid;grid-template-columns:130px 1fr 52px;gap:8px;align-items:center;font-size:11.5px}
+.mb-p .k{color:var(--ink-soft)}
+.mb-p .tr{height:7px;background:var(--surface);border:1px solid var(--line);border-radius:999px;overflow:hidden}
+.mb-p .tr i{display:block;height:100%;border-radius:999px;background:var(--muted)}
+.mb-p .tr i.pos{background:var(--pos)} .mb-p .tr i.warn{background:var(--warn)} .mb-p .tr i.neg{background:var(--neg)}
+.mb-p .v{font-family:"IBM Plex Mono",monospace;text-align:right}
+table.mb-scen{width:auto;min-width:0;margin:2px 0 4px;font-size:12px}
+table.mb-scen th,table.mb-scen td{border-bottom:1px solid var(--line);padding:4px 12px 4px 0;text-align:left}
+table.mb-scen td.num{font-family:"IBM Plex Mono",monospace;text-align:right;padding-right:16px}
 .cx-legend{display:flex;flex-wrap:wrap;gap:6px 13px;font-size:10.5px;color:var(--muted);margin-bottom:6px;align-items:center}
 .cx-legend span{display:inline-flex;align-items:center;gap:4px}
 .cx-legend i{display:inline-block;width:14px;height:0;border-top:2px solid currentColor}
@@ -297,7 +308,7 @@ table.oc-guide td:first-child{white-space:nowrap;width:1%}
     <span class="mark" aria-hidden="true">₹</span>
     <div>
       <h1>The 10% Ledger</h1>
-      <p>Momentum + pullback screener · NSE swing setups <span style="opacity:.5;font-size:11px">· build 2026-09-08l</span></p>
+      <p>Momentum + pullback screener · NSE swing setups <span style="opacity:.5;font-size:11px">· build 2026-09-08m</span></p>
     </div>
   </div>
   <div class="controls">
@@ -722,11 +733,22 @@ table.oc-guide td:first-child{white-space:nowrap;width:1%}
         <h2>Multibagger Radar</h2>
         <span class="scan-meta" id="mbMeta"></span>
       </div>
-      <p class="hint">A <b>Pre-Multibagger Score</b> built from ~10 years of annual financials (pulled from Yahoo in the same request as quarterly results — turn on <b>Deep fundamentals</b> on the Screener and re-scan). Weighting: <b>Business quality 25%</b> (margin level + stability) · <b>Earnings growth 20%</b> (profit CAGR + acceleration) · <b>ROCE/ROE improvement 15%</b> · <b>Cash-flow quality 15%</b> (OCF÷profit conversion, free cash flow) · <b>Balance sheet 10%</b> (debt/equity, current ratio, interest cover) · <b>Management/promoter 10%</b> · <b>Valuation 5%</b> (trailing P/E). Pillars with no data are dropped and the rest re-weighted; the <b>coverage %</b> tells you how complete the picture is.</p>
-      <p class="hint" style="color:var(--warn)"><b>Read this first.</b> The score is <b>quantitative pillars only</b>. Six of the ten red-flags you asked for — <b>promoter pledging, auditor resignation / qualified opinion, related-party transactions, preferential allotments, unexplained promoter selling,</b> and most <b>accounting irregularities</b> — are <b>not in any data feed a browser can reach</b>. They stay a manual check: every row has a <b>Verify ↗</b> link to screener.in / Trendlyne / BSE announcements. The "Management/promoter" pillar here is only a <i>share-dilution proxy</i>. Treat a high score as "worth a deep read", never "safe to buy".</p>
+      <p class="hint">Built from the "Pre-Multibagger Stock Screener" spec, over ~10 years of annual financials (Yahoo, same request as quarterly results — turn on <b>Deep fundamentals</b> on the Screener and re-scan). <b>Fundamental Score /100</b> = Earnings growth 20 · Business quality 20 (ROCE + margins + capital efficiency) · Cash-flow quality 15 · Balance sheet 10 (sector-adjusted for banks) · Competitive advantage 15 · Management 10 · Valuation 10. Plus an <b>Inflection Score /20</b> — ten computable catalysts (revenue &amp; profit acceleration, margin expansion, ROCE inflection, capex ramp, rising asset turns, cash-flow acceleration, FCF turning positive, debt reduction, structural-growth sector). <b>Total /120</b> → A / B / C / D / E. Each row expands (<b>▸</b>) to the 7-pillar breakdown, the reverse-DCF implied growth, and the 3× / 5× / 10× required-CAGR math.</p>
+      <p class="hint" style="color:var(--warn)"><b>What this CANNOT see</b> (no browser-reachable feed): promoter pledging &amp; holding trend, promoter buy/sell, auditor resignation or a qualified opinion, related-party transactions, preferential allotments, order book, capacity / utilisation, customer concentration, market share, forward analyst estimates. The <b>Competitive advantage</b> and <b>Management</b> pillars are <b>proxies</b> (durable high ROCE + pricing power; dilution + reinvestment returns). Every row has <b>Verify ↗</b> links — do those checks yourself. A high score means "worth a proper deep read", not "safe to buy".</p>
       <div class="scan-head" style="margin-top:2px;flex-wrap:wrap;gap:10px">
-        <label class="chk" style="margin-left:0">Min score
-          <input id="mbMinScore" type="range" min="0" max="90" step="5" style="margin-left:6px;vertical-align:middle">
+        <label class="chk" style="margin-left:0">List
+          <select id="mbList" style="margin-left:6px">
+            <option value="overall">Top overall (Total score)</option>
+            <option value="ugrowth">Undervalued growth</option>
+            <option value="compounder">Emerging compounders</option>
+            <option value="inflection">Inflection candidates</option>
+            <option value="smallcap">Small-cap opportunities</option>
+            <option value="hidden">Hidden gems</option>
+            <option value="turnaround">Turnarounds</option>
+          </select>
+        </label>
+        <label class="chk" style="margin-left:0">Min Total
+          <input id="mbMinScore" type="range" min="0" max="110" step="5" style="margin-left:6px;vertical-align:middle">
           <b id="mbMinScoreVal" style="font-family:'IBM Plex Mono';margin-left:4px">55</b>
         </label>
         <label class="chk" style="margin-left:0"><input type="checkbox" id="mbNoFlags"> No auto red-flags</label>
@@ -735,24 +757,26 @@ table.oc-guide td:first-child{white-space:nowrap;width:1%}
       <div class="table-wrap">
         <table id="mbTable">
           <thead><tr>
+            <th></th>
             <th>Symbol</th>
-            <th title="Weighted Pre-Multibagger Score, 0–100, re-normalised over the pillars that have data">Pre-MB</th>
-            <th title="How many of the 7 pillars had usable Yahoo data">Cov.</th>
-            <th title="Business quality (25%) — gross / operating margin level and how steady it is">Biz</th>
-            <th title="Earnings growth (20%) — annual net-profit CAGR, consistency, acceleration">Growth</th>
-            <th title="ROCE / ROE (15%) — return on capital level and whether it's improving">RoC</th>
-            <th title="Cash-flow quality (15%) — operating cash flow vs reported profit, free cash flow">CF</th>
-            <th title="Balance sheet (10%) — debt/equity, current ratio, interest coverage">BS</th>
-            <th title="Valuation (5%) — trailing P/E from EPS">P/E</th>
-            <th title="Auto red-flags a data feed can see: receivables blow-out, dilution, excess debt, margin spike, cash-flow divergence, chronic negative FCF">Flags</th>
-            <th title="Latest reported quarter's YoY profit &amp; sales">Results</th>
-            <th title="Check the things no feed can: pledging, auditor, related-party, preferential allotments, promoter selling">Verify</th>
+            <th title="Fundamental /100 + Inflection /20">Total /120</th>
+            <th title="A ≥100 · B ≥85 · C ≥70 · D ≥55 · E below">Class</th>
+            <th title="Compounder / Growth-inflection / Turnaround / Small-cap emerging / Cyclical / Hidden compounder">Archetype</th>
+            <th title="Fundamental Score, re-normalised over the pillars that had data">Fund</th>
+            <th title="Inflection Score — computable forward catalysts">Inflect</th>
+            <th title="Annual revenue CAGR / net-profit CAGR over the years available">CAGR rev/PAT</th>
+            <th title="Return on capital employed — EBIT ÷ (equity + debt). ↑ = higher than ~3 yrs ago">ROCE</th>
+            <th title="5-yr cumulative operating cash flow ÷ cumulative net profit — want ≥ 1.0">CFO/PAT</th>
+            <th title="Debt ÷ equity (latest)">D/E</th>
+            <th title="Trailing P/E">P/E</th>
+            <th title="Auto red-flags a feed can see (hover a code)">Flags</th>
+            <th title="Check what no feed can: pledging, auditor, related-party, allotments, promoter selling">Verify</th>
             <th></th>
           </tr></thead>
-          <tbody id="mbBody"><tr><td colspan="13" class="empty">Turn on <b>Deep fundamentals</b> on the Screener tab, run a scan, then come back here.</td></tr></tbody>
+          <tbody id="mbBody"><tr><td colspan="15" class="empty">Turn on <b>Deep fundamentals</b> on the Screener tab, run a scan, then come back here.</td></tr></tbody>
         </table>
       </div>
-      <p class="hint" style="margin-top:12px"><b>Auto red-flag codes:</b> <code>recv</code> receivables growing much faster than sales (revenue may not be real cash) · <code>dilut</code> share count up &gt; 8% in a year or &gt; 20% over three · <code>debt</code> debt/equity &gt; 1.5 and rising, or interest not covered 1.5× by EBIT · <code>margin</code> net margin jumped &gt; 8 pts in a year without matching sales growth (possible one-off) · <code>cfdiv</code> profits reported but operating cash flow far below them · <code>fcf</code> free cash flow negative in 3 of the last 4 years. Small caps often have thin Yahoo data — a blank pillar or low coverage means <i>go read the annual report</i>, not "it passed".</p>
+      <p class="hint" style="margin-top:12px"><b>Auto red-flag codes:</b> <code>recv</code> receivables outrunning sales · <code>invty</code> inventory outrunning sales · <code>dilut</code> share count up &gt; 8% in a year or &gt; 20% over three · <code>debt</code> D/E &gt; 1.5 and rising, or interest &lt; 1.5× covered · <code>margin</code> net margin +8 pts without matching sales growth · <code>cfdiv</code> profit reported but operating cash flow far below · <code>fcf</code> free cash flow negative 3 of the last 4 years (suppressed if it's a clear capex-for-growth phase). A blank pillar or low coverage means <i>go read the annual report</i>. The 3×/5×/10× math answers the spec's key question — <i>what profit CAGR would the price require, and is that plausible next to what the company has actually delivered?</i></p>
     </div>
   </section>
 
@@ -1217,20 +1241,23 @@ GRANULES | 2026-08-18 | | From his 18-Aug retrospective table, self-graded &quot
       <p>All four are decision <i>support</i>, not signals. The score, the 2:1 gate and the regime still decide the trade.</p>
 
       <h3>Multibagger Radar — its own tab</h3>
-      <p>Everything else in this tool is about the next few weeks. This tab is the opposite end: a <b>Pre-Multibagger Score</b> for finding companies that could compound for years. Turn on <b>Deep fundamentals</b> on the Screener (it rides along in the same request as quarterly results — no extra calls, just bigger responses) and re-scan; the tool pulls ~10 years of annual financials from Yahoo and scores seven pillars:</p>
+      <p>Everything else in this tool is about the next few weeks. This tab is the opposite end — built from the "Pre-Multibagger Stock Screener" spec, over ~10 years of annual financials. Turn on <b>Deep fundamentals</b> on the Screener (it rides along in the quarterly-results request — no extra calls, just bigger responses) and re-scan.</p>
+      <p><b>Fundamental Score /100</b> — seven pillars, re-normalised over the ones Yahoo actually had data for:</p>
       <table>
-        <tr><th>Pillar</th><th>Weight</th><th>What it measures (from Yahoo annuals)</th></tr>
-        <tr><td>Business quality</td><td>25%</td><td>Gross / operating margin <i>level</i> and how <i>steady</i> it's been (low year-to-year variation scores higher)</td></tr>
-        <tr><td>Earnings growth</td><td>20%</td><td>Net-profit CAGR over the available years, plus a bonus for every year positive and for the latest year accelerating</td></tr>
-        <tr><td>ROCE / ROE improvement</td><td>15%</td><td>EBIT ÷ (equity + debt) — the level now, and whether it's higher than ~3 years ago</td></tr>
-        <tr><td>Cash-flow quality</td><td>15%</td><td>Operating cash flow ÷ reported profit over 5 years (want ≥ 1.0 — profits that turn into cash), plus free-cash-flow positivity</td></tr>
-        <tr><td>Balance sheet</td><td>10%</td><td>Debt / equity, current ratio, EBIT ÷ interest expense</td></tr>
-        <tr><td>Management / promoter</td><td>10%</td><td><b>Only a dilution proxy</b> — share count flat or shrinking scores well, heavy issuance scores badly. Yahoo has no promoter-holding or pledge data for NSE.</td></tr>
-        <tr><td>Valuation</td><td>5%</td><td>Trailing P/E from EPS. Small weight on purpose — multibaggers rarely look cheap early.</td></tr>
+        <tr><th>Pillar</th><th>Pts</th><th>Computed from Yahoo annuals</th></tr>
+        <tr><td>Earnings growth</td><td>20</td><td>Revenue &amp; net-profit CAGR, <i>acceleration</i> (latest-3y CAGR vs full-period, latest FY vs CAGR), profit compounding faster than sales, every year positive</td></tr>
+        <tr><td>Business quality</td><td>20</td><td>ROCE level + trend vs ~3y ago, gross/operating margin level + stability, asset-turnover improvement</td></tr>
+        <tr><td>Cash-flow quality</td><td>15</td><td>5-yr cumulative OCF ÷ profit (want ≥ 1.0), FCF positivity, OCF growth, receivables growing slower than sales</td></tr>
+        <tr><td>Balance sheet</td><td>10</td><td>D/E, net cash, interest coverage, debt falling while EBITDA rises. <b>Banks / NBFCs</b> use ROA + ROE instead.</td></tr>
+        <tr><td>Competitive advantage</td><td>15</td><td><b>Proxy</b> — a real moat shows up as <i>durable</i> excess returns: % of years with ROCE ≥ 18%, high &amp; steady gross margin (pricing power), still-growing revenue with margins intact, asset-light operations</td></tr>
+        <tr><td>Management quality</td><td>10</td><td><b>Proxy</b> — share-count trend (dilution) and the return earned on retained capital (ΔPAT ÷ Δequity). <b>No promoter holding / pledge / buy-sell data exists.</b></td></tr>
+        <tr><td>Valuation</td><td>10</td><td>P/E, EV/EBITDA, PEG (on delivered growth), FCF yield — plus a reverse-DCF (below)</td></tr>
       </table>
-      <p>Pillars with no data are dropped and the remaining weights re-normalised; the <b>Cov.</b> column is the % of pillars that had data. A low coverage number means Yahoo's financials for that ticker are thin — <i>go read the annual report</i>, don't trust the score.</p>
-      <p><b>The auto red-flags</b> (the <b>Flags</b> column) are the ones a data feed can actually see: <code>recv</code> receivables growing far faster than sales · <code>dilut</code> share count up &gt; 8% in a year or &gt; 20% over three · <code>debt</code> D/E &gt; 1.5 and rising, or interest not covered · <code>margin</code> net margin jumped &gt; 8 pts without matching sales growth · <code>cfdiv</code> profit reported but operating cash flow far below it · <code>fcf</code> free cash flow negative 3 of the last 4 years. Filter to <b>No auto red-flags</b> and a minimum score with the slider.</p>
-      <p><b>What this tab cannot do.</b> Six of the ten checks you'd want — <b>promoter pledging, auditor resignation or a qualified opinion, related-party transactions, preferential allotments to promoters, unexplained promoter selling,</b> and accounting games beyond the cash-flow-divergence proxy — are <b>not in any feed a browser can reach</b>. There is no honest way to score them here, so the tool doesn't pretend to. Every row has a <b>Verify ↗</b> link group — <b>SC</b> (screener.in: cash-flow statement, shareholding &amp; pledge %, notes to accounts), <b>TL</b> (Trendlyne: promoter pledge trend, DII/FII moves), <b>BSE</b> (announcements: auditor changes, board meetings, allotments). A high Pre-MB score means "this one is worth a proper deep read", never "safe to buy".</p>
+      <p><b>Inflection Score /20</b> — ten computable catalysts, 2 points each: revenue acceleration · profit acceleration · operating-margin expansion · ROCE inflecting up · stepped-up capex (investing to grow) · rising asset turns (utilisation proxy) · operating-cash-flow acceleration · free cash flow turning positive · debt reduction · structural-growth sector. (The spec's "order wins / new products / new geography" have no feed — those three slots are filled by profit-acceleration, ROCE-inflection and CFO-acceleration.)</p>
+      <p><b>Total /120</b> = Fundamental + Inflection → <b>A ≥ 100 · B ≥ 85 · C ≥ 70 · D ≥ 55 · E</b> below. Each stock is also tagged an <b>archetype</b> (Compounder / Growth-inflection / Turnaround / Small-cap emerging / Cyclical recovery / Hidden compounder), and the <b>List</b> dropdown gives the spec's ranked views (Top overall, Undervalued growth, Emerging compounders, Inflection candidates, Small-cap, Hidden gems, Turnarounds).</p>
+      <p>Click a row's <b>▸</b> to expand: the seven pillar bars, and — the spec's most important output — <b>what the price would require</b>. For 3× / 5× / 10× it back-solves the profit CAGR needed (assuming a sensible exit P/E) and marks it <i>plausible</i> / <i>a stretch</i> / <i>unlikely</i> next to the CAGR the company has actually delivered. The <b>reverse-DCF</b> line says what EPS growth today's P/E already assumes — if that's <i>below</i> what the company has delivered, the market may still be valuing the old business (the spec's target).</p>
+      <p><b>Auto red-flags</b> (the <b>Flags</b> column): <code>recv</code> / <code>invty</code> receivables or inventory outrunning sales · <code>dilut</code> share issuance · <code>debt</code> D/E &gt; 1.5 and rising, or interest &lt; 1.5× covered · <code>margin</code> margin +8 pts without sales growth · <code>cfdiv</code> profit without cash flow · <code>fcf</code> chronic negative free cash flow (suppressed during a clear capex-for-growth phase, per the spec).</p>
+      <p><b>What this tab cannot do — read this.</b> Promoter pledging, promoter holding trend, promoter buy/sell, auditor resignation or a qualified opinion, related-party transactions, preferential allotments, order book, capacity &amp; utilisation, customer concentration, market share / TAM / industry CAGR, and forward analyst estimates are <b>not in any feed a browser can reach</b>. There is no honest way to score them here, so the tool doesn't. Every row has a <b>Verify ↗</b> group — <b>SC</b> screener.in (cash-flow statement, shareholding &amp; pledge %, notes), <b>TL</b> Trendlyne (pledge trend, DII/FII), <b>BSE</b> (auditor changes, board meetings, allotments). No point-in-time historical data means <b>no backtest</b> either. A high score means "this one earns a proper deep read" — never "buy".</p>
 
       <h3>Market regime</h3>
       <table>
@@ -1337,13 +1364,13 @@ GRANULES | 2026-08-18 | | From his 18-Aug retrospective table, self-graded &quot
     universeSize: "200", customUniverse: "", leadingSectors: [],
     dropForming: true, fetchEvents: false, fetchResults: true, fetchDeep: true, scanCache: null, hostOverride: false,
     oc: {}, signals: [], bookIdx: 0, bookScope: "all",
-    mbMinScore: 55, mbNoFlags: false
+    mbMinScore: 55, mbNoFlags: false, mbOpen: {}
   };
 
   var SAMPLE = [
     "# cols: SYM,price,EMA20,EMA50,EMA200,RSI,volR,breakout,support,sector,macd,hhhl,resist,probT1,probT10,basePct,baseBars,stage2,RS,setup,trigger,trigWR,athPct,blueSky,revYoY,profYoY,epsYoY,qDate,profYoYPrev,ttmYoY,coil,mvt,gg,sg,dx,hdf,cdl,mb",
-    "HINDZINC, 627, 598, 560, 505, 69, 2.3, 620, 606, L, 1, 1, 0, 0.58, 0.33, 0.06, 22, 6, 88, HDF, inside-bar@0, 0.61, 0.01, 1, 0.19, 0.34, 0.31, 2026-06-30, 0.26, 0.3, , , , , 624|590|12|0.055|0.005|2.4|1|1|1, 0.42|0.16|0.028|1.8|12|624|560, hammer~0~3.4|inside~1~0.62, 78|82|74|70|85|72|60|55|24.5|86|0|",
-    "BEL, 415, 402, 395, 360, 66, 1.9, 409, 391, L, 1, 1, 0, 0.55, 0.31, 0.07, 18, 6, 84, BOB, hammer@1, 0.62, 0.03, 1, 0.21, 0.28, 0.27, 2026-06-30, 0.33, 0.24, 14|coil|0.022|0.71|0.006|411||||0.09, , 12|0.06|1|3.6|0.04|420, , , , ldbng~2~2.1|kicker~2~0.004, 72|75|80|68|60|65|55|45|38|71|1|cfdiv",
+    "HINDZINC, 627, 598, 560, 505, 69, 2.3, 620, 606, L, 1, 1, 0, 0.58, 0.33, 0.06, 22, 6, 88, HDF, inside-bar@0, 0.61, 0.01, 1, 0.19, 0.34, 0.31, 2026-06-30, 0.26, 0.3, , , , , 624|590|12|0.055|0.005|2.4|1|1|1, 0.42|0.16|0.028|1.8|12|624|560, hammer~0~3.4|inside~1~0.62, 72|10|82|C|compounder|15|16|11|7|10|8|5|24.5|13|100|0||0.14|0.18|0.19|1|1.1|0.35|0.09|280000|0|28~0.19~0.16~0.19~0.18|rev-accel+sector-tailwind",
+    "BEL, 415, 402, 395, 360, 66, 1.9, 409, 391, L, 1, 1, 0, 0.55, 0.31, 0.07, 18, 6, 84, BOB, hammer@1, 0.62, 0.03, 1, 0.21, 0.28, 0.27, 2026-06-30, 0.33, 0.24, 14|coil|0.022|0.71|0.006|411||||0.09, , 12|0.06|1|3.6|0.04|420, , , , ldbng~2~2.1|kicker~2~0.004, 80|16|96|B|inflection|16|16|10|8|12|8|6|38|22|100|1|cfdiv|0.16|0.22|0.24|1|0.9|0.05|0.11|95000|0|28~0.17~0.15~0.18~0.22|rev-accel+margin-up+roce-inflect+sector-tailwind",
     "JINDALSTEL, 1175, 1120, 1090, 1010, 60, 1.4, 1160, 1120, L, 1, 1, 1240, 0.5, 0.27, 0.11, 26, 5, 76, LBB, , , 0.11, 0, 0.08, 0.12, 0.1, 2026-03-31, 0.21, 0.1, , 4.2|50|0.014|1|1|0.03|12|78",
     "MEESHO, 205, 198, 190, 0, 63, 1.4, 200, 191, I, 1, 1, 0, 0.5, 0.26, 0.08, 14, 5, 72, S2P, pin-bar@0, 0.58, 0.05, 0, 0.33, 99, 99, 2026-06-30, , , 9|pop|0.021|0.66|0.032|201|1|0.043|1.9|0.08",
     "SAIL, 195, 190, 185, 132, 55, 0.9, 201, 188, L, 1, 0, 201, 0.44, 0.22, 0.06, 20, 5, 66, COIL, , , 0.14, 0, -0.04, -0.22, -0.21, 2026-06-30, -0.1, -0.15, , , , 0.18|11|1|3.8|178|2|0.015",
@@ -1528,11 +1555,20 @@ GRANULES | 2026-08-18 | | From his 18-Aug retrospective table, self-graded &quot
       var cd = (p[36]||"").split("|").filter(Boolean).map(function(s){ var q=s.split("~"); return {code:(q[0]||"").trim(), ago:+q[1]||0, stat:+q[2]||0}; }).filter(function(x){ return DARVAX_CANDLE[x.code]; });
       d.cdl = cd.length ? cd : null;
       var mbp = (p[37]||"").split("|");
-      d.mb = (mbp[0]!=null && mbp[0]!=="" && isFinite(+mbp[0])) ? {
-        pre:+mbp[0]||0, biz:+mbp[1], egr:+mbp[2], roce:+mbp[3], cfq:+mbp[4], bs:+mbp[5], mgmt:+mbp[6], val:+mbp[7],
-        pe:(mbp[8]===""||mbp[8]==null?null:+mbp[8]), cov:+mbp[9]||0, red:+mbp[10]||0,
-        flags:(mbp[11]||"").split("+").filter(Boolean)
-      } : null;
+      var mbNum = function(i){ return (mbp[i]===""||mbp[i]==null) ? null : +mbp[i]; };
+      d.mb = (mbp[2]!=null && mbp[2]!=="" && isFinite(+mbp[2])) ? (function(){
+        var sc = (mbp[26]||"").split("~");
+        return {
+          fund:+mbp[0]||0, infl:+mbp[1]||0, total:+mbp[2]||0, cls:(mbp[3]||""), arch:(mbp[4]||""),
+          egr:mbNum(5), biz:mbNum(6), cfq:mbNum(7), bs:mbNum(8), moat:mbNum(9), mgmt:mbNum(10), val:mbNum(11),
+          pe:mbNum(12), evEbitda:mbNum(13), cov:+mbp[14]||0, red:+mbp[15]||0,
+          flags:(mbp[16]||"").split("+").filter(Boolean),
+          revCAGR:mbNum(17), patCAGR:mbNum(18), roce:mbNum(19), roceUp:mbNum(20), cfoPat:mbNum(21), de:mbNum(22),
+          impG:mbNum(23), mcapCr:mbNum(24), isFin:+mbp[25]||0,
+          scen: sc.length>=4 ? {exitPE:+sc[0], r3:+sc[1], r5:+sc[2], r10:+sc[3], histG:(sc[4]===""||sc[4]==null?null:+sc[4])} : null,
+          iBits:(mbp[27]||"").split("+").filter(Boolean)
+        };
+      })() : null;
       var st = deriveStructure(d.price, d.breakout, d.basePct, d.baseBars, d.volRatio);
       d.structurePts=st.pts; d.structureLbl=st.label;
       rows.push(d);
@@ -2230,69 +2266,153 @@ GRANULES | 2026-08-18 | | From his 18-Aug retrospective table, self-graded &quot
 
   /* ---------- Multibagger Radar ---------- */
   var MB_FLAG = {
-    recv:  "receivables blow-out", dilut: "share dilution", debt: "excess / rising debt",
-    margin:"unexplained margin spike", cfdiv: "profit without cash flow", fcf: "chronic negative FCF"
+    recv:"receivables outrunning sales", invty:"inventory outrunning sales", dilut:"share dilution",
+    debt:"excess / rising debt", margin:"unexplained margin spike", cfdiv:"profit without cash flow", fcf:"chronic negative FCF"
   };
-  function mbCell(v){
-    if(v==null || v<0) return '<span class="dim" title="no Yahoo data for this pillar">–</span>';
-    var c = v>=70 ? "pos" : v>=45 ? "warn" : "neg";
-    return '<span class="'+c+'">'+Math.round(v)+'</span>';
+  var MB_IBIT = {
+    "rev-accel":"revenue growth accelerating", "pat-accel":"profit growth accelerating", "margin-up":"operating margin expanding",
+    "roce-inflect":"ROCE inflecting up", "capex-ramp":"stepped-up capex (investing to grow)", "utilisation-up":"asset turns rising (utilisation ↑)",
+    "cfo-accel":"operating cash flow accelerating", "fcf-turned":"free cash flow turned positive", "debt-down":"debt being paid down",
+    "sector-tailwind":"structural-growth sector"
+  };
+  var MB_ARCH = {
+    compounder:"Compounder", inflection:"Growth inflection", turnaround:"Turnaround",
+    smallcap:"Small-cap emerging", cyclical:"Cyclical recovery", hidden:"Hidden compounder"
+  };
+  var MB_CLS = { A:{t:"Strong candidate",e:"🔥",c:"pos"}, B:{t:"Potential",e:"🟢",c:"pos"}, C:{t:"Needs confirmation",e:"🟡",c:"warn"}, D:{t:"Speculative",e:"🟠",c:"warn"}, E:{t:"Reject",e:"🔴",c:"neg"} };
+  function mbBar(v, max, lbl){
+    if(v==null || v<0) return '<div class="mb-p"><span class="k">'+lbl+'</span><span class="dim">no data</span></div>';
+    var pct = Math.max(3, Math.min(100, v/max*100));
+    var c = (v/max)>=0.65 ? "pos" : (v/max)>=0.4 ? "warn" : "neg";
+    return '<div class="mb-p"><span class="k">'+lbl+'</span><span class="tr"><i class="'+c+'" style="width:'+pct+'%"></i></span><span class="v">'+Math.round(v)+'<span class="dim">/'+max+'</span></span></div>';
   }
+  function mbPctTxt(x){ return x==null ? "–" : (x>=0?"+":"")+Math.round(x*100)+"%"; }
   function mbVerifyLinks(sym){
     var s = encodeURIComponent(sym);
-    return '<a href="https://www.screener.in/company/'+s+'/consolidated/" target="_blank" rel="noopener" title="screener.in — pledging, cash flow, shareholding, notes">SC</a> '+
-           '<a href="https://trendlyne.com/equity/share-price/'+s+'/" target="_blank" rel="noopener" title="Trendlyne — promoter pledge, DII/FII, forecasts">TL</a> '+
-           '<a href="https://www.bseindia.com/corporates/ann.html" target="_blank" rel="noopener" title="BSE announcements — auditor changes, allotments, related-party">BSE</a>';
+    return '<a href="https://www.screener.in/company/'+s+'/consolidated/" target="_blank" rel="noopener" title="screener.in — cash flow, shareholding &amp; pledge %, notes to accounts">SC</a> '+
+           '<a href="https://trendlyne.com/equity/share-price/'+s+'/" target="_blank" rel="noopener" title="Trendlyne — promoter pledge trend, DII/FII, forecasts">TL</a> '+
+           '<a href="https://www.bseindia.com/corporates/ann.html" target="_blank" rel="noopener" title="BSE announcements — auditor changes, board meetings, preferential allotments">BSE</a>';
+  }
+  function mbListPredicate(list){
+    return function(d){
+      var m=d.mb;
+      switch(list){
+        case "ugrowth":    return m.total!=null && (m.patCAGR!=null?m.patCAGR:m.revCAGR||0) >= 0.15 && m.pe!=null && m.pe<=30 && m.val!=null && m.val>=5;
+        case "compounder": return m.roce!=null && m.roce>=0.18 && m.cfoPat!=null && m.cfoPat>=0.9 && (m.biz||0)>=13;
+        case "inflection": return m.infl>=10;
+        case "smallcap":   return m.mcapCr!=null && m.mcapCr<=8000 && (m.total||0)>=70;
+        case "hidden":     return m.arch==="hidden" || (m.impG!=null && m.patCAGR!=null && m.impG < m.patCAGR-0.03 && (m.fund||0)>=60);
+        case "turnaround": return m.arch==="turnaround";
+        default:           return true;
+      }
+    };
+  }
+  function mbDetailRow(d){
+    var m=d.mb, s=m.scen;
+    var pill =
+      mbBar(m.egr,20,"Earnings growth") + mbBar(m.biz,20,"Business quality") + mbBar(m.cfq,15,"Cash-flow quality") +
+      mbBar(m.bs,10,(m.isFin?"Balance sheet (bank-adj)":"Balance sheet")) + mbBar(m.moat,15,"Competitive advantage *") +
+      mbBar(m.mgmt,10,"Management *") + mbBar(m.val,10,"Valuation");
+    var scenHtml = "";
+    if(s){
+      var hist = s.histG, row = function(lbl, g, yrs){
+        var plaus = (hist!=null && g<=hist*1.15 && g<=0.35) ? '<span class="pos">plausible</span>'
+                  : (hist!=null && g<=hist*1.6) ? '<span class="warn">a stretch</span>' : '<span class="neg">unlikely</span>';
+        return '<tr><td>'+lbl+'</td><td class="num">'+Math.round(g*100)+'% p.a.</td><td class="num dim">'+yrs+'y</td><td>'+plaus+'</td></tr>';
+      };
+      scenHtml =
+        '<p class="hint" style="margin:8px 0 3px"><b>What the price would require</b> (exit P/E assumed '+s.exitPE+'; company has delivered '+mbPctTxt(hist)+' profit CAGR):</p>'+
+        '<table class="mb-scen"><tr><th>Target</th><th>Required profit CAGR</th><th>Horizon</th><th></th></tr>'+
+        row("3× ("+ (m.mcapCr!=null?'₹'+nfmt(m.mcapCr*3,0)+' cr':'') +")", s.r3, 5)+
+        row("5×", s.r5, 7)+
+        row("10×", s.r10, 10)+'</table>';
+    }
+    var missing = [];
+    if(m.impG!=null && m.patCAGR!=null){
+      if(m.impG < m.patCAGR - 0.03) missing.push("Reverse-DCF: today's P/E only prices in ~"+Math.round(m.impG*100)+"% EPS growth, below the "+mbPctTxt(m.patCAGR)+" it has delivered — the market may still be valuing the old business.");
+      else if(m.impG > m.patCAGR + 0.05) missing.push("Reverse-DCF: the P/E already assumes ~"+Math.round(m.impG*100)+"% EPS growth — more than the "+mbPctTxt(m.patCAGR)+" delivered. Little margin for error.");
+    }
+    if(m.iBits.length) missing.push("Catalysts firing: "+m.iBits.map(function(b){return MB_IBIT[b]||b;}).join(" · ")+".");
+    if(m.cov<70) missing.push("Yahoo data coverage is only "+m.cov+"% — several pillars are estimated or blank. Read the annual report before trusting the score.");
+    return '<tr class="mb-detail"><td></td><td colspan="14">'+
+      '<div class="mb-pills">'+pill+'</div>'+
+      '<p class="hint" style="margin:6px 0 2px">* Competitive advantage &amp; Management are <b>proxies</b> — no moat / promoter data feed exists. '+
+      'Verify pledging, auditor, related-party, allotments &amp; promoter selling via the links.</p>'+
+      scenHtml+
+      (missing.length ? '<p class="note warn" style="margin-top:8px">'+missing.map(esc).join('<br>')+'</p>' : '')+
+      '</td></tr>';
   }
   function renderMultibagger(){
     var body = $("#mbBody"); if(!body) return;
     var rows = parseBatch($("#batchInput").value);
     var minS = state.mbMinScore==null ? 55 : state.mbMinScore;
     var noFlags = $("#mbNoFlags") && $("#mbNoFlags").checked;
+    var list = $("#mbList") ? $("#mbList").value : "overall";
     if($("#mbMinScore")) $("#mbMinScore").value = minS;
     if($("#mbMinScoreVal")) $("#mbMinScoreVal").textContent = minS;
 
-    var withMb = rows.filter(function(d){ return d.mb && d.mb.pre!=null; });
+    var withMb = rows.filter(function(d){ return d.mb && d.mb.total!=null; });
+    var pred = mbListPredicate(list);
     var pool = withMb.filter(function(d){
-      if(d.mb.pre < minS) return false;
+      if(d.mb.total < minS) return false;
       if(noFlags && d.mb.red>0) return false;
-      return true;
-    }).sort(function(a,b){ return b.mb.pre - a.mb.pre || a.mb.red - b.mb.red; });
+      return pred(d);
+    }).sort(function(a,b){
+      if(list==="inflection") return b.mb.infl-a.mb.infl || b.mb.total-a.mb.total;
+      if(list==="smallcap")   return (a.mb.mcapCr||9e9)-(b.mb.mcapCr||9e9);
+      return b.mb.total - a.mb.total || a.mb.red - b.mb.red;
+    });
 
     if($("#mbMeta")) $("#mbMeta").textContent = !rows.length ? "no scan data"
       : !withMb.length ? rows.length+" scanned · no deep-fundamentals data (turn on Deep fundamentals + re-scan)"
-      : rows.length+" scanned · "+withMb.length+" with financials · "+pool.length+" match";
+      : rows.length+" scanned · "+withMb.length+" with financials · "+pool.length+" in this list";
 
     if($("#mbSummary")) $("#mbSummary").innerHTML = withMb.length
       ? '<span class="chip"><b>'+pool.length+'</b> shown</span>'+
-        '<span class="chip"><b>'+withMb.filter(function(d){return d.mb.pre>=70;}).length+'</b> score ≥ 70</span>'+
+        '<span class="chip"><b>'+withMb.filter(function(d){return d.mb.cls==="A";}).length+'</b> class A</span>'+
+        '<span class="chip"><b>'+withMb.filter(function(d){return d.mb.cls==="B";}).length+'</b> class B</span>'+
         '<span class="chip"><b>'+withMb.filter(function(d){return d.mb.red===0;}).length+'</b> no auto-flags</span>'+
         '<span class="chip">avg coverage <b>'+Math.round(withMb.reduce(function(t,d){return t+d.mb.cov;},0)/withMb.length)+'%</b></span>'
       : '';
 
+    var open = state.mbOpen || {};
     body.innerHTML = pool.length ? pool.map(function(d){
-      var m=d.mb, rg=resultGrade(d);
+      var m=d.mb, cl=MB_CLS[m.cls]||{t:"",e:"",c:"dim"};
       var flagTxt = m.flags.length
         ? m.flags.map(function(f){ return '<span class="neg" title="'+esc(MB_FLAG[f]||f)+'" style="font-size:10px">'+esc(f)+'</span>'; }).join(" ")
         : '<span class="pos" style="font-size:10px">clean*</span>';
-      return '<tr>'+
-        '<td class="sym">'+esc(d.symbol)+(d.blueSky?' <span class="pos" style="font-size:9px">ATH</span>':'')+'</td>'+
-        '<td class="num"><b class="'+(m.pre>=70?"pos":m.pre>=55?"warn":"dim")+'">'+m.pre+'</b></td>'+
-        '<td class="num"><span class="'+(m.cov>=70?"":"dim")+'">'+m.cov+'%</span></td>'+
-        '<td class="num">'+mbCell(m.biz)+'</td>'+
-        '<td class="num">'+mbCell(m.egr)+'</td>'+
-        '<td class="num">'+mbCell(m.roce)+'</td>'+
-        '<td class="num">'+mbCell(m.cfq)+'</td>'+
-        '<td class="num">'+mbCell(m.bs)+'</td>'+
+      var cagrTxt = (m.revCAGR!=null?Math.round(m.revCAGR*100)+'%':'–')+' / '+(m.patCAGR!=null?Math.round(m.patCAGR*100)+'%':'–');
+      var roceTxt = m.roce!=null ? Math.round(m.roce*100)+'%'+(m.roceUp?' <span class="pos">↑</span>':m.roceUp===0?' <span class="neg">↓</span>':'') : '–';
+      var isOpen = !!open[d.symbol];
+      var tr = '<tr>'+
+        '<td><button class="mb-exp openbtn" data-sym="'+esc(d.symbol)+'" style="padding:1px 6px" title="pillar breakdown + 3×/5×/10× math">'+(isOpen?'▾':'▸')+'</button></td>'+
+        '<td class="sym">'+esc(d.symbol)+(m.isFin?' <span class="dim" style="font-size:9px">fin</span>':'')+'</td>'+
+        '<td class="num"><b class="'+cl.c+'">'+m.total+'</b><span class="dim">/120</span></td>'+
+        '<td class="num"><b class="'+cl.c+'" title="'+esc(cl.t)+'">'+cl.e+' '+m.cls+'</b></td>'+
+        '<td class="num" style="font-size:11px">'+(m.arch?esc(MB_ARCH[m.arch]||m.arch):'<span class="dim">–</span>')+'</td>'+
+        '<td class="num">'+m.fund+'<span class="dim">/100</span></td>'+
+        '<td class="num">'+(m.infl>=12?'<span class="pos">':m.infl>=6?'<span class="warn">':'<span class="dim">')+m.infl+'</span><span class="dim">/20</span></td>'+
+        '<td class="num" style="font-size:11px">'+cagrTxt+'</td>'+
+        '<td class="num">'+roceTxt+'</td>'+
+        '<td class="num">'+(m.cfoPat!=null?(m.cfoPat>=0.9?'<span class="pos">':m.cfoPat>=0.6?'<span class="warn">':'<span class="neg">')+m.cfoPat.toFixed(2)+'</span>':'–')+'</td>'+
+        '<td class="num">'+(m.de!=null?(m.de<=0.5?'<span class="pos">':m.de<=1?'':'<span class="neg">')+m.de.toFixed(2)+(m.de<=0.5||m.de>1?'</span>':''):(m.isFin?'<span class="dim">n/a</span>':'–'))+'</td>'+
         '<td class="num">'+(m.pe!=null?m.pe:'<span class="dim">–</span>')+'</td>'+
         '<td class="num">'+flagTxt+'</td>'+
-        '<td class="num">'+resultCell(d)+'</td>'+
         '<td class="num" style="font-size:10px">'+mbVerifyLinks(d.symbol)+'</td>'+
-        '<td><button class="openbtn" data-sym="'+esc(d.symbol)+'">Analyze →</button></td>'+
+        '<td><button class="openbtn ana" data-sym="'+esc(d.symbol)+'">Analyze →</button></td>'+
       '</tr>';
-    }).join("") : '<tr><td colspan="13" class="empty">'+(withMb.length ? 'No stock scores ≥ '+minS+(noFlags?' with zero auto red-flags':'')+'. Lower the slider.' : 'No deep-fundamentals data yet — turn on <b>Deep fundamentals</b> on the Screener tab and run a scan.')+'</td></tr>';
+      return tr + (isOpen ? mbDetailRow(d) : "");
+    }).join("") : '<tr><td colspan="15" class="empty">'+(withMb.length ? 'Nothing in "'+esc(($("#mbList")&&$("#mbList").selectedOptions[0]&&$("#mbList").selectedOptions[0].textContent)||list)+'" scores ≥ '+minS+(noFlags?' with zero auto red-flags':'')+'. Lower the slider or change the list.' : 'No deep-fundamentals data yet — turn on <b>Deep fundamentals</b> on the Screener tab and run a scan.')+'</td></tr>';
 
-    $$("#mbBody .openbtn").forEach(function(btn){
+    $$("#mbBody .mb-exp").forEach(function(btn){
+      btn.addEventListener("click", function(){
+        var sym = btn.getAttribute("data-sym");
+        state.mbOpen = state.mbOpen || {};
+        if(state.mbOpen[sym]) delete state.mbOpen[sym]; else state.mbOpen[sym] = 1;
+        save(); renderMultibagger();
+      });
+    });
+    $$("#mbBody .openbtn.ana").forEach(function(btn){
       btn.addEventListener("click", function(){
         var row = rows.filter(function(r){ return r.symbol===btn.getAttribute("data-sym"); })[0];
         if(row){ loadIntoAnalyzer(row); switchTab("analyzer"); }
@@ -4504,165 +4624,313 @@ GRANULES | 2026-08-18 | | From his 18-Aug retrospective table, self-graded &quot
       ann:        ann
     };
   }
-  /* ---------- Pre-Multibagger scoring (annual Yahoo fundamentals only) ---------- */
-  // returns pillar sub-scores 0..100 (or -1 = no data), the weighted Pre-MB score,
-  // data-coverage %, and an auto red-flag list. The qualitative checks the user
-  // asked for (promoter pledging, auditor issues, RPT, preferential allotments,
-  // unexplained promoter selling) are NOT in any feed the browser can reach —
-  // they stay a manual checklist with per-stock verification links.
-  function computeMultibagger(f, price){
+  /* ---------- Pre-Multibagger scoring (annual Yahoo fundamentals only) ----------
+     Implements the build spec's 7-pillar model + Inflection Score + 3x/5x/10x
+     scenario math + archetype. Everything here is COMPUTABLE from Yahoo annuals.
+     What is NOT and is therefore left to the per-row Verify links / a manual read:
+       promoter pledging · promoter holding trend · promoter buy/sell · auditor
+       resignation or qualified opinion · related-party transactions · preferential
+       allotments · order book · capacity / utilisation · customer concentration ·
+       market share / TAM / industry CAGR · forward analyst estimates · true moat.
+     The Moat and Management pillars here are explicitly PROXIES (see notes). */
+  var MB_STRUCT_SECTORS = {Pharma:1, Power:1, Infra:1, CapGoods:1, Chemicals:1, Auto:1, IT:1, Telecom:1, Metal:1};
+  var MB_FIN_SECTORS = {Bank:1, Financials:1};
+  function fundGrowthSafe(cur, prev){
+    if(cur==null || prev==null || prev===0) return null;
+    return (cur - prev) / Math.abs(prev);
+  }
+  function computeMultibagger(f, price, sector){
     var a = f && f.ann; if(!a) return null;
+    var isFin = !!MB_FIN_SECTORS[sector];
     var last = function(x){ return (x && x.length) ? x[x.length-1] : null; };
     var nth  = function(x,k){ return (x && x.length>k) ? x[x.length-1-k] : null; };
-    var cagr = function(x){
-      if(!x || x.length<3) return null;
-      var s=x[0], e=x[x.length-1], yrs=x.length-1;
+    var cagr = function(x, n){
+      var arr = n ? (x||[]).slice(-n-1) : x;
+      if(!arr || arr.length<3) return null;
+      var s=arr[0], e=arr[arr.length-1], yrs=arr.length-1;
       if(!(s>0) || !(e>0)) return null;
       return Math.pow(e/s, 1/yrs) - 1;
     };
     var mean = function(x){ if(!x||!x.length) return null; var t=0,i; for(i=0;i<x.length;i++) t+=x[i]; return t/x.length; };
     var sum = function(x,n){ if(!x||!x.length) return null; var t=0,i,arr=n?x.slice(-n):x; for(i=0;i<arr.length;i++) t+=arr[i]; return t; };
-    var band = function(v, stops, scores){ for(var i=0;i<stops.length;i++){ if(v<=stops[i]) return scores[i]; } return scores[scores.length-1]; };
+    var cvOf = function(arr){ var mu=mean(arr),s=0,i; if(!mu||mu<=0||arr.length<3) return null; for(i=0;i<arr.length;i++) s+=(arr[i]-mu)*(arr[i]-mu); return Math.sqrt(s/arr.length)/mu; };
+    // ratio series (num[i]/den[i]) over the overlapping years
+    var ratioSeries = function(num, den){ var o=[],i,L=Math.min((num||[]).length,(den||[]).length); for(i=0;i<L;i++){ if(den[i]>0) o.push(num[i]/den[i]); } return o; };
+    var b = function(v, stops, scores){ for(var i=0;i<stops.length;i++){ if(v<=stops[i]) return scores[i]; } return scores[scores.length-1]; };
 
-    var rev=a.rev, ni=a.ni, ocf=a.ocf, fcf=a.fcf, debt=a.debt, eq=a.eq, ebit=a.ebit, gp=a.gp, sh=a.shares, recv=a.recv, ie=a.intexp, cl=a.cl, ca=a.ca;
-    var P = {}, have = 0, want = 7;
+    var rev=a.rev, ni=a.ni, ocf=a.ocf, fcf=a.fcf, debt=a.debt, eq=a.eq, ebit=a.ebit, ebitda=a.ebitda,
+        gp=a.gp, sh=a.shares, recv=a.recv, inv=a.inv, ie=a.intexp, cl=a.cl, ca=a.ca, cash=a.cash,
+        capex=a.capex, assets=a.assets, epsA=a.eps, qEps=a.qEps;
 
-    // 1) BUSINESS QUALITY (25%) — margin level + stability
+    // shared derived figures
+    var ttmEps = (qEps && qEps.length>=4) ? sum(qEps,4) : last(epsA);
+    var pe = (price>0 && ttmEps>0) ? price/ttmEps : null;
+    var shOut = last(sh);
+    var mcap = (price>0 && shOut>0) ? price*shOut : null;            // absolute
+    var mcapCr = mcap!=null ? Math.round(mcap/1e7) : null;           // ₹ crore
+    var netDebt = (last(debt)!=null) ? last(debt) - (last(cash)||0) : null;
+    var ev = (mcap!=null && netDebt!=null) ? mcap + netDebt : null;
+    var evEbitda = (ev!=null && last(ebitda)>0) ? ev/last(ebitda) : null;
+    var revCAGR = cagr(rev), revCAGR3 = cagr(rev,3);
+    var patCAGR = cagr(ni),  patCAGR3 = cagr(ni,3);
+    var roceNow = (last(ebit)!=null && (last(eq)+ (last(debt)||0))>0) ? last(ebit)/(last(eq)+(last(debt)||0)) : null;
+    var roce3   = (nth(ebit,3)!=null && (nth(eq,3)+(nth(debt,3)||0))>0) ? nth(ebit,3)/(nth(eq,3)+(nth(debt,3)||0)) : null;
+    var roeNow  = (last(ni)!=null && last(eq)>0) ? last(ni)/last(eq) : null;
+    var roaNow  = (last(ni)!=null && last(assets)>0) ? last(ni)/last(assets) : null;
+    var cfoPat  = (sum(ocf,5)!=null && sum(ni,5)>0) ? sum(ocf,5)/sum(ni,5) : null;
+    var deNow   = (last(eq)>0) ? (last(debt)||0)/last(eq) : null;
+    var ebMarginNow = (last(ebit)!=null && last(rev)>0) ? last(ebit)/last(rev) : null;
+    var ebMargin2   = (nth(ebit,2)!=null && nth(rev,2)>0) ? nth(ebit,2)/nth(rev,2) : null;
+    var atNow = (last(rev)>0 && last(assets)>0) ? last(rev)/last(assets) : null;
+    var at2   = (nth(rev,2)>0 && nth(assets,2)>0) ? nth(rev,2)/nth(assets,2) : null;
+
+    var P = {}, WCAP = {egr:20, biz:20, cfq:15, bs:10, moat:15, mgmt:10, val:10};
+    var haveW = 0;
+
+    // ---- 1) EARNINGS GROWTH /20 ----
     (function(){
-      var m = null, r = last(rev);
-      if(last(gp) && r>0) m = last(gp)/r;
-      else if(last(ebit) && r>0) m = last(ebit)/r;
-      if(m==null){ P.biz = -1; return; }
-      var lvl = last(gp) ? band(m, [0.15,0.25,0.35,0.5], [25,45,65,82,100])
-                         : band(m, [0.05,0.10,0.16,0.25], [20,40,60,80,100]);   // ebit-margin bands
-      // stability: margin coefficient of variation over the years we have
-      var series = [], i, src = last(gp)?gp:ebit;
-      for(i=0;i<Math.min(rev.length, src.length);i++){ if(rev[i]>0) series.push(src[i]/rev[i]); }
-      var mu = mean(series), sd = 0;
-      if(mu && series.length>2){ for(i=0;i<series.length;i++) sd += (series[i]-mu)*(series[i]-mu); sd = Math.sqrt(sd/series.length); }
-      var cv = (mu && mu>0) ? sd/mu : 1;
-      var stab = band(cv, [0.10,0.20,0.35,0.55], [100,80,55,30,10]);
-      P.biz = Math.round(lvl*0.7 + stab*0.3); have++;
+      if(revCAGR==null && patCAGR==null){ P.egr = -1; return; }
+      var pts = 0;
+      if(revCAGR!=null) pts += b(revCAGR, [0.05,0.10,0.15,0.20,0.25], [0,1,2,3,4,5]);
+      if(patCAGR!=null) pts += b(patCAGR, [0.10,0.15,0.20,0.30], [0,2,3.5,4.5,5]);
+      // acceleration: latest-3y CAGR clearly above full-period CAGR, or latest FY growth above CAGR
+      var lastFY = fundGrowthSafe(last(ni), nth(ni,1));
+      if(revCAGR3!=null && revCAGR!=null && revCAGR3 > revCAGR + 0.03) pts += 3;
+      else if(patCAGR3!=null && patCAGR!=null && patCAGR3 > patCAGR + 0.03) pts += 3;
+      if(lastFY!=null && patCAGR!=null && lastFY > patCAGR + 0.05) pts += 3;
+      // operating leverage: profit compounding faster than sales
+      if(patCAGR!=null && revCAGR!=null && patCAGR > revCAGR + 0.02) pts += 2;
+      // consistency
+      if(ni && ni.length>=4 && ni.every(function(v){return v>0;})) pts += 2;
+      P.egr = Math.max(0, Math.min(20, Math.round(pts))); haveW += WCAP.egr;
     })();
 
-    // 2) EARNINGS GROWTH (20%) — NI CAGR + consistency + acceleration
+    // ---- 2) BUSINESS QUALITY /20 (ROCE + margins + capital efficiency) ----
     (function(){
-      var g = cagr(ni);
-      if(g==null && f.ttmYoY!=null) g = f.ttmYoY;
-      if(g==null){ P.egr = -1; return; }
-      var base = band(g, [0, 0.08, 0.15, 0.22, 0.30], [10, 32, 55, 74, 88, 100]);
-      var allPos = ni && ni.length>=3 && ni.every(function(v){ return v>0; });
-      var accel = (ni && ni.length>=4) ? (fundGrowthSafe(nth(ni,0), nth(ni,1)) > g) : false;
-      P.egr = Math.max(0, Math.min(100, Math.round(base + (allPos?8:0) + (accel?8:0)))); have++;
+      var haveAny = roceNow!=null || ebMarginNow!=null || roeNow!=null;
+      if(!haveAny){ P.biz = -1; return; }
+      var pts = 0;
+      var key = roceNow!=null ? roceNow : roeNow;
+      if(key!=null) pts += b(key, [0.08,0.12,0.16,0.22,0.28], [0,2,3.5,5,6,7]);
+      if(roceNow!=null && roce3!=null){ var d = roceNow-roce3; pts += d>=0.06?4 : d>=0.02?2.5 : d>=-0.02?1 : -3; }
+      // margin level + stability
+      var mSrc = (gp && gp.length) ? gp : ebit;
+      if(last(mSrc)!=null && last(rev)>0){
+        var m = last(mSrc)/last(rev);
+        pts += (gp&&gp.length) ? b(m,[0.15,0.30,0.45],[0,1.5,3,4]) : b(m,[0.06,0.12,0.20],[0,1.5,3,4]);
+        var cv = cvOf(ratioSeries(mSrc, rev));
+        if(cv!=null) pts += b(cv,[0.10,0.22,0.40],[3,2,1,0]);
+      }
+      // capital efficiency: asset turnover improving
+      if(atNow!=null && at2!=null && atNow > at2*1.05) pts += 2;
+      P.biz = Math.max(0, Math.min(20, Math.round(pts))); haveW += WCAP.biz;
     })();
 
-    // 3) ROCE / ROE IMPROVEMENT (15%)
+    // ---- 3) CASH-FLOW QUALITY /15 ----
     (function(){
-      var e = last(eq), d = last(debt)||0, ebt = last(ebit), n = last(ni);
-      var roce = (ebt!=null && e>0) ? ebt/(e+d) : null;
-      var roe  = (n!=null && e>0) ? n/e : null;
-      var key = roce!=null ? roce : roe;
-      if(key==null){ P.roce = -1; return; }
-      var lvl = band(key, [0.08,0.12,0.16,0.22], [20,42,62,82,100]);
-      // improvement vs ~3 yrs ago
-      var e0=nth(eq,3), d0=nth(debt,3)||0, ebt0=nth(ebit,3), n0=nth(ni,3);
-      var key0 = (ebt0!=null && e0>0) ? ebt0/(e0+d0) : ((n0!=null && e0>0) ? n0/e0 : null);
-      var imp = (key0!=null) ? (key - key0) : null;
-      var bonus = imp==null ? 0 : imp>=0.05 ? 18 : imp>=0.01 ? 9 : imp<=-0.03 ? -15 : 0;
-      P.roce = Math.max(0, Math.min(100, Math.round(lvl + bonus))); have++;
+      if(cfoPat==null && !(fcf&&fcf.length)){ P.cfq = -1; return; }
+      var pts = 0;
+      if(cfoPat!=null) pts += b(cfoPat, [0.4,0.6,0.8,1.0], [0,2,4,6,7]);
+      var fcfPos = (fcf && fcf.length>=3) ? fcf.filter(function(v){return v>0;}).length/fcf.length : null;
+      if(fcfPos!=null) pts += fcfPos>=0.8?4 : fcfPos>=0.5?2 : 0;
+      var ocfg = cagr(ocf);
+      if(ocfg!=null && revCAGR!=null && ocfg >= revCAGR - 0.02) pts += 1;
+      // working capital: receivables growing slower than revenue
+      var rg = fundGrowthSafe(last(recv), nth(recv,2)), vg = fundGrowthSafe(last(rev), nth(rev,2));
+      if(rg!=null && vg!=null){ pts += (rg <= vg*0.8) ? 3 : (rg <= vg*1.2) ? 1.5 : (rg > vg*1.8) ? -2 : 0; }
+      P.cfq = Math.max(0, Math.min(15, Math.round(pts))); haveW += WCAP.cfq;
     })();
 
-    // 4) CASH-FLOW QUALITY (15%) — OCF/NI conversion + FCF
+    // ---- 4) BALANCE SHEET /10 (sector-adjusted for financials) ----
     (function(){
-      var so=sum(ocf,5), sn=sum(ni,5);
-      if(so==null || sn==null || sn<=0){ P.cfq = (fcf && fcf.length) ? 40 : -1; if(P.cfq!==-1) have++; return; }
-      var cc = so/sn;
-      var conv = band(cc, [0.4,0.6,0.8,1.0], [10,30,55,80,100]);
-      var fcfPos = fcf && fcf.length>=3 ? fcf.filter(function(v){return v>0;}).length/fcf.length : 0.5;
-      var fcfBonus = fcfPos>=0.8 ? 15 : fcfPos>=0.5 ? 5 : -10;
-      P.cfq = Math.max(0, Math.min(100, Math.round(conv + fcfBonus))); have++;
-    })();
-
-    // 5) BALANCE SHEET (10%) — D/E, current ratio, interest coverage
-    (function(){
-      var e=last(eq), d=last(debt);
-      if(e==null || e<=0){ P.bs = -1; return; }
-      var de = (d||0)/e;
-      var lvl = band(de, [0, 0.3, 0.6, 1.0, 2.0], [100, 90, 72, 50, 25, 10]);
-      var cr = (last(ca)>0 && last(cl)>0) ? last(ca)/last(cl) : null;
+      if(isFin){
+        if(roaNow==null && roeNow==null){ P.bs = -1; return; }
+        var pts = 0;
+        if(roaNow!=null) pts += b(roaNow, [0.008,0.015,0.02], [0,3,5,6]);
+        if(roeNow!=null) pts += b(roeNow, [0.10,0.15,0.18], [0,2,3,4]);
+        P.bs = Math.max(0, Math.min(10, Math.round(pts))); haveW += WCAP.bs; return;
+      }
+      if(last(eq)==null || last(eq)<=0){ P.bs = -1; return; }
+      var pt = 0;
+      pt += b(deNow, [0, 0.25, 0.5, 1.0, 2.0], [5, 4.5, 3.5, 2, 0.5, 0]);
+      if(netDebt!=null && netDebt < 0) pt += 2;                                   // net cash
       var cov = (last(ebit)>0 && last(ie)>0) ? last(ebit)/last(ie) : null;
-      var adj = (cr!=null ? (cr>=1.5?8:cr<1?-8:0) : 0) + (cov!=null ? (cov>=6?8:cov<2?-15:0) : 0);
-      P.bs = Math.max(0, Math.min(100, Math.round(lvl + adj))); have++;
+      if(cov!=null) pt += cov>=10?2 : cov>=5?1.5 : cov>=2.5?0.5 : -2;
+      // debt down while EBITDA up
+      var dDown = (nth(debt,2)!=null && last(debt)!=null && last(debt) < nth(debt,2)*0.95);
+      var eUp = (nth(ebitda,2)>0 && last(ebitda) > nth(ebitda,2)*1.05) || (nth(ebit,2)>0 && last(ebit) > nth(ebit,2)*1.05);
+      if(dDown && eUp) pt += 2;
+      P.bs = Math.max(0, Math.min(10, Math.round(pt))); haveW += WCAP.bs;
     })();
 
-    // 6) MANAGEMENT / PROMOTER (10%) — only a dilution proxy is available from Yahoo
+    // ---- 5) COMPETITIVE ADVANTAGE /15 — PROXY (durable excess returns + pricing power) ----
     (function(){
-      if(!sh || sh.length<3){ P.mgmt = -1; return; }
-      var g = cagr(sh);
-      if(g==null){ P.mgmt = -1; return; }
-      P.mgmt = band(g, [0.005, 0.02, 0.05, 0.10], [85, 62, 40, 22, 10]);   // flat/shrinking float scores best
-      have++;
+      // fraction of available years with ROCE ≥ 18% — a durable moat leaves this footprint
+      var yrs = Math.min((ebit||[]).length, (eq||[]).length), hi=0, tot=0, i;
+      for(i=0;i<yrs;i++){ var cap=(eq[i]||0)+(debt[i]||0); if(cap>0 && ebit[i]!=null){ tot++; if(ebit[i]/cap >= 0.18) hi++; } }
+      if(tot<3 && ebMarginNow==null){ P.moat = -1; return; }
+      var pts = 0;
+      if(tot>=3){ var frac = hi/tot; pts += b(frac, [0.2,0.5,0.75,0.95], [0,3,5,6.5,8]); }   // sustained high returns = a real moat's footprint
+      // pricing power: high & steady gross margin
+      if(gp && gp.length && last(rev)>0){
+        var gm = last(gp)/last(rev), gcv = cvOf(ratioSeries(gp, rev));
+        pts += b(gm, [0.20,0.35,0.5], [0,1.5,3,4]);
+        if(gcv!=null && gcv < 0.15) pts += 1.5;
+      } else if(ebMarginNow!=null){
+        pts += b(ebMarginNow, [0.08,0.15,0.25], [0,1.5,3,4]);
+      }
+      // still growing while margins hold (share-gain proxy)
+      if(revCAGR!=null && revCAGR >= 0.15 && ebMarginNow!=null && ebMargin2!=null && ebMarginNow >= ebMargin2 - 0.01) pts += 2;
+      // asset-light (high asset turnover) often == moat
+      if(atNow!=null && atNow >= 1.2) pts += 1.5;
+      P.moat = Math.max(0, Math.min(15, Math.round(pts))); haveW += WCAP.moat;
     })();
 
-    // 7) VALUATION (5%) — trailing P/E from EPS (annual, or TTM of quarterlies)
+    // ---- 6) MANAGEMENT QUALITY /10 — PROXY (dilution + capital allocation, NO promoter data) ----
     (function(){
-      var ttmEps = (a.qEps && a.qEps.length>=4) ? sum(a.qEps,4) : last(a.eps);
-      if(!(price>0) || ttmEps==null){ P.val = -1; return; }
-      if(ttmEps<=0){ P.val = 6; have++; return; }
-      var pe = price/ttmEps;
-      P.val = band(pe, [15, 25, 40, 60, 90], [100, 85, 65, 40, 20, 8]);
-      P.mbPE = Math.round(pe*10)/10;
-      have++;
+      var haveAny = (sh && sh.length>=3) || (eq && eq.length>=4);
+      if(!haveAny){ P.mgmt = -1; return; }
+      var pts = 0;
+      if(sh && sh.length>=3){
+        var sg = cagr(sh);
+        if(sg!=null) pts += b(sg, [0.005,0.02,0.05,0.10], [5,3.5,2,1,0]);   // flat/shrinking float best
+      }
+      // reinvestment return: ΔPAT ÷ Δequity over ~4 yrs — did retained capital earn a good return?
+      if(nth(eq,4)!=null && last(eq)!=null && nth(ni,4)!=null && last(ni)!=null){
+        var dEq = last(eq)-nth(eq,4), dNi = last(ni)-nth(ni,4);
+        if(dEq > 0){ var incR = dNi/dEq; pts += b(incR, [0.05,0.12,0.20,0.30], [0,1.5,3,4,5]); }
+      }
+      P.mgmt = Math.max(0, Math.min(10, Math.round(pts))); haveW += WCAP.mgmt;
     })();
 
-    // weighted Pre-MB score, renormalised over the pillars that have data
-    var W = {biz:0.25, egr:0.20, roce:0.15, cfq:0.15, bs:0.10, mgmt:0.10, val:0.05};
-    var num=0, den=0;
-    ["biz","egr","roce","cfq","bs","mgmt","val"].forEach(function(k){
-      if(P[k]!=null && P[k]>=0){ num += P[k]*W[k]; den += W[k]; }
+    // ---- 7) VALUATION /10 (multiple checks, plus a reverse-DCF implied-growth read) ----
+    var impliedG = null;
+    (function(){
+      if(pe==null && evEbitda==null){ P.val = -1; return; }
+      var pts = 0;
+      if(pe!=null) pts += b(pe, [15,25,40,60,90], [3,2.5,1.5,0.8,0.3,0]);
+      if(evEbitda!=null) pts += b(evEbitda, [8,14,22,35], [3,2.2,1.2,0.5,0]);
+      // PEG on the historical growth we actually have
+      var g = (patCAGR!=null ? patCAGR : revCAGR);
+      if(pe!=null && g!=null && g>0.02){ var peg = pe/(g*100); pts += b(peg, [0.7,1.0,1.5,2.5], [2,1.5,1,0.4,0]); }
+      // FCF yield
+      if(mcap!=null && last(fcf)!=null && mcap>0){ var fy = last(fcf)/mcap; pts += fy>=0.05?2 : fy>=0.02?1 : fy<0?-0.5:0; }
+      P.val = Math.max(0, Math.min(10, Math.round(pts)));
+      haveW += WCAP.val;
+      // reverse DCF: what EPS CAGR does today's price already assume?
+      // model: 10 yrs of growth then exit at P/E 18, discount 12%.
+      if(pe!=null && pe>0){
+        var lo=-0.1, hi2=0.6, r=0.12, exitPE=18, m;
+        for(var it=0; it<40; it++){
+          m = (lo+hi2)/2;
+          var v = 0, t;
+          for(t=1;t<=10;t++) v += Math.pow(1+m,t)/Math.pow(1+r,t);
+          v += Math.pow(1+m,10)*exitPE/Math.pow(1+r,10);   // value per ₹1 of current EPS
+          if(v > pe) hi2 = m; else lo = m;
+        }
+        impliedG = Math.round(m*1000)/1000;
+      }
+    })();
+
+    // ---- Fundamental Score /100 (renormalised over pillars with data) ----
+    var got = 0, poss = 0;
+    ["egr","biz","cfq","bs","moat","mgmt","val"].forEach(function(k){
+      if(P[k]!=null && P[k]>=0){ got += P[k]; poss += WCAP[k]; }
     });
-    var pre = (den>0 && have>=3) ? Math.round(num/den) : null;   // need ≥3 pillars for a meaningful score
+    var fund = (poss >= 45) ? Math.round(got/poss*100) : null;   // need pillars worth ≥45 of the 100
 
-    // ---- auto red flags (the ones a data feed can actually see) ----
+    // ---- Inflection Score /20 (10 computable catalysts × 2) ----
+    var infl = 0, iBits = [];
+    function iAdd(cond, tag){ if(cond){ infl += 2; iBits.push(tag); } }
+    iAdd(revCAGR3!=null && revCAGR!=null && revCAGR3 > revCAGR + 0.04, "rev-accel");
+    iAdd(patCAGR3!=null && patCAGR!=null && patCAGR3 > patCAGR + 0.05, "pat-accel");
+    iAdd(ebMarginNow!=null && ebMargin2!=null && ebMarginNow > ebMargin2 + 0.015, "margin-up");
+    iAdd(roceNow!=null && roce3!=null && roceNow > roce3 + 0.03, "roce-inflect");
+    iAdd((function(){ var c0=nth(capex,2), c1=last(capex); return c0!=null && c1!=null && last(rev)>0 && nth(rev,2)>0 && (Math.abs(c1)/last(rev)) > (Math.abs(c0)/nth(rev,2)) * 1.3 && Math.abs(c1)/last(rev) > 0.06; })(), "capex-ramp");
+    iAdd(atNow!=null && at2!=null && atNow > at2*1.06, "utilisation-up");
+    iAdd((function(){ var g=cagr(ocf); return g!=null && g > 0.20; })(), "cfo-accel");
+    iAdd((function(){ if(!fcf||fcf.length<3) return false; var wasNeg = fcf.slice(0,-1).some(function(v){return v<0;}); return wasNeg && last(fcf) > 0; })(), "fcf-turned");
+    iAdd((function(){ var d0=nth(debt,2), d1=last(debt); return d0>0 && d1!=null && d1 < d0*0.9; })(), "debt-down");
+    iAdd(!!MB_STRUCT_SECTORS[sector], "sector-tailwind");
+    infl = Math.min(20, infl);
+
+    var total = (fund!=null) ? fund + infl : null;
+
+    // ---- classification (spec §24 bands, on /120) ----
+    var cls = total==null ? "" : total>=100 ? "A" : total>=85 ? "B" : total>=70 ? "C" : total>=55 ? "D" : "E";
+
+    // ---- archetype (spec §26) ----
+    var arch = "";
+    (function(){
+      var lowDebt = deNow!=null && deNow < 0.4;
+      var allPos = ni && ni.length>=4 && ni.every(function(v){return v>0;});
+      var wasWeak = ni && ni.length>=4 && (nth(ni,3)<=0 || (nth(ni,3)>0 && last(ni) > nth(ni,3)*2));
+      if(roceNow!=null && roceNow>=0.20 && cfoPat!=null && cfoPat>=0.9 && allPos && lowDebt) arch = "compounder";
+      else if(iBits.indexOf("rev-accel")>=0 && (iBits.indexOf("margin-up")>=0 || iBits.indexOf("capex-ramp")>=0)) arch = "inflection";
+      else if(wasWeak && iBits.indexOf("debt-down")>=0 && roceNow!=null && roce3!=null && roceNow>roce3) arch = "turnaround";
+      else if(mcapCr!=null && mcapCr < 8000 && revCAGR!=null && revCAGR>=0.20 && roceNow!=null && roce3!=null && roceNow>=roce3) arch = "smallcap";
+      else if((cvOf(ratioSeries(ebit,rev))||0) > 0.4 && iBits.indexOf("margin-up")>=0) arch = "cyclical";
+      else if(fund!=null && fund>=65 && (impliedG!=null && patCAGR!=null && impliedG < patCAGR - 0.03)) arch = "hidden";
+    })();
+
+    // ---- 3x / 5x / 10x scenario math (spec §35) ----
+    var scen = null;
+    (function(){
+      var ttmPat = (qEps && qEps.length>=4 && shOut>0) ? sum(qEps,4)*shOut : last(ni);
+      if(mcap==null || !(ttmPat>0)) return;
+      var exitPE = (roceNow!=null && roceNow>=0.20) ? 28 : (roceNow!=null && roceNow>=0.14 ? 22 : 16);
+      function req(mult, yrs){
+        var reqPat = (mcap*mult)/exitPE;
+        return Math.pow(reqPat/ttmPat, 1/yrs) - 1;
+      }
+      scen = { exitPE:exitPE, r3:req(3,5), r5:req(5,7), r10:req(10,10), histG:(patCAGR!=null?patCAGR:revCAGR) };
+    })();
+
+    // ---- auto red flags (unchanged set — the ones a feed can see) ----
     var flags = [];
-    // receivable explosion: receivables / revenue jumped, and receivables outgrew revenue
     if(recv && recv.length>=3 && rev && rev.length>=3){
       var rr0 = (nth(rev,2)>0) ? nth(recv,2)/nth(rev,2) : null;
       var rr1 = (last(rev)>0) ? last(recv)/last(rev) : null;
-      var rg = fundGrowthSafe(last(recv), nth(recv,2)), vg = fundGrowthSafe(last(rev), nth(rev,2));
-      if(rr0!=null && rr1!=null && rr1 > rr0*1.5 && rr1 > 0.20 && rg!=null && vg!=null && rg > vg*1.6 + 0.1) flags.push("recv");
+      var rg2 = fundGrowthSafe(last(recv), nth(recv,2)), vg2 = fundGrowthSafe(last(rev), nth(rev,2));
+      if(rr0!=null && rr1!=null && rr1 > rr0*1.5 && rr1 > 0.20 && rg2!=null && vg2!=null && rg2 > vg2*1.6 + 0.1) flags.push("recv");
     }
-    // dilution: share count up materially
+    if(inv && inv.length>=3 && rev && rev.length>=3){
+      var ig = fundGrowthSafe(last(inv), nth(inv,2)), vg3 = fundGrowthSafe(last(rev), nth(rev,2));
+      if(ig!=null && vg3!=null && ig > vg3*1.8 + 0.15 && (last(inv)/(last(rev)||1)) > 0.25) flags.push("invty");
+    }
     if(sh && sh.length>=2){
       var y1 = fundGrowthSafe(last(sh), nth(sh,1)), y3 = fundGrowthSafe(last(sh), nth(sh,3));
       if((y1!=null && y1 > 0.08) || (y3!=null && y3 > 0.20)) flags.push("dilut");
     }
-    // excessive / rising debt, or interest not covered
-    if(last(eq)>0){
+    if(!isFin && last(eq)>0){
       var deN = (last(debt)||0)/last(eq), deO = (nth(eq,2)>0) ? (nth(debt,2)||0)/nth(eq,2) : null;
       var covN = (last(ebit)>0 && last(ie)>0) ? last(ebit)/last(ie) : null;
       if((deN > 1.5 && (deO==null || deN > deO*1.15)) || (covN!=null && covN < 1.5)) flags.push("debt");
     }
-    // sudden margin spike without matching revenue growth (one-off / accounting)
     if(ni && ni.length>=3 && rev && rev.length>=3){
-      var m1 = last(rev)>0 ? last(ni)/last(rev) : null, m0 = nth(rev,1)>0 ? nth(ni,1)/nth(rev,1) : null;
+      var mm1 = last(rev)>0 ? last(ni)/last(rev) : null, mm0 = nth(rev,1)>0 ? nth(ni,1)/nth(rev,1) : null;
       var rvg = fundGrowthSafe(last(rev), nth(rev,1));
-      if(m1!=null && m0!=null && (m1 - m0) > 0.08 && (rvg==null || rvg < 0.12)) flags.push("margin");
+      if(mm1!=null && mm0!=null && (mm1 - mm0) > 0.08 && (rvg==null || rvg < 0.12)) flags.push("margin");
     }
-    // cash-flow divergence: profits without the cash (accounting-quality)
     if(sum(ni,4)>0 && sum(ocf,4)!=null && sum(ocf,4) < sum(ni,4)*0.55) flags.push("cfdiv");
-    // chronic negative free cash flow
-    if(fcf && fcf.length>=4 && fcf.slice(-4).filter(function(v){return v<0;}).length >= 3) flags.push("fcf");
+    if(fcf && fcf.length>=4 && fcf.slice(-4).filter(function(v){return v<0;}).length >= 3 && !(iBits.indexOf("capex-ramp")>=0 && revCAGR!=null && revCAGR>0.18)) flags.push("fcf");
+
+    var covPct = Math.round(poss/100*100);
 
     return {
-      pre: pre, biz:P.biz, egr:P.egr, roce:P.roce, cfq:P.cfq, bs:P.bs, mgmt:P.mgmt, val:P.val,
-      pe: P.mbPE!=null?P.mbPE:null, cov: Math.round(have/want*100),
-      red: flags.length, flags: flags
+      fund: fund, infl: infl, total: total, cls: cls, arch: arch,
+      egr:P.egr, biz:P.biz, cfq:P.cfq, bs:P.bs, moat:P.moat, mgmt:P.mgmt, val:P.val,
+      pe: pe!=null?Math.round(pe*10)/10:null, evEbitda: evEbitda!=null?Math.round(evEbitda*10)/10:null,
+      cov: covPct, red: flags.length, flags: flags, iBits: iBits,
+      revCAGR: revCAGR!=null?Math.round(revCAGR*1000)/1000:null,
+      patCAGR: patCAGR!=null?Math.round(patCAGR*1000)/1000:null,
+      roce: roceNow!=null?Math.round(roceNow*1000)/1000:null,
+      roceUp: (roceNow!=null && roce3!=null) ? (roceNow>roce3?1:0) : null,
+      cfoPat: cfoPat!=null?Math.round(cfoPat*100)/100:null,
+      de: deNow!=null?Math.round(deNow*100)/100:null,
+      impG: impliedG, mcapCr: mcapCr, isFin: isFin?1:0,
+      scen: scen
     };
-  }
-  function fundGrowthSafe(cur, prev){
-    if(cur==null || prev==null || prev===0) return null;
-    return (cur - prev) / Math.abs(prev);
   }
   function fetchFundamentals(sym, cfg, signal){
     return fetchTimeout(wrapProxy(cfg.proxy, fundUrl(sym)), 15000, signal)
@@ -4679,10 +4947,19 @@ GRANULES | 2026-08-18 | | From his 18-Aug retrospective table, self-graded &quot
     row.profYoYPrev = r3(f.profYoYPrev);
     row.ttmYoY = r3(f.ttmYoY);
     if(state.fetchDeep!==false){
-      var mb = computeMultibagger(f, row.price);
-      if(mb && mb.pre!=null){
-        row.mb = [mb.pre, mb.biz, mb.egr, mb.roce, mb.cfq, mb.bs, mb.mgmt, mb.val,
-                  (mb.pe==null?"":mb.pe), mb.cov, mb.red, mb.flags.join("+")].join("|");
+      var mb = computeMultibagger(f, row.price, row.sector);
+      if(mb && mb.total!=null){
+        var n = function(x){ return x==null ? "" : x; };
+        var s = mb.scen;
+        row.mb = [
+          mb.fund, mb.infl, mb.total, mb.cls, mb.arch,
+          n(mb.egr), n(mb.biz), n(mb.cfq), n(mb.bs), n(mb.moat), n(mb.mgmt), n(mb.val),
+          n(mb.pe), n(mb.evEbitda), mb.cov, mb.red, mb.flags.join("+"),
+          n(mb.revCAGR), n(mb.patCAGR), n(mb.roce), n(mb.roceUp), n(mb.cfoPat), n(mb.de),
+          n(mb.impG), n(mb.mcapCr), mb.isFin,
+          s ? [s.exitPE, Math.round(s.r3*1000)/1000, Math.round(s.r5*1000)/1000, Math.round(s.r10*1000)/1000, (s.histG==null?"":Math.round(s.histG*1000)/1000)].join("~") : "",
+          mb.iBits.join("+")
+        ].join("|");
       }
     }
   }
@@ -5242,6 +5519,7 @@ GRANULES | 2026-08-18 | | From his 18-Aug retrospective table, self-graded &quot
     });
     if($("#mbMinScore")) $("#mbMinScore").addEventListener("input", function(){ state.mbMinScore = +this.value; save(); if($("#mbMinScoreVal")) $("#mbMinScoreVal").textContent = this.value; renderMultibagger(); });
     if($("#mbNoFlags")) $("#mbNoFlags").addEventListener("change", function(){ state.mbNoFlags = this.checked; save(); renderMultibagger(); });
+    if($("#mbList")) $("#mbList").addEventListener("change", renderMultibagger);
     if($("#bookScope")) $("#bookScope").addEventListener("change", function(){ state.bookScope = this.value; state.bookIdx = 0; save(); renderBook(); });
     if($("#bookPrev")) $("#bookPrev").addEventListener("click", function(){ bookGo(-1); });
     if($("#bookNext")) $("#bookNext").addEventListener("click", function(){ bookGo(1); });
