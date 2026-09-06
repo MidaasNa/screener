@@ -308,7 +308,7 @@ table.oc-guide td:first-child{white-space:nowrap;width:1%}
     <span class="mark" aria-hidden="true">₹</span>
     <div>
       <h1>The 10% Ledger</h1>
-      <p>Momentum + pullback screener · NSE swing setups <span style="opacity:.5;font-size:11px">· build 2026-09-08s</span></p>
+      <p>Momentum + pullback screener · NSE swing setups <span style="opacity:.5;font-size:11px">· build 2026-09-08t</span></p>
     </div>
   </div>
   <div class="controls">
@@ -431,7 +431,7 @@ table.oc-guide td:first-child{white-space:nowrap;width:1%}
         <label class="chk" style="margin-left:0" title="Average Daily Range % — Qullamaggie's volatility filter. Higher = a breakout can run several R in days, not weeks. Tick to apply; set the threshold.">
           <input type="checkbox" id="onlyAdr"> ADR ≥ <input type="number" id="minAdr" value="4" min="0" max="20" step="0.5" style="width:46px;margin:0 2px;padding:2px 4px;background:var(--bg);border:1px solid var(--line-strong);border-radius:4px">%
         </label>
-        <label class="chk" style="margin-left:0" title="NR4 / NR7 — the latest bar's daily range is the narrowest of the last 4 / 7 days (a coil that usually expands within a few sessions). ▫ = also an inside bar."><input type="checkbox" id="onlyNR"> NR4 / NR7</label>
+        <label class="chk" style="margin-left:0" title="NR4 / NR7 — the latest bar's daily range is the narrowest of the last 4 / 7 days — a coil that usually expands within a few sessions. This filter keeps only the ones inside an uptrend (price over a rising 20>50 EMA), so the expansion is biased UP. ▫ = also an inside bar."><input type="checkbox" id="onlyNR"> NR4 / NR7 ↑ (bullish)</label>
         <label class="chk" style="margin-left:0"><input type="checkbox" id="onlyActionable"> Actionable</label>
       </div>
       <div class="summary" id="summary" aria-live="polite"></div>
@@ -466,7 +466,7 @@ table.oc-guide td:first-child{white-space:nowrap;width:1%}
       <details class="sub" id="rawBox">
         <summary>Raw data — paste your own or edit the scan output</summary>
         <p class="hint">One stock per line, comma or tab separated. First 6 fields required. Edit any row and press “Score all”.</p>
-        <code class="cols">SYM, price, EMA20, EMA50, EMA200, RSI, volR, breakout, support, sector, macd, hhhl, resist, probT1, probT10, basePct, baseBars, stage2, RS, setup, trigger, trigWR, athPct, blueSky(1/0), revYoY, profYoY, epsYoY, qDate, profYoYPrev, ttmYoY, coil(...), mvt(...), gg(...), sg(...), dx(...), hdf(thrust|correction|babyRange|volSurge|bars|hi|lo), cdl(code~ago~stat | …), mb(fund|infl|total|cls|arch|…), vm(mult|ago|up|rising), adr(%), nr(4or7|ago|inside|rangePct)</code>
+        <code class="cols">SYM, price, EMA20, EMA50, EMA200, RSI, volR, breakout, support, sector, macd, hhhl, resist, probT1, probT10, basePct, baseBars, stage2, RS, setup, trigger, trigWR, athPct, blueSky(1/0), revYoY, profYoY, epsYoY, qDate, profYoYPrev, ttmYoY, coil(...), mvt(...), gg(...), sg(...), dx(...), hdf(thrust|correction|babyRange|volSurge|bars|hi|lo), cdl(code~ago~stat | …), mb(fund|infl|total|cls|arch|…), vm(mult|ago|up|rising), adr(%), nr(4or7|ago|inside|rangePct|bull)</code>
         <textarea id="batchInput" spellcheck="false" aria-label="Stock data input"></textarea>
         <div class="row-actions">
           <button class="primary" id="scoreBtn">Score all</button>
@@ -866,7 +866,7 @@ GRANULES | 2026-08-18 | | From his 18-Aug retrospective table, self-graded &quot
             <option value="candlesvol">DarvaX Candles — with volume (⚡ 3× + 10&gt;50 DMA)</option>
             <option value="candlesnovol">DarvaX Candles — without volume</option>
             <option value="hiadr">High-ADR movers (≥ 4% daily range)</option>
-            <option value="nr">NR4 / NR7 (narrow-range coil)</option>
+            <option value="nr">NR4 / NR7 ↑ (bullish narrow-range coil)</option>
             <option value="mbtop">Multibagger Radar — all, ranked by score</option>
             <option value="mb">Multibagger Radar — class A / B</option>
             <option value="mba">Multibagger Radar — class A only</option>
@@ -1200,7 +1200,7 @@ GRANULES | 2026-08-18 | | From his 18-Aug retrospective table, self-graded &quot
 
       <h3>NR4 / NR7 — the narrow-range coil</h3>
       <p>A bar is an <b>NR4</b> when its daily high-to-low range is the <i>narrowest of the last 4 days</i>; <b>NR7</b> = narrowest of the last 7 (stronger). Volatility contracts before it expands — an NR7, especially one that's <i>also an inside bar</i> (marked <b>▫</b>), very often precedes a directional move within a few sessions. It's the single-bar version of the 10-DMA coil: a precise "energy is coiled, watch for the break" flag. (Borrowed from PKScreener / the Crabel–Raschke playbook.)</p>
-      <p>Shown as an <code>NR7</code> / <code>NR4▫</code> badge on the symbol (when it printed in the last 3 sessions), in the Analyzer, and as a Chart Book chip. The Screener has an optional <b>NR4 / NR7</b> checkbox and Chart Book a <b>narrow-range coil</b> deck. It's a <i>timing</i> tell, not a direction call — pair it with the trend (RS, Stage-2, price &gt; rising EMAs) so you're trading the expansion in the direction the trend already points, and set an alert just beyond the NR bar's high (long) or low.</p>
+      <p>Shown as an <code>NR7↑</code> / <code>NR4▫↑</code> badge on the symbol (when it printed in the last 3 sessions), in the Analyzer, and as a Chart Book chip. NR on its own doesn't say which way the expansion breaks, so the tool tags each one <b>bullish</b> only when the coil sits <i>inside an uptrend</i> — price above a rising 20-EMA that's above the 50-EMA (the <b>↑</b> mark). The Screener's <b>NR4 / NR7 ↑ (bullish)</b> checkbox and Chart Book's <b>bullish narrow-range coil</b> deck both keep <i>only</i> those; the non-bullish ones still show a dimmed badge for reference but are filtered out. Set an alert just beyond the NR bar's high and let the trend carry the expansion.</p>
 
       <h3>Volume thrust at the moving average — the ⚡ badge (the RATNAVEER pattern)</h3>
       <p>A tight, high-quality trigger for a stock right at the start of a run. All of these have to be true:</p>
@@ -1390,8 +1390,8 @@ GRANULES | 2026-08-18 | | From his 18-Aug retrospective table, self-graded &quot
 
   var SAMPLE = [
     "# cols: SYM,price,EMA20,EMA50,EMA200,RSI,volR,breakout,support,sector,macd,hhhl,resist,probT1,probT10,basePct,baseBars,stage2,RS,setup,trigger,trigWR,athPct,blueSky,revYoY,profYoY,epsYoY,qDate,profYoYPrev,ttmYoY,coil,mvt,gg,sg,dx,hdf,cdl,mb,vm,adr,nr",
-    "HINDZINC, 627, 598, 560, 505, 69, 2.3, 620, 606, L, 1, 1, 0, 0.58, 0.33, 0.06, 22, 6, 88, HDF, inside-bar@0, 0.61, 0.01, 1, 0.19, 0.34, 0.31, 2026-06-30, 0.26, 0.3, , , , , 624|590|12|0.055|0.005|2.4|1|1|1, 0.42|0.16|0.028|1.8|12|624|560, hammer~0~3.4|inside~1~0.62, 72|10|82|C|compounder|15|16|11|7|10|8|5|24.5|13|100|0||0.14|0.18|0.19|1|1.1|0.35|0.09|280000|0|28~0.19~0.16~0.19~0.18|rev-accel+sector-tailwind, 3.4|1|1|1, 4.6, 7|0|1|0.018",
-    "BEL, 415, 402, 395, 360, 66, 1.9, 409, 391, L, 1, 1, 0, 0.55, 0.31, 0.07, 18, 6, 84, BOB, hammer@1, 0.62, 0.03, 1, 0.21, 0.28, 0.27, 2026-06-30, 0.33, 0.24, 14|coil|0.022|0.71|0.006|411||||0.09, , 12|0.06|1|3.6|0.04|420, , , , ldbng~2~2.1|kicker~2~0.004, 80|16|96|B|inflection|16|16|10|8|12|8|6|38|22|100|1|cfdiv|0.16|0.22|0.24|1|0.9|0.05|0.11|95000|0|28~0.17~0.15~0.18~0.22|rev-accel+margin-up+roce-inflect+sector-tailwind, 4.1|0|1|1, 2.2, 4|1|0|0.026",
+    "HINDZINC, 627, 598, 560, 505, 69, 2.3, 620, 606, L, 1, 1, 0, 0.58, 0.33, 0.06, 22, 6, 88, HDF, inside-bar@0, 0.61, 0.01, 1, 0.19, 0.34, 0.31, 2026-06-30, 0.26, 0.3, , , , , 624|590|12|0.055|0.005|2.4|1|1|1, 0.42|0.16|0.028|1.8|12|624|560, hammer~0~3.4|inside~1~0.62, 72|10|82|C|compounder|15|16|11|7|10|8|5|24.5|13|100|0||0.14|0.18|0.19|1|1.1|0.35|0.09|280000|0|28~0.19~0.16~0.19~0.18|rev-accel+sector-tailwind, 3.4|1|1|1, 4.6, 7|0|1|0.018|1",
+    "BEL, 415, 402, 395, 360, 66, 1.9, 409, 391, L, 1, 1, 0, 0.55, 0.31, 0.07, 18, 6, 84, BOB, hammer@1, 0.62, 0.03, 1, 0.21, 0.28, 0.27, 2026-06-30, 0.33, 0.24, 14|coil|0.022|0.71|0.006|411||||0.09, , 12|0.06|1|3.6|0.04|420, , , , ldbng~2~2.1|kicker~2~0.004, 80|16|96|B|inflection|16|16|10|8|12|8|6|38|22|100|1|cfdiv|0.16|0.22|0.24|1|0.9|0.05|0.11|95000|0|28~0.17~0.15~0.18~0.22|rev-accel+margin-up+roce-inflect+sector-tailwind, 4.1|0|1|1, 2.2, 4|1|0|0.026|1",
     "JINDALSTEL, 1175, 1120, 1090, 1010, 60, 1.4, 1160, 1120, L, 1, 1, 1240, 0.5, 0.27, 0.11, 26, 5, 76, LBB, , , 0.11, 0, 0.08, 0.12, 0.1, 2026-03-31, 0.21, 0.1, , 4.2|50|0.014|1|1|0.03|12|78",
     "MEESHO, 205, 198, 190, 0, 63, 1.4, 200, 191, I, 1, 1, 0, 0.5, 0.26, 0.08, 14, 5, 72, S2P, pin-bar@0, 0.58, 0.05, 0, 0.33, 99, 99, 2026-06-30, , , 9|pop|0.021|0.66|0.032|201|1|0.043|1.9|0.08",
     "SAIL, 195, 190, 185, 132, 55, 0.9, 201, 188, L, 1, 0, 201, 0.44, 0.22, 0.06, 20, 5, 66, COIL, , , 0.14, 0, -0.04, -0.22, -0.21, 2026-06-30, -0.1, -0.15, , , , 0.18|11|1|3.8|178|2|0.015",
@@ -1594,7 +1594,7 @@ GRANULES | 2026-08-18 | | From his 18-Aug retrospective table, self-graded &quot
       d.vm = (vmp[0] && +vmp[0]>=3) ? { mult:+vmp[0]||0, ago:+vmp[1]||0, up:vmp[2]==="1", rising:vmp[3]==="1" } : null;
       d.adr = pf(39);
       var nrp = (p[40]||"").split("|");
-      d.nr = (nrp[0] && +nrp[0]>=4) ? { n:+nrp[0]||0, ago:+nrp[1]||0, inside:nrp[2]==="1", rangePct:+nrp[3]||0 } : null;
+      d.nr = (nrp[0] && +nrp[0]>=4) ? { n:+nrp[0]||0, ago:+nrp[1]||0, inside:nrp[2]==="1", rangePct:+nrp[3]||0, bull:nrp[4]==="1" } : null;
       var st = deriveStructure(d.price, d.breakout, d.basePct, d.baseBars, d.volRatio);
       d.structurePts=st.pts; d.structureLbl=st.label;
       rows.push(d);
@@ -1857,7 +1857,7 @@ GRANULES | 2026-08-18 | | From his 18-Aug retrospective table, self-graded &quot
     if(onlyRes) shown = shown.filter(function(e){ var c=resultGrade(e.d).code; return c==="good" || c==="superb"; });
     if(onlyMV) shown = shown.filter(function(e){ return !!e.d.mvt; });
     if(minADR>0) shown = shown.filter(function(e){ return e.d.adr!=null && e.d.adr >= minADR; });
-    if(onlyNRf) shown = shown.filter(function(e){ return e.d.nr && e.d.nr.ago<=2; });
+    if(onlyNRf) shown = shown.filter(function(e){ return e.d.nr && e.d.nr.ago<=2 && e.d.nr.bull; });
     if(onlyAct) shown = shown.filter(function(e){ return e.actionable; });
 
     if(!shown.length){
@@ -1872,7 +1872,7 @@ GRANULES | 2026-08-18 | | From his 18-Aug retrospective table, self-graded &quot
           '<td class="sym">'+esc(e.d.symbol)+(e.d.blueSky?' <span class="pos" title="uncharted territory — price above all prior highs, no overhead supply" style="font-size:9px">ATH</span>':'')+
             (e.d.mvt?' <span class="pos" title="'+esc(e.d.mvt.mult+'× volume on an up bar '+(e.d.mvt.ago===0?'today':e.d.mvt.ago+' session'+(e.d.mvt.ago>1?'s':'')+' ago')+' on the '+e.d.mvt.ma+'-SMA'+(e.d.mvt.gcAgo!=null?' · 10/50 golden cross '+e.d.mvt.gcAgo+' sessions ago':'')+(e.d.mvt.track!=null?' · price tracked the 10-SMA '+e.d.mvt.track+'% of bars since':''))+'" style="font-size:9px">⚡'+e.d.mvt.mult+'×@'+e.d.mvt.ma+'</span>':'')+
             (e.d.adr!=null?' <span class="'+(e.d.adr>=4?'pos':e.d.adr>=2.5?'':'dim')+'" title="Average Daily Range '+e.d.adr.toFixed(1)+'% — Qullamaggie volatility filter (≥4% = a breakout can run fast)" style="font-size:9px">'+e.d.adr.toFixed(1)+'%adr</span>':'')+
-            (e.d.nr && e.d.nr.ago<=2?' <span class="warn" title="NR'+e.d.nr.n+' — narrowest daily range of the last '+e.d.nr.n+' days'+(e.d.nr.inside?', and an inside bar':'')+(e.d.nr.ago===0?' (today)':' ('+e.d.nr.ago+'d ago)')+'. Expansion usually follows within a few sessions." style="font-size:9px">NR'+e.d.nr.n+(e.d.nr.inside?'▫':'')+'</span>':'')+'</td>'+
+            (e.d.nr && e.d.nr.ago<=2?' <span class="'+(e.d.nr.bull?'warn':'dim')+'" title="NR'+e.d.nr.n+' — narrowest daily range of the last '+e.d.nr.n+' days'+(e.d.nr.inside?', and an inside bar':'')+(e.d.nr.ago===0?' (today)':' ('+e.d.nr.ago+'d ago)')+'. '+(e.d.nr.bull?'In an uptrend — expansion usually resolves with the trend, i.e. up.':'NOT in an uptrend — direction of the expansion is a coin-flip.')+'" style="font-size:9px">NR'+e.d.nr.n+(e.d.nr.inside?'▫':'')+(e.d.nr.bull?'↑':'')+'</span>':'')+'</td>'+
           '<td class="num">'+e.sc.total+'</td>'+
           '<td class="num">'+rsCell(e.d.rs)+'</td>'+
           '<td><span class="pill '+e.v.cls+'">'+esc(e.v.label.replace(/ —.*/,""))+'</span></td>'+
@@ -1906,7 +1906,7 @@ GRANULES | 2026-08-18 | | From his 18-Aug retrospective table, self-graded &quot
     var dueRes = evals.filter(function(e){ var t=resultTiming(e.d.qDate); return t && t.dueSoon; }).length;
     var maVol = evals.filter(function(e){ return !!e.d.mvt; }).length;
     var hiAdr = evals.filter(function(e){ return e.d.adr!=null && e.d.adr>=4; }).length;
-    var nrN = evals.filter(function(e){ return e.d.nr && e.d.nr.ago<=2; }).length;
+    var nrN = evals.filter(function(e){ return e.d.nr && e.d.nr.ago<=2 && e.d.nr.bull; }).length;
     var aplus = evals.filter(function(e){ return setupGrade(e.d)==="A+"; }).length;
     var topRs = evals.slice().filter(function(e){return e.d.rs!=null;}).sort(function(a,b){return b.d.rs-a.d.rs;})[0];
     summary.innerHTML =
@@ -1918,7 +1918,7 @@ GRANULES | 2026-08-18 | | From his 18-Aug retrospective table, self-graded &quot
       '<span class="chip"><b>'+strongRes+'</b> strong results'+(weakRes?' · '+weakRes+' shrinking':'')+(dueRes?' · <span class="warn">'+dueRes+' result due</span>':'')+'</span>'+
       (maVol?'<span class="chip"><b>'+maVol+'</b> 3× vol @ MA</span>':'')+
       (hiAdr?'<span class="chip"><b>'+hiAdr+'</b> ADR ≥ 4%</span>':'')+
-      (nrN?'<span class="chip"><b>'+nrN+'</b> NR4/7</span>':'')+
+      (nrN?'<span class="chip"><b>'+nrN+'</b> NR4/7 ↑</span>':'')+
       '<span class="chip"><b>'+act+'</b> actionable</span>'+
       (topRs?'<span class="chip">strongest: <b>'+esc(topRs.d.symbol)+'</b> RS '+topRs.d.rs+'</span>':'')+
       (best?'<span class="chip">top score: <b>'+esc(best.d.symbol)+'</b> ('+best.sc.total+')</span>':'');
@@ -2496,7 +2496,7 @@ GRANULES | 2026-08-18 | | From his 18-Aug retrospective table, self-graded &quot
       case "candlesvol":   return /^(A|B)$/.test(bookCandleTier(d)) && !!d.vm;
       case "candlesnovol": return /^(A|B)$/.test(bookCandleTier(d)) && !d.vm;
       case "hiadr":        return d.adr!=null && d.adr>=4;
-      case "nr":           return d.nr && d.nr.ago<=2;
+      case "nr":           return d.nr && d.nr.ago<=2 && d.nr.bull;
       case "mb":         return d.mb && /^(A|B)$/.test(d.mb.cls);
       case "mba":        return d.mb && d.mb.cls==="A";
       case "mbtop":      return !!(d.mb && d.mb.total!=null);
@@ -2531,7 +2531,7 @@ GRANULES | 2026-08-18 | | From his 18-Aug retrospective table, self-graded &quot
     if(d.mvt) tags.push({t:"⚡ vol thrust @ "+d.mvt.ma+"-MA", c:"pos"});
     else if(d.vm) tags.push({t:"⚡ "+d.vm.mult+"× vol + 10>50 DMA"+(d.vm.ago===0?" today":" "+d.vm.ago+"d"), c:"pos"});
     if(d.adr!=null && d.adr>=3.5) tags.push({t:"ADR "+d.adr.toFixed(1)+"%", c: d.adr>=6?"pos":d.adr>=4?"warn":"dim"});
-    if(d.nr && d.nr.ago<=2) tags.push({t:"NR"+d.nr.n+(d.nr.inside?" ▫inside":"")+(d.nr.ago===0?" today":" "+d.nr.ago+"d"), c:"warn"});
+    if(d.nr && d.nr.ago<=2) tags.push({t:"NR"+d.nr.n+(d.nr.bull?" ↑":"")+(d.nr.inside?" ▫inside":"")+(d.nr.ago===0?" today":" "+d.nr.ago+"d"), c: d.nr.bull?"warn":"dim"});
     if(d.blueSky) tags.push({t:"All-time high", c:"pos"});
     var rt = resultTiming(d.qDate);
     if(rt && rt.dueSoon) tags.push({t:"⚠ result due ~"+rt.nextTxt, c:"neg"});
@@ -3067,7 +3067,7 @@ GRANULES | 2026-08-18 | | From his 18-Aug retrospective table, self-graded &quot
           (d.rs!=null?'<span class="dim"> /99</span>':'')+'</div></div>'+
         '<div><div class="k">ADR % (daily range)</div><div class="v '+(d.adr!=null&&d.adr>=4?'pos':d.adr!=null&&d.adr<2.5?'dim':'')+'">'+(d.adr!=null?d.adr.toFixed(1)+'%':'<span class="dim">–</span>')+
           (d.adr!=null?'<span class="dim"> '+(d.adr>=5?'fast mover':d.adr>=3.5?'ok':'slow')+'</span>':'')+'</div></div>'+
-        '<div><div class="k">Narrow range</div><div class="v '+(d.nr&&d.nr.ago<=2?'warn':'')+'">'+(d.nr&&d.nr.ago<=2?('NR'+d.nr.n+(d.nr.inside?' ▫inside':'')+'<span class="dim"> '+(d.nr.ago===0?'today':d.nr.ago+'d ago')+'</span>'):'<span class="dim">–</span>')+'</div></div>'+
+        '<div><div class="k">Narrow range</div><div class="v '+(d.nr&&d.nr.ago<=2?(d.nr.bull?'warn':'dim'):'')+'">'+(d.nr&&d.nr.ago<=2?('NR'+d.nr.n+(d.nr.bull?' ↑':' <span class="dim">(not in uptrend)</span>')+(d.nr.inside?' ▫inside':'')+'<span class="dim"> '+(d.nr.ago===0?'today':d.nr.ago+'d ago')+'</span>'):'<span class="dim">–</span>')+'</div></div>'+
         '<div><div class="k">Support / Resist</div><div class="v">'+(d.support>0?nfmt(d.support):"–")+' / '+(d.resistance>0?nfmt(d.resistance):"sky")+'</div></div>'+
         '<div><div class="k">Est. hit-rate +5% / +10%</div><div class="v">'+pctT1+'% / '+pctT10+'%<span class="dim"> '+(e.prob.src==="hist"?("hist"+(e.prob.n?" n="+e.prob.n:"")):"est")+'</span></div></div>'+
       '</div>'+
@@ -3972,7 +3972,7 @@ GRANULES | 2026-08-18 | | From his 18-Aug retrospective table, self-graded &quot
   // NR4 / NR7 — a recent bar's daily range is the narrowest of the last 4 / 7 days.
   // A classic pre-expansion / pre-breakout coil (Crabel, Raschke). Tighter still if it's
   // also an inside bar. Looks at the last 3 bars, returns the most recent NR4-or-better.
-  function narrowRange(h,l,c){
+  function narrowRange(h,l,c,e20a,e50a){
     var n=c.length; if(n<9) return null;
     var rng=[], i; for(i=0;i<n;i++) rng.push(h[i]-l[i]);
     for(i=n-1; i>=n-3 && i>=7; i--){
@@ -3980,7 +3980,12 @@ GRANULES | 2026-08-18 | | From his 18-Aug retrospective table, self-graded &quot
       for(k=i-3;k<i;k++) if(rng[k] <= r) is4=false;
       for(k=i-6;k<i;k++) if(rng[k] <= r) is7=false;
       if(!is4) continue;
-      return { n:(is7?7:4), ago:(n-1-i), inside:(h[i]<=h[i-1] && l[i]>=l[i-1]), rangePct:(c[i]>0 ? r/c[i] : 0) };
+      var e20=e20a&&e20a[i], e50=e50a&&e50a[i];
+      // bullish = the coil is inside an uptrend (price over a rising 20>50 EMA), else a recent up-move
+      var bull = (e20!=null && e50!=null)
+        ? (c[i] > e20 && e20 > e50 && (i<15 || e20 > e20a[i-15]))
+        : (c[i] > c[Math.max(0,i-10)]*1.02);
+      return { n:(is7?7:4), ago:(n-1-i), inside:(h[i]<=h[i-1] && l[i]>=l[i-1]), rangePct:(c[i]>0 ? r/c[i] : 0), bull:!!bull };
     }
     return null;
   }
@@ -4471,8 +4476,8 @@ GRANULES | 2026-08-18 | | From his 18-Aug retrospective table, self-graded &quot
     var st2 = stage2Score(c,h,l,e50,e150,e200,e50a,e200a);
     var atrNow = atrPct(h,l,c,14), atrThen = atrPct(h.slice(0,-40), l.slice(0,-40), c.slice(0,-40), 14);
     var adr20 = adrPct(h,l,c,20);
-    var nr = narrowRange(h,l,c);
-    var nrStr = nr ? [nr.n, nr.ago, (nr.inside?1:0), Math.round(nr.rangePct*1000)/1000].join("|") : "";
+    var nr = narrowRange(h,l,c,e20a,e50a);
+    var nrStr = nr ? [nr.n, nr.ago, (nr.inside?1:0), Math.round(nr.rangePct*1000)/1000, (nr.bull?1:0)].join("|") : "";
     var sb = stairBases(h,l,c);
     var nC=c.length, low5=Math.min.apply(null, l.slice(-5));
     var e20rise = e20a[nC-1]!=null && e20a[Math.max(0,nC-9)]!=null && e20a[nC-1] > e20a[Math.max(0,nC-9)];
