@@ -76,8 +76,8 @@ a{color:var(--accent);text-underline-offset:2px}
 .icon-btn{width:38px;height:34px;border:1px solid var(--line-strong);border-radius:6px;background:var(--bg)}
 
 /* tabs */
-.tabs{display:flex;gap:2px;padding:12px 24px 0;background:var(--surface);border-bottom:1px solid var(--line)}
-.tabs button{padding:9px 15px;background:transparent;border:0;border-bottom:2px solid transparent;color:var(--muted);font-weight:500;font-size:14px}
+.tabs{display:flex;flex-wrap:wrap;gap:2px;padding:12px 24px 0;background:var(--surface);border-bottom:1px solid var(--line)}
+.tabs button{padding:9px 13px;background:transparent;border:0;border-bottom:2px solid transparent;color:var(--muted);font-weight:500;font-size:14px}
 .tabs button.active{color:var(--ink);border-bottom-color:var(--accent)}
 
 main{max-width:1180px;margin:0 auto;padding:22px 24px 40px}
@@ -290,7 +290,7 @@ table.oc-guide td:first-child{white-space:nowrap;width:1%}
     <span class="mark" aria-hidden="true">₹</span>
     <div>
       <h1>The 10% Ledger</h1>
-      <p>Momentum + pullback screener · NSE swing setups <span style="opacity:.5;font-size:11px">· build 2026-09-08c</span></p>
+      <p>Momentum + pullback screener · NSE swing setups <span style="opacity:.5;font-size:11px">· build 2026-09-08d</span></p>
     </div>
   </div>
   <div class="controls">
@@ -328,6 +328,7 @@ table.oc-guide td:first-child{white-space:nowrap;width:1%}
   <button data-tab="darvas">Darvas Box</button>
   <button data-tab="hdf">High Dry Fry</button>
   <button data-tab="coil">10-DMA Coil</button>
+  <button data-tab="candles">DarvaX Candles</button>
   <button data-tab="signals">Signal Log</button>
   <button data-tab="book">Chart Book</button>
   <button data-tab="analyzer">Analyzer</button>
@@ -439,7 +440,7 @@ table.oc-guide td:first-child{white-space:nowrap;width:1%}
       <details class="sub" id="rawBox">
         <summary>Raw data — paste your own or edit the scan output</summary>
         <p class="hint">One stock per line, comma or tab separated. First 6 fields required. Edit any row and press “Score all”.</p>
-        <code class="cols">SYM, price, EMA20, EMA50, EMA200, RSI, volR, breakout, support, sector, macd, hhhl, resist, probT1, probT10, basePct, baseBars, stage2, RS, setup, trigger, trigWR, athPct, blueSky(1/0), revYoY, profYoY, epsYoY, qDate, profYoYPrev, ttmYoY, coil(...), mvt(...), gg(...), sg(...), dx(...), hdf(thrust|correction|babyRange|volSurge|bars|hi|lo)</code>
+        <code class="cols">SYM, price, EMA20, EMA50, EMA200, RSI, volR, breakout, support, sector, macd, hhhl, resist, probT1, probT10, basePct, baseBars, stage2, RS, setup, trigger, trigWR, athPct, blueSky(1/0), revYoY, profYoY, epsYoY, qDate, profYoYPrev, ttmYoY, coil(...), mvt(...), gg(...), sg(...), dx(...), hdf(thrust|correction|babyRange|volSurge|bars|hi|lo), cdl(code~ago~stat | …)</code>
         <textarea id="batchInput" spellcheck="false" aria-label="Stock data input"></textarea>
         <div class="row-actions">
           <button class="primary" id="scoreBtn">Score all</button>
@@ -640,6 +641,58 @@ table.oc-guide td:first-child{white-space:nowrap;width:1%}
       </div>
 
       <p class="hint" style="margin-top:12px"><b>Days roped</b> = the longest recent window (6–24 sessions) where the base was tight (≤15% high-to-low), ~most bars closed within 5% of the 10-DMA and had a daily range ≤6%, volume stayed near its pre-base level, and the 10-DMA was flat-to-rising. It's window-based, so one or two wider or busier bars don't break it. <b>Pop</b> = a wide up-candle (≥1.5× the recent average range) on ≥1.3× volume closing up ≥1.2%. Add coilers to your watchlist (open one → Analyze → <i>Add to watchlist</i>) and set a price alert at <b>Alert above</b>. The pattern fails if the 10-DMA rolls over or the market regime turns Red.</p>
+    </div>
+  </section>
+
+  <!-- DARVAX CANDLES -->
+  <section id="tab-candles" hidden>
+    <div class="panel">
+      <div class="scan-head">
+        <h2>DarvaX Candles</h2>
+        <span class="scan-meta" id="cdlMeta"></span>
+      </div>
+      <p class="hint">Every named candle / bar pattern from the @AmitabhJha3 (DarvaX) deck that printed in the <b>last few sessions</b> of your scan. The headline one — <b>Chikni Chameli / Lollipop</b> = a hammer whose lower wick is <b>≥ 3× the body</b> with almost no upper wick. Read these as <i>triggers to check the chart</i>, never buy signals on their own.</p>
+      <div class="scan-head" style="margin-top:2px;flex-wrap:wrap;gap:8px">
+        <label class="chk" style="margin-left:0">Pattern
+          <select id="cdlKind" style="margin-left:6px">
+            <option value="">any</option>
+            <option value="hammer">Chikni Chameli / Lollipop (hammer)</option>
+            <option value="invhammer">Ulta Lollipop (inverted hammer)</option>
+            <option value="chudail">Chudail (shooting star)</option>
+            <option value="ldbng">Lal Dabangg (wide bullish marubozu)</option>
+            <option value="engulf">Laal Chadi Maidan Khadi (bullish engulfing)</option>
+            <option value="kicker">Bullish Kicker</option>
+            <option value="tasuki">Bullish Tasuki Line</option>
+            <option value="mstar">Morning Star</option>
+            <option value="rising3">Rising Three</option>
+            <option value="inside">DarvaX Jalwa (inside bar)</option>
+            <option value="baby">Chotu Chotu Baby (cluster)</option>
+            <option value="chooriyan">9-9 Chooriyan (equal lows)</option>
+            <option value="doji">Doji</option>
+          </select>
+        </label>
+        <label class="chk" style="margin-left:0"><input type="checkbox" id="cdlBull" checked> Bullish only</label>
+        <label class="chk" style="margin-left:0"><input type="checkbox" id="cdlFresh" checked> Fresh (≤ 2 sessions)</label>
+        <label class="chk" style="margin-left:0"><input type="checkbox" id="cdlS2"> Stage-2 / setup only</label>
+      </div>
+      <div class="summary" id="cdlSummary" aria-live="polite"></div>
+      <div class="table-wrap">
+        <table id="cdlTable">
+          <thead><tr>
+            <th>Symbol</th>
+            <th title="DarvaX's name for the pattern, and the standard name">Candle</th>
+            <th title="Bullish / bearish / neutral read of the pattern">Bias</th>
+            <th title="Sessions since the pattern printed (0 = the latest completed bar)">Bars ago</th>
+            <th title="The pattern's key measure — e.g. wick-to-body multiple for a hammer, gap % for a kicker">Strength</th>
+            <th>RS</th>
+            <th title="The Stage-2 continuation setup, if any">Setup</th>
+            <th title="Odds of +10% before the stop, from this stock's history">Prob</th>
+            <th></th>
+          </tr></thead>
+          <tbody id="cdlBody"><tr><td colspan="9" class="empty">Run a scan (Screener → Scan now), then come back here.</td></tr></tbody>
+        </table>
+      </div>
+      <p class="hint" style="margin-top:12px"><b>How DarvaX uses these:</b> a bullish candle (hammer / kicker / engulfing / Tasuki / morning star) that prints <i>at a rising 10 / 20 / 50 EMA or the top of a Darvas box, on volume</i> is the entry trigger — buy above that candle's high, stop under its low. The <b>Chudail</b> (long upper wick at highs) is the opposite — a distribution warning to tighten stops or stand aside. <b>Chotu Chotu Baby</b> clusters and <b>9-9 Chooriyan</b> equal lows mark a base forming — not a trade yet, add to the watchlist. Higher timeframe = higher reliability: a weekly inside bar or weekly hammer beats the daily version. Full vocabulary and the deck mapping are in the <b>Playbook</b>.</p>
     </div>
   </section>
 
@@ -1013,6 +1066,26 @@ GRANULES | 2026-08-18 | | From his 18-Aug retrospective table, self-graded &quot
       </ul>
       <p>Filters: <b>Watchlist only</b> (just names you've saved) and <b>Uptrend only</b> (RS ≥ 45 — skip coils in downtrends, which usually break down). The edge: you enter on the release with a stop just under the tight range (a small, well-defined risk), and the coil's own tightness tells you the move that follows is usually several times that risk. It fails when the 10-DMA rolls over or the market regime turns Red — don't take coils into a falling market.</p>
 
+      <h3>DarvaX Candles — its own tab</h3>
+      <p>@AmitabhJha3's deck gives the standard candlestick patterns his own Bollywood names. The <b>DarvaX Candles</b> tab runs a detector over the last 5–6 sessions of every stock in your scan and lists each named pattern that printed, newest first. The one the tab leads with — <b>Chikni Chameli / Lollipop</b> — is a hammer whose <b>lower wick is at least 3× the body</b>, tiny upper wick, body in the top of the range: buyers slammed a sell-off shut. Here is the full vocabulary and what each maps to:</p>
+      <table>
+        <tr><th>DarvaX name</th><th>Standard pattern</th><th>Read</th></tr>
+        <tr><td><b>Chikni Chameli / Lollipop</b></td><td>Hammer — long lower wick ≥ 3× body</td><td>Bullish reversal; strongest at a rising EMA or box floor on volume</td></tr>
+        <tr><td><b>Ulta Lollipop</b></td><td>Inverted hammer — long upper wick ≥ 3× body</td><td>Bullish <i>only</i> after a fall and with follow-through; otherwise a stall</td></tr>
+        <tr><td><b>Chudail</b> (witch)</td><td>Shooting star at highs — long upper wick, close in lower half</td><td>Bearish / distribution warning — tighten stops, don't add</td></tr>
+        <tr><td><b>Lal Dabangg</b></td><td>Wide-range bullish marubozu — body ≥ 1.8× recent average, tiny wicks, close on the high, volume ≥ 1.5×</td><td>Demand candle — the move has force behind it</td></tr>
+        <tr><td><b>Laal Chadi Maidan Khadi</b></td><td>Bullish engulfing — green body swallows the prior red body</td><td>Bullish reversal</td></tr>
+        <tr><td><b>Bullish Kicker</b></td><td>Prior red candle, then a gap up over its open and a strong green close</td><td>Sharp sentiment flip — one of DarvaX's favourites</td></tr>
+        <tr><td><b>Bullish Tasuki Line</b></td><td>Long red candle, then a candle that opens <i>and</i> closes above its high, ideally on huge volume</td><td>Reversal off a sell-off</td></tr>
+        <tr><td><b>Morning Star</b></td><td>Big red, small indecision candle gapping down, big green closing back into the first body</td><td>3-bar bottom reversal</td></tr>
+        <tr><td><b>Rising Three</b></td><td>Big green, three small candles staying inside its range, then a green close above its high</td><td>Bullish continuation — the trend rests and resumes</td></tr>
+        <tr><td><b>DarvaX Jalwa</b></td><td>Inside bar — a bar whose whole range sits inside the previous bar's</td><td>Coiling; weekly / monthly inside bars are the ones that pay</td></tr>
+        <tr><td><b>Chotu Chotu Baby</b></td><td>A cluster of ≥ 3 very small-range candles together</td><td>A base forming — "hum saath saath hain" — not a trade yet</td></tr>
+        <tr><td><b>9-9 Chooriyan</b></td><td>Three or more of the last 8 lows within ~1% of each other</td><td>A firm floor being tested — accumulation zone</td></tr>
+        <tr><td><b>Doji</b></td><td>Open ≈ close, real range present</td><td>Indecision — meaningful only at a level, with the next candle for confirmation</td></tr>
+      </table>
+      <p>Filters: a <b>pattern</b> dropdown, <b>Bullish only</b>, <b>Fresh (≤ 2 sessions)</b>, and <b>Stage-2 / setup only</b> (restrict to names already in an uptrend / continuation setup — a hammer in a downtrend is just a bounce). Each row shows the pattern's key measure (wick-to-body multiple, gap %, inside-bar tightness…), the RS rank, the continuation setup and the +10% hit-rate. <b>These are triggers to open the chart, not buy signals.</b> DarvaX's own rule: the candle has to print <i>at</i> a rising 10 / 20 / 50 EMA or the top of a Darvas box, on volume — then you buy above its high with the stop under its low. Not detected here (they need pattern-drawing, not single bars): Darvas box, saucer / rounding bottom, double bottom, 123, triangles, broadening — those live in the <b>Darvas Box</b> tab and the chart.</p>
+
       <h3>Volume thrust at the moving average — the ⚡ badge (the RATNAVEER pattern)</h3>
       <p>A tight, high-quality trigger for a stock right at the start of a run. All of these have to be true:</p>
       <ul>
@@ -1180,9 +1253,9 @@ GRANULES | 2026-08-18 | | From his 18-Aug retrospective table, self-graded &quot
   };
 
   var SAMPLE = [
-    "# cols: SYM,price,EMA20,EMA50,EMA200,RSI,volR,breakout,support,sector,macd,hhhl,resist,probT1,probT10,basePct,baseBars,stage2,RS,setup,trigger,trigWR,athPct,blueSky,revYoY,profYoY,epsYoY,qDate,profYoYPrev,ttmYoY,coil,mvt,gg,sg,dx,hdf",
-    "HINDZINC, 627, 598, 560, 505, 69, 2.3, 620, 606, L, 1, 1, 0, 0.58, 0.33, 0.06, 22, 6, 88, HDF, inside-bar@0, 0.61, 0.01, 1, 0.19, 0.34, 0.31, 2026-06-30, 0.26, 0.3, , , , , 624|590|12|0.055|0.005|2.4|1|1|1, 0.42|0.16|0.028|1.8|12|624|560",
-    "BEL, 415, 402, 395, 360, 66, 1.9, 409, 391, L, 1, 1, 0, 0.55, 0.31, 0.07, 18, 6, 84, BOB, hammer@1, 0.62, 0.03, 1, 0.21, 0.28, 0.27, 2026-06-30, 0.33, 0.24, 14|coil|0.022|0.71|0.006|411||||0.09, , 12|0.06|1|3.6|0.04|420",
+    "# cols: SYM,price,EMA20,EMA50,EMA200,RSI,volR,breakout,support,sector,macd,hhhl,resist,probT1,probT10,basePct,baseBars,stage2,RS,setup,trigger,trigWR,athPct,blueSky,revYoY,profYoY,epsYoY,qDate,profYoYPrev,ttmYoY,coil,mvt,gg,sg,dx,hdf,cdl",
+    "HINDZINC, 627, 598, 560, 505, 69, 2.3, 620, 606, L, 1, 1, 0, 0.58, 0.33, 0.06, 22, 6, 88, HDF, inside-bar@0, 0.61, 0.01, 1, 0.19, 0.34, 0.31, 2026-06-30, 0.26, 0.3, , , , , 624|590|12|0.055|0.005|2.4|1|1|1, 0.42|0.16|0.028|1.8|12|624|560, hammer~0~3.4|inside~1~0.62",
+    "BEL, 415, 402, 395, 360, 66, 1.9, 409, 391, L, 1, 1, 0, 0.55, 0.31, 0.07, 18, 6, 84, BOB, hammer@1, 0.62, 0.03, 1, 0.21, 0.28, 0.27, 2026-06-30, 0.33, 0.24, 14|coil|0.022|0.71|0.006|411||||0.09, , 12|0.06|1|3.6|0.04|420, , , , ldbng~2~2.1|kicker~2~0.004",
     "JINDALSTEL, 1175, 1120, 1090, 1010, 60, 1.4, 1160, 1120, L, 1, 1, 1240, 0.5, 0.27, 0.11, 26, 5, 76, LBB, , , 0.11, 0, 0.08, 0.12, 0.1, 2026-03-31, 0.21, 0.1, , 4.2|50|0.014|1|1|0.03|12|78",
     "MEESHO, 205, 198, 190, 0, 63, 1.4, 200, 191, I, 1, 1, 0, 0.5, 0.26, 0.08, 14, 5, 72, S2P, pin-bar@0, 0.58, 0.05, 0, 0.33, 99, 99, 2026-06-30, , , 9|pop|0.021|0.66|0.032|201|1|0.043|1.9|0.08",
     "SAIL, 195, 190, 185, 132, 55, 0.9, 201, 188, L, 1, 0, 201, 0.44, 0.22, 0.06, 20, 5, 66, COIL, , , 0.14, 0, -0.04, -0.22, -0.21, 2026-06-30, -0.1, -0.15, , , , 0.18|11|1|3.8|178|2|0.015",
@@ -1364,6 +1437,8 @@ GRANULES | 2026-08-18 | | From his 18-Aug retrospective table, self-graded &quot
       d.hdf = (hp[0] && +hp[0]>0) ? {
         thrust:+hp[0]||0, correction:+hp[1]||0, babyRange:+hp[2]||0, volSurge:+hp[3]||0, bars:+hp[4]||0, hi:+hp[5]||0, lo:+hp[6]||0
       } : null;
+      var cd = (p[36]||"").split("|").filter(Boolean).map(function(s){ var q=s.split("~"); return {code:(q[0]||"").trim(), ago:+q[1]||0, stat:+q[2]||0}; }).filter(function(x){ return DARVAX_CANDLE[x.code]; });
+      d.cdl = cd.length ? cd : null;
       var st = deriveStructure(d.price, d.breakout, d.basePct, d.baseBars, d.volRatio);
       d.structurePts=st.pts; d.structureLbl=st.label;
       rows.push(d);
@@ -1927,6 +2002,88 @@ GRANULES | 2026-08-18 | | From his 18-Aug retrospective table, self-graded &quot
     }).join("") : '<tr><td colspan="8" class="empty">Nothing has popped out of a coil in the last few sessions.</td></tr>';
 
     $$("#tab-coil .openbtn").forEach(function(btn){
+      btn.addEventListener("click", function(){
+        var row = rows.filter(function(r){ return r.symbol===btn.getAttribute("data-sym"); })[0];
+        if(row){ loadIntoAnalyzer(row); switchTab("analyzer"); }
+      });
+    });
+  }
+
+  /* ---------- DarvaX candles tab ---------- */
+  function cdlBiasCell(dir){
+    if(dir>0) return '<span class="pos">bullish</span>';
+    if(dir<0) return '<span class="neg">bearish</span>';
+    return '<span class="dim">neutral</span>';
+  }
+  function cdlStatTxt(code, stat){
+    if(code==="kicker" || code==="tasuki") return (stat*100).toFixed(1)+"% gap";
+    if(code==="hammer" || code==="invhammer" || code==="chudail") return stat.toFixed(1)+"× body";
+    if(code==="ldbng") return stat.toFixed(1)+"× avg";
+    if(code==="engulf") return stat.toFixed(1)+"× prev";
+    if(code==="inside") return Math.round(stat*100)+"% of mother";
+    if(code==="doji") return Math.round(stat*100)+"% body";
+    if(code==="baby" || code==="chooriyan") return Math.round(stat)+(code==="baby"?" small bars":" touches");
+    if(code==="mstar") return "close "+stat.toFixed(1)+"× into body";
+    return "–";
+  }
+  function renderCandles(){
+    var body = $("#cdlBody"); if(!body) return;
+    var rows = parseBatch($("#batchInput").value);
+    var kind = $("#cdlKind") ? $("#cdlKind").value : "";
+    var bullOnly = $("#cdlBull") && $("#cdlBull").checked;
+    var freshOnly = $("#cdlFresh") && $("#cdlFresh").checked;
+    var s2Only = $("#cdlS2") && $("#cdlS2").checked;
+
+    // flatten: one line per (stock × pattern)
+    var hits = [];
+    rows.forEach(function(d){
+      if(!d.cdl) return;
+      if(s2Only && !(d.setup || (d.stage2||0)>=4)) return;
+      d.cdl.forEach(function(x){
+        var meta = DARVAX_CANDLE[x.code]; if(!meta) return;
+        if(kind && x.code!==kind) return;
+        if(bullOnly && meta.dir<0) return;
+        if(freshOnly && x.ago>2) return;
+        hits.push({d:d, x:x, meta:meta});
+      });
+    });
+    hits.sort(function(a,b){
+      return a.x.ago-b.x.ago || (b.d.rs||0)-(a.d.rs||0) || (b.meta.dir-a.meta.dir);
+    });
+
+    if($("#cdlMeta")) $("#cdlMeta").textContent = rows.length ? (rows.length+" scanned · "+hits.length+" candle"+(hits.length===1?"":"s")) : "no scan data";
+    if($("#cdlSummary")){
+      if(!rows.length){ $("#cdlSummary").innerHTML = ""; }
+      else {
+        var byCode = {};
+        hits.forEach(function(h){ byCode[h.x.code]=(byCode[h.x.code]||0)+1; });
+        var top = Object.keys(byCode).sort(function(a,b){ return byCode[b]-byCode[a]; }).slice(0,4);
+        $("#cdlSummary").innerHTML =
+          '<span class="chip"><b>'+hits.length+'</b> signals</span>'+
+          '<span class="chip"><b>'+hits.filter(function(h){return h.x.ago===0;}).length+'</b> today</span>'+
+          '<span class="chip"><b>'+hits.filter(function(h){return h.meta.dir>0;}).length+'</b> bullish</span>'+
+          top.map(function(cd){ return '<span class="chip">'+esc(DARVAX_CANDLE[cd].name.replace(/ .*/,""))+' <b>'+byCode[cd]+'</b></span>'; }).join("");
+      }
+    }
+
+    body.innerHTML = hits.length ? hits.map(function(h){
+      var d=h.d, x=h.x, m=h.meta;
+      var prob = (d.probT10!=null) ? Math.round(d.probT10*100)+'%' : '<span class="dim">–</span>';
+      var si = rowSetup(d);
+      return '<tr>'+
+        '<td class="sym">'+esc(d.symbol)+(d.blueSky?' <span class="pos" style="font-size:9px">ATH</span>':'')+'</td>'+
+        '<td><b>'+esc(m.name)+'</b><span class="dim"> · '+esc(m.plain)+'</span></td>'+
+        '<td class="num">'+cdlBiasCell(m.dir)+'</td>'+
+        '<td class="num">'+(x.ago===0?'<span class="pos">today</span>':x.ago+'d')+'</td>'+
+        '<td class="num">'+esc(cdlStatTxt(x.code, x.stat))+'</td>'+
+        '<td class="num">'+rsCell(d.rs)+'</td>'+
+        '<td class="num"><span class="'+si.cls+'" style="font-size:11px">'+esc(si.label)+'</span></td>'+
+        '<td class="num">'+prob+'</td>'+
+        '<td><button class="openbtn" data-sym="'+esc(d.symbol)+'">Analyze →</button></td>'+
+      '</tr>';
+    }).join("") : '<tr><td colspan="9" class="empty">No '+(kind?esc(DARVAX_CANDLE[kind].name)+' ':'')+'candle patterns'+(bullOnly?' (bullish)':'')+(freshOnly?' in the last 2 sessions':'')+' in the current scan.</td></tr>';
+
+    $$("#cdlBody .openbtn").forEach(function(btn){
       btn.addEventListener("click", function(){
         var row = rows.filter(function(r){ return r.symbol===btn.getAttribute("data-sym"); })[0];
         if(row){ loadIntoAnalyzer(row); switchTab("analyzer"); }
@@ -3681,6 +3838,67 @@ GRANULES | 2026-08-18 | | From his 18-Aug retrospective table, self-graded &quot
     var tot=wins+losses;
     return tot>=5 ? {p:wins/tot, n:tot} : null;
   }
+  // ---- DarvaX candlestick vocabulary (from the @AmitabhJha3 deck) ----
+  var DARVAX_CANDLE = {
+    hammer:    {name:"Chikni Chameli / Lollipop", plain:"hammer — long lower wick", dir:1,  stat:"wick ÷ body"},
+    invhammer: {name:"Ulta Lollipop",            plain:"inverted hammer",           dir:1,  stat:"wick ÷ body"},
+    chudail:   {name:"Chudail",                   plain:"shooting star at highs",     dir:-1, stat:"wick ÷ body"},
+    ldbng:     {name:"Lal Dabangg",               plain:"wide bullish marubozu",      dir:1,  stat:"body ÷ avg"},
+    doji:      {name:"Ulta Seedha (doji)",        plain:"doji — indecision",          dir:0,  stat:"body % range"},
+    baby:      {name:"Chotu Chotu Baby",          plain:"baby-candle cluster",        dir:0,  stat:"# small bars"},
+    engulf:    {name:"Laal Chadi Maidan Khadi",   plain:"bullish engulfing",          dir:1,  stat:"body ÷ prev"},
+    kicker:    {name:"Bullish Kicker",            plain:"gap-up kicker",              dir:1,  stat:"gap %"},
+    inside:    {name:"DarvaX Jalwa",              plain:"inside bar",                 dir:0,  stat:"inside ÷ mother"},
+    tasuki:    {name:"Bullish Tasuki Line",       plain:"gap up, close over prior high", dir:1, stat:"gap %"},
+    mstar:     {name:"Morning Star",              plain:"3-bar bottom reversal",      dir:1,  stat:"close vs 1st body"},
+    rising3:   {name:"Rising Three",              plain:"bullish continuation",       dir:1,  stat:"—"},
+    chooriyan: {name:"9-9 Chooriyan",             plain:"equal lows — firm floor",    dir:1,  stat:"# touches"}
+  };
+  // scan the last `look` completed bars, return [{code, ago, stat}] — one entry per pattern (most recent)
+  function darvaxCandles(o,h,l,c,v,look){
+    var n=c.length; if(n<20) return [];
+    look = look || 6;
+    var out={}, i, k;
+    var avgBody=0, ab=0, avgRng=0;
+    for(i=Math.max(1,n-20);i<n;i++){ avgBody += Math.abs(c[i]-o[i]); avgRng += (h[i]-l[i]); ab++; }
+    avgBody = ab ? avgBody/ab : 1; avgRng = ab ? avgRng/ab : 1;
+    var vAvg = avgN(v.slice(0, Math.max(1, n-look)), 20) || avgN(v,20) || 1;
+    function add(code, idx, stat){
+      var ago = n-1-idx;
+      if(out[code]==null || ago < out[code].ago) out[code] = {code:code, ago:ago, stat:Math.round((stat||0)*100)/100};
+    }
+    for(i=n-1; i>=Math.max(4, n-look); i--){
+      var O=o[i], C=c[i], H=h[i], L=l[i], rng=H-L; if(rng<=0) continue;
+      var body=Math.abs(C-O)||rng*0.001, up=H-Math.max(O,C), lo=Math.min(O,C)-L;
+      var upTrend = i>=6 && c[i-1] > c[i-6];
+      if(lo >= body*3 && lo >= rng*0.6 && up <= rng*0.15 && rng >= avgRng*0.55) add("hammer", i, lo/body);
+      if(up >= body*3 && up >= rng*0.6 && lo <= rng*0.15 && rng >= avgRng*0.55){
+        if(upTrend && C <= L + rng*0.5) add("chudail", i, up/body);
+        else add("invhammer", i, up/body);
+      }
+      if(C>O && body >= avgBody*1.8 && body >= rng*0.8 && C >= H - rng*0.15 && (v[i]||0) >= vAvg*1.5) add("ldbng", i, body/(avgBody||body));
+      if(body <= rng*0.1 && rng >= avgRng*0.5) add("doji", i, body/rng);
+      if(i>0 && c[i-1]<o[i-1] && C>O && C>=o[i-1] && O<=c[i-1] && body >= Math.abs(c[i-1]-o[i-1])) add("engulf", i, body/(Math.abs(c[i-1]-o[i-1])||body));
+      if(i>0 && c[i-1]<o[i-1] && O >= h[i-1] && C>O && body >= rng*0.55) add("kicker", i, (O-h[i-1])/(h[i-1]||1));
+      if(i>0 && (h[i-1]-l[i-1])>0 && H <= h[i-1] && L >= l[i-1]) add("inside", i, rng/(h[i-1]-l[i-1]));
+      if(i>0 && c[i-1]<o[i-1] && Math.abs(c[i-1]-o[i-1]) >= avgBody*1.1 && O > h[i-1] && C > h[i-1] && C>O) add("tasuki", i, (O-h[i-1])/(h[i-1]||1));
+      if(i>=2){
+        var b2=Math.abs(c[i-2]-o[i-2]), b1=Math.abs(c[i-1]-o[i-1]), mid=(o[i-2]+c[i-2])/2;
+        if(c[i-2]<o[i-2] && b2>=avgBody*1.1 && b1<=avgBody*0.5 && Math.max(o[i-1],c[i-1]) < c[i-2]*1.005 && C>O && C>=mid) add("mstar", i, (C-mid)/(b2||1));
+      }
+      if(i>=4){
+        var f=i-4, fb=c[f]-o[f], ok=fb>0 && fb>=avgBody*1.2;
+        if(ok){ for(k=f+1;k<=i-1;k++){ if(h[k]>h[f] || l[k]<l[f] || Math.abs(c[k]-o[k])>fb*0.7){ ok=false; break; } } }
+        if(ok && C>O && C > h[f]) add("rising3", i, 0);
+      }
+    }
+    var lows=l.slice(Math.max(0,n-8)), base=Math.min.apply(null, lows), touch=0, sm=0;
+    for(i=0;i<lows.length;i++) if(base>0 && (lows[i]-base)/base <= 0.012) touch++;
+    if(touch>=3 && base>0) out.chooriyan = {code:"chooriyan", ago:0, stat:touch};
+    var rngs=[]; for(i=Math.max(1,n-4);i<n;i++){ rngs.push((h[i]-l[i])/(c[i]||1)); if((h[i]-l[i]) <= avgRng*0.45) sm++; }
+    if(sm>=3) out.baby = {code:"baby", ago:0, stat:sm};
+    return Object.keys(out).map(function(x){ return out[x]; }).sort(function(a,b){ return a.ago-b.ago; });
+  }
   function seriesToRow(sym, sector, o, dropForming, weekly){
     var c=o.close, h=o.high, l=o.low, vol=o.volume, ds=o.dates, op=o.open||o.close;
     if(dropForming && ds && ds.length){
@@ -3756,6 +3974,9 @@ GRANULES | 2026-08-18 | | From his 18-Aug retrospective table, self-graded &quot
     var dxStr = dx ? [r3(dx.boxHi), r3(dx.boxLo), dx.boxBars, r3(dx.boxWidth), r3(dx.ext), Math.round(dx.vBreak*10)/10, dx.newHigh, dx.stacked, dx.uptrend].join("|") : "";
     // High Dry Fry detail (only when the setup fired)
     var hdfStr = (hdf && hdf.ok) ? [r3(hdf.thrust), r3(hdf.correction), r3(hdf.babyRange), Math.round(hdf.volSurge*10)/10, hdf.bars, r3(hdf.hi), r3(hdf.lo)].join("|") : "";
+    // DarvaX candle vocabulary — patterns that printed in the last few bars
+    var cdlArr = darvaxCandles(op,h,l,c,vol, weekly?5:6);
+    var cdlStr = cdlArr.length ? cdlArr.map(function(x){ return x.code+"~"+x.ago+"~"+x.stat; }).join("|") : "";
     // last ~400 bars kept for charting the top-ranked names — enough for a real EMA200 and a
     // usable weekly view (≈57 weeks). Rounded to keep localStorage small.
     var TB = 400, ts = Math.max(0, c.length - TB), rnd = function(x){ return Math.round(x*100)/100; };
@@ -3789,7 +4010,7 @@ GRANULES | 2026-08-18 | | From his 18-Aug retrospective table, self-graded &quot
       blueSky: (bsky.newHigh && bsky.above) ? 1 : 0,
       fibZone: fib ? fib.zone : "",
       fibRetr: fib ? Math.round(fib.retr*100)/100 : null,
-      coil: coilStr, mvt: mvtStr, gg: ggStr, sg: sgStr, dx: dxStr, hdf: hdfStr,
+      coil: coilStr, mvt: mvtStr, gg: ggStr, sg: sgStr, dx: dxStr, hdf: hdfStr, cdl: cdlStr,
       revYoY: null, profYoY: null, epsYoY: null, qDate: "", profYoYPrev: null, ttmYoY: null   // filled in later by applyFund()
     };
   }
@@ -3800,7 +4021,7 @@ GRANULES | 2026-08-18 | | From his 18-Aug retrospective table, self-graded &quot
       r.basePct||0, r.baseBars||0, r.stage2||0, (r.rs==null?"":r.rs), (r.setup||""),
       (r.trig||""), (r.trigWR==null?"":r.trigWR), (r.athPct==null?"":r.athPct), (r.blueSky||0),
       (r.revYoY==null?"":r.revYoY), (r.profYoY==null?"":r.profYoY), (r.epsYoY==null?"":r.epsYoY), (r.qDate||""),
-      (r.profYoYPrev==null?"":r.profYoYPrev), (r.ttmYoY==null?"":r.ttmYoY), (r.coil||""), (r.mvt||""), (r.gg||""), (r.sg||""), (r.dx||""), (r.hdf||"")].join(", ");
+      (r.profYoYPrev==null?"":r.profYoYPrev), (r.ttmYoY==null?"":r.ttmYoY), (r.coil||""), (r.mvt||""), (r.gg||""), (r.sg||""), (r.dx||""), (r.hdf||""), (r.cdl||"")].join(", ");
   }
 
   /* ---------- auto-screen: fetch adapters ---------- */
@@ -4144,7 +4365,7 @@ GRANULES | 2026-08-18 | | From his 18-Aug retrospective table, self-graded &quot
     if(!force && state.scanCache && state.scanCache.date===today && state.scanCache.csv && state.scanCache.uniKey===uniKey){
       $("#batchInput").value = state.scanCache.csv;
       state.batchInput = state.scanCache.csv; save();
-      applyLeadingSectors(); renderScreener(); renderGolden(); renderSilver(); renderDarvas(); renderHDF(); renderCoil(); renderSignals(); renderBook();
+      applyLeadingSectors(); renderScreener(); renderGolden(); renderSilver(); renderDarvas(); renderHDF(); renderCoil(); renderCandles(); renderSignals(); renderBook();
       setStatus("cached", false);
       $("#scanErrline").textContent = "Showing today's cached scan of these "+uni.length+" names — press “Force refresh” to re-fetch.";
       return;
@@ -4351,6 +4572,7 @@ GRANULES | 2026-08-18 | | From his 18-Aug retrospective table, self-graded &quot
       renderDarvas();
       renderHDF();
       renderCoil();
+      renderCandles();
       renderSignals();
       renderBook();
       setStatus(aborted?"stopped":"done", false);
@@ -4428,7 +4650,8 @@ GRANULES | 2026-08-18 | | From his 18-Aug retrospective table, self-graded &quot
   /* ---------- tabs / theme / controls ---------- */
   function switchTab(name){
     $$("#tabs button").forEach(function(b){ b.classList.toggle("active", b.getAttribute("data-tab")===name); });
-    ["screener","golden","silver","darvas","hdf","coil","signals","book","analyzer","playbook"].forEach(function(t){ $("#tab-"+t).hidden = (t!==name); });
+    ["screener","golden","silver","darvas","hdf","coil","candles","signals","book","analyzer","playbook"].forEach(function(t){ $("#tab-"+t).hidden = (t!==name); });
+    if(name==="candles") renderCandles();
     if(name==="book") renderBook();
     if(name==="golden") renderGolden();
     if(name==="silver") renderSilver();
@@ -4486,10 +4709,10 @@ GRANULES | 2026-08-18 | | From his 18-Aug retrospective table, self-graded &quot
       var b = e.target.closest("button"); if(b) switchTab(b.getAttribute("data-tab"));
     });
     $("#themeBtn").addEventListener("click", toggleTheme);
-    $("#scoreBtn").addEventListener("click", function(){ state.batchInput = $("#batchInput").value; save(); renderScreener(); renderGolden(); renderSilver(); renderDarvas(); renderHDF(); renderCoil(); renderSignals(); renderBook(); });
+    $("#scoreBtn").addEventListener("click", function(){ state.batchInput = $("#batchInput").value; save(); renderScreener(); renderGolden(); renderSilver(); renderDarvas(); renderHDF(); renderCoil(); renderCandles(); renderSignals(); renderBook(); });
     $("#batchInput").addEventListener("change", function(){ state.batchInput = $("#batchInput").value; save(); });
-    $("#sampleBtn").addEventListener("click", function(){ $("#batchInput").value = SAMPLE; state.batchInput = SAMPLE; save(); renderScreener(); renderGolden(); renderSilver(); renderDarvas(); renderHDF(); renderCoil(); renderSignals(); renderBook(); });
-    $("#clearBtn").addEventListener("click", function(){ $("#batchInput").value = ""; state.batchInput = ""; save(); renderScreener(); renderGolden(); renderSilver(); renderDarvas(); renderHDF(); renderCoil(); renderSignals(); renderBook(); });
+    $("#sampleBtn").addEventListener("click", function(){ $("#batchInput").value = SAMPLE; state.batchInput = SAMPLE; save(); renderScreener(); renderGolden(); renderSilver(); renderDarvas(); renderHDF(); renderCoil(); renderCandles(); renderSignals(); renderBook(); });
+    $("#clearBtn").addEventListener("click", function(){ $("#batchInput").value = ""; state.batchInput = ""; save(); renderScreener(); renderGolden(); renderSilver(); renderDarvas(); renderHDF(); renderCoil(); renderCandles(); renderSignals(); renderBook(); });
     $("#onlyActionable").addEventListener("change", renderScreener);
     $("#onlyBreakout").addEventListener("change", renderScreener);
     $("#onlyStage2").addEventListener("change", renderScreener);
@@ -4504,6 +4727,9 @@ GRANULES | 2026-08-18 | | From his 18-Aug retrospective table, self-graded &quot
     if($("#dxEarnStrict")) $("#dxEarnStrict").addEventListener("change", renderDarvas);
     if($("#hdfAth")) $("#hdfAth").addEventListener("change", renderHDF);
     if($("#hdfAplus")) $("#hdfAplus").addEventListener("change", renderHDF);
+    ["cdlKind","cdlBull","cdlFresh","cdlS2"].forEach(function(id){
+      if($("#"+id)) $("#"+id).addEventListener("change", renderCandles);
+    });
     if($("#bookScope")) $("#bookScope").addEventListener("change", function(){ state.bookScope = this.value; state.bookIdx = 0; save(); renderBook(); });
     if($("#bookPrev")) $("#bookPrev").addEventListener("click", function(){ bookGo(-1); });
     if($("#bookNext")) $("#bookNext").addEventListener("click", function(){ bookGo(1); });
