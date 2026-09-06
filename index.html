@@ -308,7 +308,7 @@ table.oc-guide td:first-child{white-space:nowrap;width:1%}
     <span class="mark" aria-hidden="true">₹</span>
     <div>
       <h1>The 10% Ledger</h1>
-      <p>Momentum + pullback screener · NSE swing setups <span style="opacity:.5;font-size:11px">· build 2026-09-08o</span></p>
+      <p>Momentum + pullback screener · NSE swing setups <span style="opacity:.5;font-size:11px">· build 2026-09-08p</span></p>
     </div>
   </div>
   <div class="controls">
@@ -859,6 +859,7 @@ GRANULES | 2026-08-18 | | From his 18-Aug retrospective table, self-graded &quot
             <option value="coiling">10-DMA Coil — coiling now</option>
             <option value="candles">DarvaX Candles (A / B grade)</option>
             <option value="candlesa">DarvaX Candles (A only)</option>
+            <option value="mbtop">Multibagger Radar — all, ranked by score</option>
             <option value="mb">Multibagger Radar — class A / B</option>
             <option value="mba">Multibagger Radar — class A only</option>
             <option value="watchlist">Watchlist</option>
@@ -1277,7 +1278,7 @@ GRANULES | 2026-08-18 | | From his 18-Aug retrospective table, self-graded &quot
       <h3>Chart Book — its own tab</h3>
       <p>A review surface — flip through the charts from your last scan one at a time, the way you'd page through a printed chart book, instead of clicking <b>Analyze →</b> on each row. <b>‹ Prev / Next ›</b> or the <b>← →</b> arrow keys move between stocks; the position counter shows where you are (e.g. <i>7 / 41</i>). The <b>Find</b> box jumps straight to a symbol (with autocomplete from the scanned names) — if it's in the scan but outside the current <i>Show</i> filter, the filter flips to <i>All scanned</i> so it's reachable.</p>
       <ul>
-        <li><b>Show</b> picks the deck: <i>All scanned</i> (every name, ordered by score), <i>Buy setups only</i> (score ≥ 80 and R:R ≥ 2), <i>Any named setup</i>, or exactly one of the pattern tabs — Golden Guru, Silver Guru, Darvas Box, High Dry Fry, 10-DMA Coil (all / <i>just popped</i> / <i>coiling now</i>), <i>DarvaX Candles</i> (A/B or A-only grade), <i>Multibagger Radar</i> (class A/B or A-only) — or your <i>Watchlist</i>. The membership chips under each chart tell you which screens the stock is in, including its Multibagger class and archetype.</li>
+        <li><b>Show</b> picks the deck: <i>All scanned</i> (every name, ordered by score), <i>Buy setups only</i> (score ≥ 80 and R:R ≥ 2), <i>Any named setup</i>, or exactly one of the pattern tabs — Golden Guru, Silver Guru, Darvas Box, High Dry Fry, 10-DMA Coil (all / <i>just popped</i> / <i>coiling now</i>), <i>DarvaX Candles</i> (A/B or A-only grade), <i>Multibagger Radar</i> (<i>all, ranked by score</i> / class A-B / class A) — or your <i>Watchlist</i>. Class A/B is a deliberately high bar (Total ≥ 85 / 120) so few names clear it — use <i>all, ranked by score</i> to flip through the best fundamental candidates regardless. The membership chips under each chart tell you which screens the stock is in, including its Multibagger class and archetype.</li>
         <li><b>Which screens it passes</b> — a row of chips under the title names every filter this stock currently appears in: its Screener verdict, its setup + confluence grade, and each pattern tab it qualifies for, plus ATH / ⚡ vol-thrust / results-due flags. One glance tells you why the stock is in front of you.</li>
         <li><b>The trade plan</b> — entry, stop-loss (with the % distance), the +10% exit target and the reward:risk ratio up top; then the +5% / +7.5% scale-out levels, risk per share, position size at 1% capital, and the verdict. R:R below 2:1 is called out in red. For <b>Darvas Box</b> and <b>High Dry Fry</b> names it adds Darvas's own entry rule (buy-stop above the prior day's high, 1% stop).</li>
         <li><b>D / W</b> toggles daily / weekly candles (shared with the Analyzer). <b>↻ live</b> forces a fresh candle pull for the stock on screen. <b>☆ Watchlist</b> adds (or removes) the stock on screen to your watchlist — the star fills ★ when it's saved; use it to build a shortlist as you flip through. <b>Full analysis →</b> loads it into the Analyzer for the scorecard, notes, hold-vs-exit and option-chain panels. The <b>+10% odds</b> bar next to it is this stock's estimated chance of hitting +10% before the stop — from its own history where available, <i>e</i> = a score-based estimate.</li>
@@ -2464,6 +2465,7 @@ GRANULES | 2026-08-18 | | From his 18-Aug retrospective table, self-graded &quot
       case "candlesa":   return bookCandleTier(d)==="A";
       case "mb":         return d.mb && /^(A|B)$/.test(d.mb.cls);
       case "mba":        return d.mb && d.mb.cls==="A";
+      case "mbtop":      return !!(d.mb && d.mb.total!=null);
       case "watchlist":  return bookWL()[d.symbol]===1;
       default:           return true;
     }
@@ -2567,7 +2569,10 @@ GRANULES | 2026-08-18 | | From his 18-Aug retrospective table, self-graded &quot
     $$("#bookTF button").forEach(function(x){ x.setAttribute("aria-pressed", String(x.getAttribute("data-v")===(state.chartTF||"daily"))); });
     var rows = parseBatch($("#batchInput").value);
     var pool = rows.filter(function(d){ return bookInScope(d, scope); });
-    pool.sort(function(a,b){ return scoreStock(b).total - scoreStock(a).total; });
+    if(scope==="mb" || scope==="mba" || scope==="mbtop")
+      pool.sort(function(a,b){ return (b.mb?b.mb.total:0) - (a.mb?a.mb.total:0); });
+    else
+      pool.sort(function(a,b){ return scoreStock(b).total - scoreStock(a).total; });
     bookPool = pool;
 
     if($("#bookMeta")) $("#bookMeta").textContent = rows.length ? (rows.length+" scanned · "+pool.length+" in view") : "no scan data";
@@ -5208,6 +5213,9 @@ GRANULES | 2026-08-18 | | From his 18-Aug retrospective table, self-graded &quot
     var wantEvents = state.fetchEvents && isTD;
     var wantResults = !isTD && !isFMP && state.fetchResults!==false;   // pull quarterly results via the same proxy
     var resFail = 0;
+    // give up on the fundamentals feed only after a lot of failures — scaled to the universe,
+    // so a big Nifty-500 scan doesn't lose every stock's financials after a dozen early timeouts
+    var resFailCap = Math.max(25, Math.round(uni.length * 0.25));
     scanAbort = new AbortController();
     scanUIRunning(true);
     var ok=[], failMap={}, extra={}, done=0, total=uni.length, lastStart=0, retried={};
@@ -5245,7 +5253,7 @@ GRANULES | 2026-08-18 | | From his 18-Aug retrospective table, self-graded &quot
             try{ row = seriesToRow(item.sym, item.sector, o, state.dropForming!==false, state.timeframe==="weekly"); ok.push(row); delete failMap[item.sym]; }
             catch(e){ failMap[item.sym] = e.message; }
             // best-effort: latest quarterly results via the same proxy (never fails the price row)
-            if(row && wantResults && !scanAbort.signal.aborted && resFail < 12){
+            if(row && wantResults && !scanAbort.signal.aborted && resFail < resFailCap){
               return fetchFundamentals(item.sym, cfg, scanAbort.signal)
                 .then(function(f){ applyFund(row, f); }, function(){ resFail++; });
             }
