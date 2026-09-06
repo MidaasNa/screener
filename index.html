@@ -16,7 +16,8 @@
   --pos:#1c7c46; --pos-bg:#e3f0e7;
   --warn:#a9750c; --warn-bg:#f6ebd5;
   --neg:#bb3b28; --neg-bg:#f6e2dc;
-  --focus:#a9791f;
+  --focus:#1f7a8c;
+  --btn:#1f7a8c; --btn-hi:#2b95a8; --btn-soft:#e0f0f2; --btn-ink:#ffffff;
 }
 @media (prefers-color-scheme:dark){
   :root:not([data-theme="light"]){
@@ -27,7 +28,8 @@
     --pos:#45cf89; --pos-bg:#16261e;
     --warn:#e0a63c; --warn-bg:#2a2213;
     --neg:#f0805f; --neg-bg:#2c1a15;
-    --focus:#d6a052;
+    --focus:#4fc3d6;
+    --btn:#3aa9bd; --btn-hi:#4fc3d6; --btn-soft:#15323a; --btn-ink:#08191d;
   }
 }
 :root[data-theme="dark"]{
@@ -38,7 +40,8 @@
   --pos:#45cf89; --pos-bg:#16261e;
   --warn:#e0a63c; --warn-bg:#2a2213;
   --neg:#f0805f; --neg-bg:#2c1a15;
-  --focus:#d6a052;
+  --focus:#4fc3d6;
+  --btn:#3aa9bd; --btn-hi:#4fc3d6; --btn-soft:#15323a; --btn-ink:#08191d;
 }
 *{box-sizing:border-box}
 html{-webkit-text-size-adjust:100%}
@@ -69,7 +72,7 @@ a{color:var(--accent);text-underline-offset:2px}
 .seg{display:inline-flex;border:1px solid var(--line-strong);border-radius:6px;overflow:hidden}
 .seg button{padding:7px 11px;background:var(--bg);border:0;color:var(--muted);font-size:12px;border-right:1px solid var(--line-strong)}
 .seg button:last-child{border-right:0}
-.seg button[aria-pressed="true"]{background:var(--accent-soft);color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent)}
+.seg button[aria-pressed="true"]{background:var(--btn-soft);color:var(--btn);box-shadow:inset 0 0 0 1px var(--btn)}
 .seg.regime button[aria-pressed="true"][data-v="green"]{background:var(--pos-bg);color:var(--pos);box-shadow:inset 0 0 0 1px var(--pos)}
 .seg.regime button[aria-pressed="true"][data-v="yellow"]{background:var(--warn-bg);color:var(--warn);box-shadow:inset 0 0 0 1px var(--warn)}
 .seg.regime button[aria-pressed="true"][data-v="red"]{background:var(--neg-bg);color:var(--neg);box-shadow:inset 0 0 0 1px var(--neg)}
@@ -78,7 +81,8 @@ a{color:var(--accent);text-underline-offset:2px}
 /* tabs */
 .tabs{display:flex;flex-wrap:wrap;gap:2px;padding:12px 24px 0;background:var(--surface);border-bottom:1px solid var(--line)}
 .tabs button{padding:9px 13px;background:transparent;border:0;border-bottom:2px solid transparent;color:var(--muted);font-weight:500;font-size:14px}
-.tabs button.active{color:var(--ink);border-bottom-color:var(--accent)}
+.tabs button:hover{color:var(--ink-soft)}
+.tabs button.active{color:var(--ink);border-bottom-color:var(--btn)}
 
 main{max-width:1180px;margin:0 auto;padding:22px 24px 40px}
 .two-col{display:grid;grid-template-columns:minmax(0,.92fr) minmax(0,1.08fr);gap:20px;align-items:start}
@@ -93,10 +97,13 @@ code.cols{display:block;font-family:"IBM Plex Mono",monospace;font-size:11px;bac
 textarea{width:100%;min-height:184px;resize:vertical;padding:11px 12px;background:var(--bg);
   border:1px solid var(--line-strong);border-radius:8px;font-family:"IBM Plex Mono",monospace;font-size:12.5px;line-height:1.5}
 .row-actions{display:flex;flex-wrap:wrap;gap:9px;align-items:center;margin-top:12px}
-button.primary{background:var(--ink);color:var(--bg);border:0;padding:9px 16px;border-radius:7px;font-weight:600}
-button.primary:hover{opacity:.9}
-.row-actions button:not(.primary),.field-actions button:not(.primary){background:var(--bg);border:1px solid var(--line-strong);padding:9px 13px;border-radius:7px}
-button.ghost{color:var(--muted)}
+button.primary{background:var(--btn);color:var(--btn-ink);border:0;padding:9px 16px;border-radius:7px;font-weight:600;transition:background .15s ease,transform .05s ease}
+button.primary:hover{background:var(--btn-hi)}
+button.primary:active{transform:translateY(1px)}
+.row-actions button:not(.primary),.field-actions button:not(.primary){background:var(--btn-soft);border:1px solid transparent;color:var(--btn);font-weight:500;padding:9px 13px;border-radius:7px;transition:background .15s ease}
+.row-actions button:not(.primary):hover,.field-actions button:not(.primary):hover{background:var(--btn-hi);color:var(--btn-ink)}
+button.ghost{color:var(--btn)}
+button.ghost:hover{color:var(--btn-hi)}
 .chk{display:flex;gap:6px;align-items:center;font-size:12.5px;color:var(--muted);margin-left:auto;cursor:pointer}
 
 /* summary + banner */
@@ -127,7 +134,8 @@ td .dim,.dim{color:var(--muted);opacity:.75;font-size:11px}
 tbody td.num .pos{color:var(--pos)}
 tbody td.num .warn{color:var(--warn)}
 tbody td.num .neg{color:var(--neg)}
-.openbtn{background:var(--bg);border:1px solid var(--line-strong);border-radius:5px;padding:3px 8px;font-size:11px}
+.openbtn{background:var(--btn-soft);color:var(--btn);border:1px solid transparent;border-radius:5px;padding:3px 8px;font-size:11px;font-weight:500;transition:background .15s ease}
+.openbtn:hover{background:var(--btn-hi);color:var(--btn-ink)}
 .pill{display:inline-block;padding:2px 8px;border-radius:999px;font-size:10.5px;font-weight:600}
 .pill.pos{background:var(--pos-bg);color:var(--pos)}
 .pill.warn{background:var(--warn-bg);color:var(--warn)}
@@ -308,7 +316,7 @@ table.oc-guide td:first-child{white-space:nowrap;width:1%}
     <span class="mark" aria-hidden="true">₹</span>
     <div>
       <h1>The 10% Ledger</h1>
-      <p>Momentum + pullback screener · NSE swing setups <span style="opacity:.5;font-size:11px">· build 2026-09-08u</span></p>
+      <p>Momentum + pullback screener · NSE swing setups <span style="opacity:.5;font-size:11px">· build 2026-09-08v</span></p>
     </div>
   </div>
   <div class="controls">
