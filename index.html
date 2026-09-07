@@ -318,7 +318,7 @@ table.oc-guide td:first-child{white-space:nowrap;width:1%}
     <span class="mark" aria-hidden="true">₹</span>
     <div>
       <h1>The 10% Ledger</h1>
-      <p>Momentum + pullback screener · NSE swing setups <span style="opacity:.5;font-size:11px">· build 2026-09-08x</span></p>
+      <p>Momentum + pullback screener · NSE swing setups <span style="opacity:.5;font-size:11px">· build 2026-09-08y</span></p>
     </div>
   </div>
   <div class="controls">
@@ -915,6 +915,10 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
         <div class="seg" id="bookTF" role="group" aria-label="Chart timeframe">
           <button data-v="daily" aria-pressed="true">D</button>
           <button data-v="weekly" aria-pressed="false">W</button>
+        </div>
+        <div class="seg" id="bookMA" role="group" aria-label="Moving averages" title="EMA 20/50 (pullback framework) or SMA 10/50 (what the golden-cross screens measure)">
+          <button data-v="ema" aria-pressed="true">EMA 20/50</button>
+          <button data-v="sma" aria-pressed="false">SMA 10/50</button>
         </div>
         <button id="bookRefreshLive" class="ghost" title="Fetch fresh candles for this stock">↻ live</button>
         <button id="bookWatch" class="ghost" title="Add / remove this stock from your watchlist">☆ Watchlist</button>
@@ -2659,6 +2663,7 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
     var scope = state.bookScope || "all";
     if($("#bookScope") && $("#bookScope").value!==scope) $("#bookScope").value = scope;
     $$("#bookTF button").forEach(function(x){ x.setAttribute("aria-pressed", String(x.getAttribute("data-v")===(state.chartTF||"daily"))); });
+    $$("#bookMA button").forEach(function(x){ x.setAttribute("aria-pressed", String(x.getAttribute("data-v")===(state.chartMA||"ema"))); });
     var rows = parseBatch($("#batchInput").value);
     var pool = rows.filter(function(d){ return bookInScope(d, scope); });
     if(scope==="mb" || scope==="mba" || scope==="mbtop")
@@ -5824,6 +5829,15 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
         renderBook();
       });
     });
+    $$("#bookMA button").forEach(function(b){
+      b.addEventListener("click", function(){
+        var val=b.getAttribute("data-v");
+        state.chartMA = val; save();
+        $$("#bookMA button, #chartMA button").forEach(function(x){ x.setAttribute("aria-pressed", String(x.getAttribute("data-v")===val)); });
+        renderBook();
+        var sym=($("#a_sym").value||"").toUpperCase(); if(sym) renderChart(sym);
+      });
+    });
     document.addEventListener("keydown", function(e){
       if(!$("#tab-book") || $("#tab-book").hidden) return;
       if(/^(input|select|textarea)$/i.test((e.target && e.target.tagName) || "")) return;
@@ -5861,6 +5875,7 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
     });
     setSeg("chartTF", state.chartTF, "chartTF");
     setSeg("chartMA", state.chartMA||"ema", "chartMA");
+    $$("#bookMA button").forEach(function(x){ x.setAttribute("aria-pressed", String(x.getAttribute("data-v")===(state.chartMA||"ema"))); });
     $$("#bookTF button").forEach(function(x){ x.setAttribute("aria-pressed", String(x.getAttribute("data-v")===state.chartTF)); });
     if($("#bookScope")) $("#bookScope").value = state.bookScope || "all";
     $$("#chartTF button").forEach(function(b){
