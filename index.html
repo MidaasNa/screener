@@ -222,6 +222,18 @@ details.sub textarea{width:100%;min-height:116px;margin-top:8px;background:var(-
 .book-prob .pbar i{display:block;height:100%;border-radius:999px;background:var(--muted)}
 .book-prob .pbar i.pos{background:var(--pos)} .book-prob .pbar i.warn{background:var(--warn)} .book-prob .pbar i.neg{background:var(--neg)}
 .book-prob b{font-family:"IBM Plex Mono",monospace;font-variant-numeric:tabular-nums;color:var(--ink)}
+.book-conf{background:var(--surface-2);border:1px solid var(--line);border-radius:8px;padding:10px 12px;margin:0 0 12px;font-size:12px}
+.bc-head{display:flex;flex-wrap:wrap;gap:8px 14px;align-items:baseline;margin-bottom:3px}
+.bc-lean{font-size:14px;font-weight:600}
+.bc-lean.pos{color:var(--pos)} .bc-lean.warn{color:var(--warn)} .bc-lean.neg{color:var(--neg)}
+.bc-conf{color:var(--muted)} .bc-conf b{color:var(--ink)}
+.bc-odds{color:var(--ink-soft);margin-bottom:2px} .bc-odds b{font-family:"IBM Plex Mono",monospace;font-variant-numeric:tabular-nums;color:var(--ink)}
+.bc-row{display:flex;flex-wrap:wrap;gap:5px;align-items:flex-start;margin-top:6px}
+.bc-k{font-size:10px;text-transform:uppercase;letter-spacing:.5px;font-weight:700;min-width:50px;padding-top:3px}
+.bc-k.pos{color:var(--pos)} .bc-k.neg{color:var(--neg)}
+.bc-chip{background:var(--surface);border:1px solid var(--line);border-radius:5px;padding:2px 7px;font-size:11px}
+.bc-chip.pos{color:var(--pos)} .bc-chip.neg{color:var(--neg)}
+.bc-note{color:var(--muted);font-size:10.5px;margin-top:8px;line-height:1.45}
 tr.mb-detail td{background:var(--surface-2);padding:12px 14px}
 .mb-pills{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:5px 18px;max-width:780px}
 .mb-p{display:grid;grid-template-columns:130px 1fr 52px;gap:8px;align-items:center;font-size:11.5px}
@@ -327,7 +339,7 @@ table.oc-guide td:first-child{white-space:nowrap;width:1%}
     <span class="mark" aria-hidden="true">₹</span>
     <div>
       <h1>The 10% Ledger</h1>
-      <p>Momentum + pullback screener · NSE swing setups <span style="opacity:.5;font-size:11px">· build 2026-09-08z4</span></p>
+      <p>Momentum + pullback screener · NSE swing setups <span style="opacity:.5;font-size:11px">· build 2026-09-08z5</span></p>
     </div>
   </div>
   <div class="controls">
@@ -939,6 +951,7 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
         <span class="book-prob" id="bookProb" title="Estimated chance of +10% before the stop — from this stock's own history where available (‘e’ = a score-based estimate)"></span>
       </div>
       <div id="bookHead" class="summary" aria-live="polite"></div>
+      <div id="bookConf" class="book-conf" aria-live="polite" hidden></div>
       <div id="bookChart"><p class="empty">Run a scan (Screener → Scan now), then come back here to page through the charts.</p></div>
       <div id="bookPlan"></div>
       <p class="hint" style="margin-top:10px">Entry / stop / targets are the tool's standard plan: entry at the breakout level (or your override in the Analyzer), stop under support or a fixed % if none, exit scaled at +5% / +7.5% / +10%, size fixed at 1% of capital at risk. For <b>Darvas Box</b> and <b>High Dry Fry</b> names the note above swaps in Darvas's own rule — a buy-stop above the prior day's high, stop 1% under entry or below the base low.</p>
@@ -2671,6 +2684,90 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
     renderBook();   // refresh the ☆/★ state (and the pool if scope is "watchlist")
   }
 
+  // Chart Book "confidence read" — a weighted synthesis of every signal in the scan into a
+  // directional lean + a confidence level + rough odds. A probability, NOT a forecast.
+  function confidenceRead(d, e){
+    var sc=e.sc, tr=e.tr, pos=[], neg=[], score=0;
+
+    if(sc.trend>=16){ score+=22; pos.push("full EMA stack (price > 20 > 50 > 200)"); }
+    else if(sc.trend>=11){ score+=8; pos.push("mostly above key averages"); }
+    else if(sc.trend<=6){ score-=20; neg.push("below its key moving averages"); }
+    else { score-=4; }
+
+    if(d.hhhl){ score+=8; pos.push("higher highs & higher lows"); }
+    else { score-=6; neg.push("no clean higher-high / higher-low structure"); }
+
+    if(d.macdPos){ score+=6; pos.push("MACD positive"); } else { score-=5; }
+
+    if(d.rs!=null){
+      if(d.rs>=85){ score+=16; pos.push("RS "+Math.round(d.rs)+" — market leader"); }
+      else if(d.rs>=65){ score+=8; pos.push("RS "+Math.round(d.rs)); }
+      else if(d.rs<40){ score-=14; neg.push("RS "+Math.round(d.rs)+" — lagging the market"); }
+    }
+
+    var ext = d.breakout>0 ? (d.price-d.breakout)/d.breakout : 0;
+    if(d.breakout>0){
+      if(ext>=-0.02 && ext<=0.02){ score+=12; pos.push("right at the breakout / retest level"); }
+      else if(ext>0.02 && ext<=0.05){ score+=4; }
+      else if(ext>0.06){ score-=12; neg.push("extended "+(ext*100).toFixed(0)+"% past the base — chase risk"); }
+      else if(ext<-0.05){ score-=6; neg.push("still well below the breakout level"); }
+    }
+
+    if(d.gx){ score+=8; pos.push("fresh 10/50 golden cross ("+d.gx.ago+"d)"); }
+    if(d.mvt){ score+=10; pos.push("3×+ volume thrust on the "+d.mvt.ma+"-day MA"); }
+    else if(d.vm){ score+=8; pos.push(d.vm.mult+"× volume + 10>50 DMA"); }
+    if(d.coil && d.coil.state==="pop"){ score+=8; pos.push("just released from a tight coil"); }
+    else if(d.coil && d.coil.state==="coil"){ pos.push("coiling — move near, direction still open"); }
+    if(d.nr && d.nr.ago<=2 && d.nr.bull){ score+=5; pos.push("NR"+d.nr.n+" coil biased up"); }
+    if(d.blueSky){ score+=8; pos.push("all-time high — no overhead supply"); }
+
+    if(d.cdl) d.cdl.forEach(function(x){
+      var m=DARVAX_CANDLE[x.code]; if(!m || x.ago>3) return;
+      var q=cdlQuality(d,x,m); if(q.tier==="C") return;
+      if(m.dir>0){ score+=(q.tier==="A"?7:4); pos.push(m.name+" candle ("+q.tier+")"); }
+      else if(m.dir<0){ score-=8; neg.push(m.name+" candle — distribution warning"); }
+    });
+
+    if(d.rsi>=82){ score-=6; neg.push("RSI "+Math.round(d.rsi)+" — overbought, near-term pullback risk"); }
+
+    var rg=resultGrade(d);
+    if(rg.code==="superb"){ score+=8; pos.push("latest quarter — strong growth"); }
+    else if(rg.code==="weak"){ score-=10; neg.push("latest quarter — profit or sales shrinking"); }
+    var rt=resultTiming(d.qDate);
+    if(rt && rt.dueSoon){ score-=6; neg.push("earnings due ~"+rt.nextTxt+" — event risk (gap either way)"); }
+
+    if(d.volRatio>=1.5){ score+=6; }
+    else if(d.volRatio<0.9){ score-=5; neg.push("light volume — weak participation"); }
+
+    if(state.regime==="green"){ score+=10; pos.push("market regime Green"); }
+    else if(state.regime==="red"){ score-=28; neg.push("market regime Red — breakouts fail in bulk"); }
+    else { neg.push("market regime Yellow — half-conviction environment"); }
+
+    if(tr.rr>0 && tr.rr<2){ score-=14; neg.push("reward:risk below 2:1 at this entry"); }
+
+    var lean, leanCls;
+    if(score>=42){ lean="Bullish"; leanCls="pos"; }
+    else if(score>=18){ lean="Leaning bullish"; leanCls="pos"; }
+    else if(score>-12){ lean="Neutral / mixed"; leanCls="warn"; }
+    else if(score>-34){ lean="Cautious — downside risk"; leanCls="neg"; }
+    else { lean="Bearish — avoid new longs"; leanCls="neg"; }
+
+    var histReal = d.probT10!=null, histN = d.probN||0;
+    var confN = Math.min(4, pos.length*0.6) - Math.min(3, neg.length*0.7);
+    if(histReal) confN += (histN>=15?1.6:histN>=8?1:0.4);
+    if(e.expR>0.35) confN += 1; else if(e.expR<0) confN -= 1;
+    if(state.regime==="red") confN -= 2;
+    if(Math.abs(score)<14) confN -= 1;
+    var conf = confN>=4.2 ? "High" : confN>=2.2 ? "Moderate" : "Low";
+    if(conf==="High" && (state.regime!=="green" || !histReal)) conf="Moderate";
+
+    var wk = Math.max(0.38, Math.min(0.63, 0.5 + score/500));
+    var tgt = (d.probT10!=null) ? d.probT10 : (e.p10!=null ? e.p10 : null);
+
+    return { lean:lean, leanCls:leanCls, conf:conf, score:score,
+             wkUp:wk, tgt:tgt, tgtEst:(d.probT10==null), pos:pos.slice(0,6), neg:neg.slice(0,5) };
+  }
+
   function renderBook(){
     var host = $("#bookChart"); if(!host) return;
     if($("#tab-book") && $("#tab-book").hidden) return;   // don't fetch charts for a hidden tab
@@ -2697,6 +2794,7 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
       if($("#bookPos")) $("#bookPos").textContent = "";
       if($("#bookWatch")){ $("#bookWatch").innerHTML = "☆ Watchlist"; $("#bookWatch").classList.remove("pos"); }
       if($("#bookProb")) $("#bookProb").innerHTML = "";
+      if($("#bookConf")){ $("#bookConf").innerHTML = ""; $("#bookConf").hidden = true; }
       $("#bookHead").innerHTML = "";
       $("#bookPlan").innerHTML = "";
       host.innerHTML = '<p class="empty">'+(rows.length ? "No stock in your scan matches this filter — change the <b>Show</b> dropdown." : "Run a scan (Screener → Scan now), then come back here.")+'</p>';
@@ -2736,6 +2834,22 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
       '<span class="chip">RS <b>'+(d.rs!=null?Math.round(d.rs):"–")+'</b></span>'+
       '<span class="chip">'+esc(state.timeframe)+' swing</span>'+
       tags.map(function(t){ return '<span class="chip '+(t.c||"")+'">'+esc(t.t)+'</span>'; }).join("");
+
+    if($("#bookConf")){
+      var cr = confidenceRead(d, e);
+      var wkPct = Math.round(cr.wkUp*100);
+      var tgtTxt = cr.tgt!=null ? (Math.round(cr.tgt*100)+"%"+(cr.tgtEst?" (est)":"")) : "–";
+      $("#bookConf").hidden = false;
+      $("#bookConf").innerHTML =
+        '<div class="bc-head">'+
+          '<span class="bc-lean '+cr.leanCls+'">'+esc(cr.lean)+'</span>'+
+          '<span class="bc-conf">confidence: <b>'+cr.conf+'</b></span>'+
+        '</div>'+
+        '<div class="bc-odds">≈ <b>'+wkPct+'%</b> chance simply higher in 1–2 weeks · +10% target hit <b>'+tgtTxt+'</b> of the time · next day ≈ coin-flip</div>'+
+        (cr.pos.length ? '<div class="bc-row"><span class="bc-k pos">for</span>'+cr.pos.map(function(t){ return '<span class="bc-chip pos">'+esc(t)+'</span>'; }).join("")+'</div>' : '')+
+        (cr.neg.length ? '<div class="bc-row"><span class="bc-k neg">against</span>'+cr.neg.map(function(t){ return '<span class="bc-chip neg">'+esc(t)+'</span>'; }).join("")+'</div>' : '')+
+        '<div class="bc-note">A weighted read of the signals in this scan — a probability, not a prediction. Daily direction is noise; the edge is in the odds + reward:risk + position sizing, not in being right about tomorrow.</div>';
+    }
 
     var rrBad = tr.rr>0 && tr.rr<2;
     $("#bookPlan").innerHTML =
