@@ -242,10 +242,10 @@ table.mb-scen td.num{font-family:"IBM Plex Mono",monospace;text-align:right;padd
 .cx-svg{width:100%;min-width:560px;height:auto;display:block}
 .cx-grid{stroke:var(--line);stroke-width:1}
 .cx-ylab,.cx-xlab{fill:var(--muted);font-size:9px;font-family:"IBM Plex Mono",monospace}
-.cx-up{fill:var(--pos);stroke:var(--pos)}
-.cx-dn{fill:var(--muted);stroke:var(--muted)}
+.cx-up{fill:#17c964;stroke:#17c964}
+.cx-dn{fill:#f43f3f;stroke:#f43f3f}
 .cx-wick{stroke-width:1}
-.cx-vol{opacity:.3;stroke:none}
+.cx-vol{opacity:.34;stroke:none}
 .cx-base{fill:var(--accent);fill-opacity:.10;stroke:var(--accent);stroke-opacity:.55;stroke-dasharray:3 2}
 .cx-e20{fill:none;stroke:var(--accent);stroke-width:1.3}
 .cx-e50{fill:none;stroke:var(--muted);stroke-width:1.1}
@@ -265,6 +265,7 @@ table.mb-scen td.num{font-family:"IBM Plex Mono",monospace;text-align:right;padd
 .cx-flab.cx-srzl.sup{fill:#12c98b} .cx-flab.cx-srzl.res{fill:#ff5a5f}
 .cx-tl{stroke-width:1.7;fill:none;stroke-dasharray:6 3;opacity:.95}
 .cx-tl.top{stroke:#c07bff} .cx-tl.bot{stroke:#37a6ff}
+.cx-tl.neck{stroke:#e8912a;stroke-width:1.4;stroke-dasharray:2 3}
 .cx-patlab{fill:#37a6ff;font-size:10px;font-weight:600;font-family:"IBM Plex Mono",monospace}
 .cx-legend .ksup{color:#12c98b} .cx-legend .ktl{color:#37a6ff}
 .cx-line.cx-ocput{stroke:var(--pos);stroke-dasharray:2 2;opacity:.75} .cx-flab.cx-ocput{fill:var(--pos);opacity:.8}
@@ -326,7 +327,7 @@ table.oc-guide td:first-child{white-space:nowrap;width:1%}
     <span class="mark" aria-hidden="true">₹</span>
     <div>
       <h1>The 10% Ledger</h1>
-      <p>Momentum + pullback screener · NSE swing setups <span style="opacity:.5;font-size:11px">· build 2026-09-08z</span></p>
+      <p>Momentum + pullback screener · NSE swing setups <span style="opacity:.5;font-size:11px">· build 2026-09-08z4</span></p>
     </div>
   </div>
   <div class="controls">
@@ -3507,23 +3508,17 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
         if(z.price<=lo || z.price>=hi) return;
         var yy=Y(z.price);
         g.push('<line x1="'+PL+'" y1="'+f1(yy)+'" x2="'+(W-PR)+'" y2="'+f1(yy)+'" class="cx-srz '+z.kind+'"/>'+
-               '<text x="'+(W-PR-2)+'" y="'+f1(placeY(yy-2))+'" class="cx-flab cx-srzl '+z.kind+'" text-anchor="end">'+(z.kind==="sup"?"S":"R")+' '+nfmt(z.price,0)+' ×'+z.n+'</text>');
+               '<text x="'+(W-PR-2)+'" y="'+f1(placeY(yy-2))+'" class="cx-flab cx-srzl '+z.kind+'" text-anchor="end">'+(z.kind==="sup"?"S":"R")+' '+nfmt(z.price,0)+(z.n>1?' ×'+z.n:'')+'</text>');
       });
     }
-    // auto trendlines + chart-pattern label
+    // auto trendlines / pattern lines over the recent structure + label
     if(state.bookPat!==false){
       var _pat = chartPattern(H,L,C);
-      if(_pat){
-        var drawTL=function(fitL,cls){
-          if(!fitL) return;
-          var xa=fitL.x0, xb=n-1;
-          var ya=fitL.slope*xa+fitL.intr, yb=fitL.slope*xb+fitL.intr;
-          if(!isFinite(ya)||!isFinite(yb)) return;
-          if((ya<lo&&yb<lo)||(ya>hi&&yb>hi)) return;
-          g.push('<line x1="'+f1(X(xa))+'" y1="'+f1(Y(Math.max(lo,Math.min(hi,ya))))+'" x2="'+f1(X(xb))+'" y2="'+f1(Y(Math.max(lo,Math.min(hi,yb))))+'" class="cx-tl '+cls+'"/>');
-        };
-        drawTL(_pat.top,"top");
-        drawTL(_pat.bot,"bot");
+      if(_pat && _pat.lines && _pat.lines.length){
+        _pat.lines.forEach(function(ln){
+          var ya=Math.max(lo,Math.min(hi,ln.y1)), yb=Math.max(lo,Math.min(hi,ln.y2));
+          g.push('<line x1="'+f1(X(Math.max(0,ln.x1)))+'" y1="'+f1(Y(ya))+'" x2="'+f1(X(Math.min(n-1,ln.x2)))+'" y2="'+f1(Y(yb))+'" class="cx-tl '+ln.cls+'"/>');
+        });
         g.push('<text x="'+(PL+2)+'" y="'+(T+8)+'" class="cx-patlab">'+esc(_pat.name)+'</text>');
       }
     }
@@ -4071,8 +4066,9 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
     var hhhl = hiWin(10,0)>=hiWin(32,10) && loWin(12,0)>loWin(34,16);
     return {breakout: res>0?res:price, support: isFinite(base)?base:price*0.97, hhhl:hhhl};
   }
-  // bright multi-level horizontal S/R zones for the chart: cluster fractal pivots by price,
-  // rank by touch-count + recency, tag each below/above the last close.
+  // bright horizontal S/R zones for the chart: cluster fractal pivots by price, rank by
+  // touch-count + recency + proximity to the last close. Single-touch levels only count
+  // when they are near price (the recent pullback low / prior high acting as support).
   function srZones(H,L,C){
     var n=C.length; if(n<25) return [];
     var price=C[n-1], w=2, i, k, piv=[];
@@ -4087,7 +4083,7 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
     }
     if(piv.length<2) return [];
     var rng=Math.max.apply(null,H)-Math.min.apply(null,L);
-    var tol=Math.max(price*0.006, rng/55);
+    var tol=Math.max(price*0.008, rng/45);
     piv.sort(function(a,b){ return a.p-b.p; });
     var zones=[], cur=null;
     piv.forEach(function(pv){
@@ -4099,62 +4095,115 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
       }
     });
     if(cur) zones.push(cur);
-    zones = zones.filter(function(z){ return z.n>=2; });
     zones.forEach(function(z){
       z.price=z.sum/z.n;
-      z.score=z.n + (z.last/n)*2.5;
+      z.dist=Math.abs(price-z.price)/price;
       z.kind = z.price < price ? "sup" : "res";
+      z.score = z.n*2 + (z.last/n)*3 + Math.max(0, 1.6 - z.dist*12);
     });
+    zones = zones.filter(function(z){ return z.n>=2 || z.dist<=0.10; });
     zones.sort(function(a,b){ return b.score-a.score; });
-    return zones.slice(0,4);
+    return zones.slice(0,5);
   }
-  // auto trendlines + chart-pattern classification from recent swing pivots
+  // recent-structure chart pattern: works on the last ~40% of the visible window only
+  // (the current base, not the whole trend), names it, and returns the line segments to
+  // draw in {x,y} bar/price space. Double bottom / top are checked before trendline fits.
   function chartPattern(H,L,C){
-    var n=C.length; if(n<30) return null;
-    var w=3, i, k, hiP=[], loP=[];
-    for(i=w;i<n-w;i++){
-      var isLo=true, isHi=true;
-      for(k=1;k<=w;k++){
-        if(L[i]>L[i-k]||L[i]>L[i+k]) isLo=false;
-        if(H[i]<H[i-k]||H[i]<H[i+k]) isHi=false;
-      }
-      if(isHi) hiP.push({x:i,y:H[i]});
-      if(isLo) loP.push({x:i,y:L[i]});
-    }
-    function fit(pts){
-      if(pts.length<2) return null;
-      var q=pts.slice(-4);
-      if(q[q.length-1].x-q[0].x < 12){ if(pts.length>=3) q=pts.slice(-3); else return null; }
-      if(q[q.length-1].x-q[0].x < 10) return null;
-      var m=q.length, sx=0,sy=0,sxx=0,sxy=0;
-      q.forEach(function(p){ sx+=p.x; sy+=p.y; sxx+=p.x*p.x; sxy+=p.x*p.y; });
-      var den=m*sxx-sx*sx; if(den===0) return null;
-      var slope=(m*sxy-sx*sy)/den, intr=(sy-slope*sx)/m;
-      return {slope:slope, intr:intr, x0:q[0].x};
-    }
-    var top=fit(hiP), bot=fit(loP);
-    if(!top && !bot) return null;
+    var n=C.length; if(n<26) return null;
     var price=C[n-1];
-    var st = top ? top.slope/price*100 : null;   // % per bar
-    var sb = bot ? bot.slope/price*100 : null;
-    var fl=0.05, name;
-    if(top && bot){
-      var upT=st>fl, dnT=st<-fl, flT=Math.abs(st)<=fl;
-      var upB=sb>fl, dnB=sb<-fl, flB=Math.abs(sb)<=fl;
-      if(flT && upB) name="Ascending triangle";
-      else if(dnT && flB) name="Descending triangle";
-      else if(dnT && upB) name="Symmetrical triangle";
-      else if(upT && upB) name=(sb>st?"Rising wedge":"Rising channel");
-      else if(dnT && dnB) name=(st>sb?"Falling wedge":"Falling channel");
-      else if(flT && flB) name="Rectangle range";
-      else if(upT && dnB) name="Broadening";
-      else name="Consolidation";
-    } else if(top){
-      name = st<-fl ? "Descending resistance" : st>fl ? "Rising highs" : "Flat resistance";
-    } else {
-      name = sb>fl ? "Rising support" : sb<-fl ? "Falling support" : "Flat support";
+    function pivots(ws){
+      var w=2, i, k, hp=[], lp=[];
+      for(i=ws+w;i<n-w;i++){
+        var isLo=true, isHi=true;
+        for(k=1;k<=w;k++){
+          if(L[i]>L[i-k]||L[i]>L[i+k]) isLo=false;
+          if(H[i]<H[i-k]||H[i]<H[i+k]) isHi=false;
+        }
+        if(isHi) hp.push({x:i,y:H[i]});
+        if(isLo) lp.push({x:i,y:L[i]});
+      }
+      return {hp:hp, lp:lp};
     }
-    return {top:top, bot:bot, name:name};
+    // ---- double bottom (W) / double top (M) over a given recent window ----
+    function findDouble(ws, dir){
+      var pv=pivots(ws), piv=dir==="bottom"?pv.lp:pv.hp;
+      if(piv.length<2) return null;
+      var loW=Infinity, hiW=-Infinity, j;
+      for(j=ws;j<n;j++){ if(L[j]<loW) loW=L[j]; if(H[j]>hiW) hiW=H[j]; }
+      var rng=hiW-loW; if(!(rng>0)) return null;
+      var tol=Math.max(price*0.018, rng*0.08);
+      var ext=piv.slice().sort(function(p,q){ return dir==="bottom" ? p.y-q.y : q.y-p.y; }).slice(0,3);
+      var A=null,B=null, x,y;
+      for(x=0;x<ext.length && !B;x++) for(y=x+1;y<ext.length;y++){
+        var p1=ext[x], p2=ext[y]; if(p1.x>p2.x){ var t=p1; p1=p2; p2=t; }
+        var sep=p2.x-p1.x;
+        if(sep<7 || sep>46) continue;
+        if(Math.abs(p1.y-p2.y) > tol) continue;
+        A=p1; B=p2; break;
+      }
+      if(!A) return null;
+      // both extremes must sit at the far end of the window's range
+      if(dir==="bottom" && Math.min(A.y,B.y) > loW + rng*0.30) return null;
+      if(dir==="top"    && Math.max(A.y,B.y) < hiW - rng*0.30) return null;
+      // there must have been a real move INTO the first extreme (this is a reversal)
+      var pre=C[Math.max(0, A.x-8)];
+      if(dir==="bottom" && !(pre > A.y*1.05)) return null;
+      if(dir==="top"    && !(pre < A.y*0.95)) return null;
+      var mid;
+      if(dir==="bottom"){ mid=-Infinity; for(j=A.x+1;j<B.x;j++) if(H[j]>mid) mid=H[j]; }
+      else { mid=Infinity; for(j=A.x+1;j<B.x;j++) if(L[j]<mid) mid=L[j]; }
+      if(!isFinite(mid)) return null;
+      var lvl=(A.y+B.y)/2, bounce=Math.abs(mid-lvl)/lvl;
+      if(bounce < 0.06 || bounce > 0.6) return null;
+      // reject when the OTHER side is clearly sloping — that's a triangle, not a double
+      var opp=dir==="bottom"?pv.hp:pv.lp;
+      if(opp.length>=2){
+        var o1=opp[0].y, o2=opp[opp.length-1].y;
+        if(dir==="bottom" && o1-o2 > rng*0.18) return null;   // highs falling → descending triangle
+        if(dir==="top"    && o2-o1 > rng*0.18) return null;   // lows rising → ascending triangle
+      }
+      // price must have recovered away from the second extreme
+      if(dir==="bottom" && price < lvl*1.02) return null;
+      if(dir==="top"    && price > lvl*0.98) return null;
+      if(dir==="top" && price > hiW*0.99) return null;          // not simply breaking out
+      var confirmed = dir==="bottom" ? price>mid*0.999 : price<mid*1.001;
+      return {
+        name:(dir==="bottom"?"Double bottom":"Double top")+(confirmed?"":" (forming)"),
+        lines:[
+          {x1:A.x,y1:A.y,x2:B.x,y2:B.y,cls:(dir==="bottom"?"bot":"top")},
+          {x1:A.x,y1:mid,x2:n-1,y2:mid,cls:"neck"}
+        ]
+      };
+    }
+    var wins=[18,26,36,48].filter(function(v){ return v<=n-3; });
+    for(var wi=0; wi<wins.length; wi++){
+      var r = findDouble(n-wins[wi],"bottom") || findDouble(n-wins[wi],"top");
+      if(r) return r;
+    }
+    // ---- structure over the recent window: trend / triangle / range ----
+    var mw=Math.min(n-3, 40), ws=n-mw, pv=pivots(ws);
+    var hp=pv.hp, lp=pv.lp;
+    if(hp.length<2 || lp.length<2) return null;
+    var h1=hp[hp.length-2], h2=hp[hp.length-1], l1=lp[lp.length-2], l2=lp[lp.length-1];
+    var rngS=Math.max.apply(null,H.slice(ws))-Math.min.apply(null,L.slice(ws));
+    var flat=Math.max(price*0.015, rngS*0.06);
+    var hiUp = h2.y-h1.y >  flat, hiDn = h2.y-h1.y < -flat, hiFl = !hiUp && !hiDn;
+    var loUp = l2.y-l1.y >  flat, loDn = l2.y-l1.y < -flat, loFl = !loUp && !loDn;
+    var name, lines=[], topLine=null, botLine=null;
+    function seg(p,q,cls){ return {x1:p.x,y1:p.y,x2:n-1,y2:q.y+(q.y-p.y)/(q.x-p.x)*(n-1-q.x),cls:cls}; }
+    function flatSeg(p,q,cls){ var yv=(p.y+q.y)/2; return {x1:p.x,y1:yv,x2:n-1,y2:yv,cls:cls}; }
+    if(hiUp && loUp){ name="Uptrend"; botLine=seg(l1,l2,"bot"); }
+    else if(hiDn && loDn){ name="Downtrend"; topLine=seg(h1,h2,"top"); }
+    else if(hiFl && loUp){ name="Ascending triangle"; topLine=flatSeg(h1,h2,"top"); botLine=seg(l1,l2,"bot"); }
+    else if(hiDn && loFl){ name="Descending triangle"; topLine=seg(h1,h2,"top"); botLine=flatSeg(l1,l2,"bot"); }
+    else if(hiDn && loUp){ name="Symmetrical triangle"; topLine=seg(h1,h2,"top"); botLine=seg(l1,l2,"bot"); }
+    else if(hiFl && loFl){ name="Range"; topLine=flatSeg(h1,h2,"top"); botLine=flatSeg(l1,l2,"bot"); }
+    else if(hiUp && loDn){ name="Broadening"; topLine=seg(h1,h2,"top"); botLine=seg(l1,l2,"bot"); }
+    else { name="Consolidation"; }
+    if(topLine) lines.push(topLine);
+    if(botLine) lines.push(botLine);
+    if(!lines.length) return null;
+    return {name:name, lines:lines};
   }
   // nearest swing support below / resistance above, from fractal pivots + rising EMA20
   function srLevels(h,l,c,e20){
