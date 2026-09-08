@@ -259,6 +259,14 @@ table.mb-scen td.num{font-family:"IBM Plex Mono",monospace;text-align:right;padd
 .cx-trig{fill:var(--accent);stroke:var(--accent)}
 .cx-fib{stroke:var(--warn);stroke-width:1;stroke-dasharray:1 4;opacity:.55}
 .cx-flab.cx-fiblab{fill:var(--warn);opacity:.7}
+.cx-srz{stroke-width:1.5;fill:none;opacity:.92}
+.cx-srz.sup{stroke:#12c98b} .cx-srz.res{stroke:#ff5a5f}
+.cx-flab.cx-srzl{font-weight:600}
+.cx-flab.cx-srzl.sup{fill:#12c98b} .cx-flab.cx-srzl.res{fill:#ff5a5f}
+.cx-tl{stroke-width:1.7;fill:none;stroke-dasharray:6 3;opacity:.95}
+.cx-tl.top{stroke:#c07bff} .cx-tl.bot{stroke:#37a6ff}
+.cx-patlab{fill:#37a6ff;font-size:10px;font-weight:600;font-family:"IBM Plex Mono",monospace}
+.cx-legend .ksup{color:#12c98b} .cx-legend .ktl{color:#37a6ff}
 .cx-line.cx-ocput{stroke:var(--pos);stroke-dasharray:2 2;opacity:.75} .cx-flab.cx-ocput{fill:var(--pos);opacity:.8}
 .cx-line.cx-occall{stroke:var(--neg);stroke-dasharray:2 2;opacity:.75} .cx-flab.cx-occall{fill:var(--neg);opacity:.8}
 .cx-line.cx-ocmp{stroke:var(--muted);stroke-dasharray:1 2;opacity:.6} .cx-flab.cx-ocmp{fill:var(--muted);opacity:.7}
@@ -318,7 +326,7 @@ table.oc-guide td:first-child{white-space:nowrap;width:1%}
     <span class="mark" aria-hidden="true">₹</span>
     <div>
       <h1>The 10% Ledger</h1>
-      <p>Momentum + pullback screener · NSE swing setups <span style="opacity:.5;font-size:11px">· build 2026-09-08y</span></p>
+      <p>Momentum + pullback screener · NSE swing setups <span style="opacity:.5;font-size:11px">· build 2026-09-08z</span></p>
     </div>
   </div>
   <div class="controls">
@@ -920,6 +928,10 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
           <button data-v="ema" aria-pressed="true">EMA 20/50</button>
           <button data-v="sma" aria-pressed="false">SMA 10/50</button>
         </div>
+        <div class="seg" id="bookOverlay" role="group" aria-label="Chart overlays">
+          <button data-v="sr" aria-pressed="true" title="Bright horizontal support / resistance zones from clustered pivot highs &amp; lows (×n = touches)">S/R zones</button>
+          <button data-v="pat" aria-pressed="true" title="Auto-fitted trendlines through recent swing highs / lows + pattern name (triangle, channel, wedge, range)">Patterns</button>
+        </div>
         <button id="bookRefreshLive" class="ghost" title="Fetch fresh candles for this stock">↻ live</button>
         <button id="bookWatch" class="ghost" title="Add / remove this stock from your watchlist">☆ Watchlist</button>
         <button id="bookOpen" class="ghost" title="Open this stock in the Analyzer">Full analysis →</button>
@@ -1435,6 +1447,7 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
     universeSize: "200", customUniverse: "", leadingSectors: [],
     dropForming: true, fetchEvents: false, fetchResults: true, fetchDeep: true, scanCache: null, hostOverride: false,
     oc: {}, journal: [], journalUrl: "", bookIdx: 0, bookScope: "all",
+    bookSR: true, bookPat: true,
     mbMinScore: 55, mbNoFlags: false, mbOpen: {}
   };
 
@@ -2664,6 +2677,7 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
     if($("#bookScope") && $("#bookScope").value!==scope) $("#bookScope").value = scope;
     $$("#bookTF button").forEach(function(x){ x.setAttribute("aria-pressed", String(x.getAttribute("data-v")===(state.chartTF||"daily"))); });
     $$("#bookMA button").forEach(function(x){ x.setAttribute("aria-pressed", String(x.getAttribute("data-v")===(state.chartMA||"ema"))); });
+    $$("#bookOverlay button").forEach(function(x){ var v=x.getAttribute("data-v"); x.setAttribute("aria-pressed", String(v==="sr" ? state.bookSR!==false : state.bookPat!==false)); });
     var rows = parseBatch($("#batchInput").value);
     var pool = rows.filter(function(d){ return bookInScope(d, scope); });
     if(scope==="mb" || scope==="mba" || scope==="mbtop")
@@ -3375,6 +3389,8 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
       '<span>'+(tf==="weekly"?"weekly":"daily")+'</span>'+
       '<span class="k20"><i></i>'+(sma?"SMA10":"EMA20")+'</span><span class="k50"><i></i>'+(sma?"SMA50":"EMA50")+'</span>'+
       '<span><i class="kbase"></i>base</span>'+
+      (state.bookSR!==false?'<span class="ksup"><i></i>S/R zone ×n</span>':'')+
+      (state.bookPat!==false?'<span class="ktl"><i></i>trendline / pattern</span>':'')+
       '<span class="kent"><i></i>entry</span><span class="kstp"><i></i>stop</span><span class="ktgt"><i></i>+10%</span>'+
     '</div>';
   }
@@ -3484,6 +3500,32 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
                  '<text x="'+(W-PR-2)+'" y="'+f1(yy-2)+'" class="cx-flab cx-fiblab" text-anchor="end">fib '+p[0]+'</text>');
         }
       });
+    }
+    // bright multi-level support / resistance zones from pivot clusters (visible window)
+    if(state.bookSR!==false){
+      srZones(H,L,C).forEach(function(z){
+        if(z.price<=lo || z.price>=hi) return;
+        var yy=Y(z.price);
+        g.push('<line x1="'+PL+'" y1="'+f1(yy)+'" x2="'+(W-PR)+'" y2="'+f1(yy)+'" class="cx-srz '+z.kind+'"/>'+
+               '<text x="'+(W-PR-2)+'" y="'+f1(placeY(yy-2))+'" class="cx-flab cx-srzl '+z.kind+'" text-anchor="end">'+(z.kind==="sup"?"S":"R")+' '+nfmt(z.price,0)+' ×'+z.n+'</text>');
+      });
+    }
+    // auto trendlines + chart-pattern label
+    if(state.bookPat!==false){
+      var _pat = chartPattern(H,L,C);
+      if(_pat){
+        var drawTL=function(fitL,cls){
+          if(!fitL) return;
+          var xa=fitL.x0, xb=n-1;
+          var ya=fitL.slope*xa+fitL.intr, yb=fitL.slope*xb+fitL.intr;
+          if(!isFinite(ya)||!isFinite(yb)) return;
+          if((ya<lo&&yb<lo)||(ya>hi&&yb>hi)) return;
+          g.push('<line x1="'+f1(X(xa))+'" y1="'+f1(Y(Math.max(lo,Math.min(hi,ya))))+'" x2="'+f1(X(xb))+'" y2="'+f1(Y(Math.max(lo,Math.min(hi,yb))))+'" class="cx-tl '+cls+'"/>');
+        };
+        drawTL(_pat.top,"top");
+        drawTL(_pat.bot,"bot");
+        g.push('<text x="'+(PL+2)+'" y="'+(T+8)+'" class="cx-patlab">'+esc(_pat.name)+'</text>');
+      }
     }
     g.push(hline(opts.support,"cx-sup","S"));
     g.push(hline(opts.resistance,"cx-res","R"));
@@ -4028,6 +4070,91 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
     var loWin=function(a,b){ var m=Infinity,i; for(i=Math.max(0,n-a);i<Math.max(0,n-b);i++) if(l[i]<m)m=l[i]; return m; };
     var hhhl = hiWin(10,0)>=hiWin(32,10) && loWin(12,0)>loWin(34,16);
     return {breakout: res>0?res:price, support: isFinite(base)?base:price*0.97, hhhl:hhhl};
+  }
+  // bright multi-level horizontal S/R zones for the chart: cluster fractal pivots by price,
+  // rank by touch-count + recency, tag each below/above the last close.
+  function srZones(H,L,C){
+    var n=C.length; if(n<25) return [];
+    var price=C[n-1], w=2, i, k, piv=[];
+    for(i=w;i<n-w;i++){
+      var isLo=true, isHi=true;
+      for(k=1;k<=w;k++){
+        if(L[i]>L[i-k]||L[i]>L[i+k]) isLo=false;
+        if(H[i]<H[i-k]||H[i]<H[i+k]) isHi=false;
+      }
+      if(isLo) piv.push({p:L[i], i:i});
+      if(isHi) piv.push({p:H[i], i:i});
+    }
+    if(piv.length<2) return [];
+    var rng=Math.max.apply(null,H)-Math.min.apply(null,L);
+    var tol=Math.max(price*0.006, rng/55);
+    piv.sort(function(a,b){ return a.p-b.p; });
+    var zones=[], cur=null;
+    piv.forEach(function(pv){
+      if(cur && pv.p-(cur.sum/cur.n) <= tol){
+        cur.sum+=pv.p; cur.n++; if(pv.i>cur.last) cur.last=pv.i;
+      } else {
+        if(cur) zones.push(cur);
+        cur={sum:pv.p, n:1, last:pv.i};
+      }
+    });
+    if(cur) zones.push(cur);
+    zones = zones.filter(function(z){ return z.n>=2; });
+    zones.forEach(function(z){
+      z.price=z.sum/z.n;
+      z.score=z.n + (z.last/n)*2.5;
+      z.kind = z.price < price ? "sup" : "res";
+    });
+    zones.sort(function(a,b){ return b.score-a.score; });
+    return zones.slice(0,4);
+  }
+  // auto trendlines + chart-pattern classification from recent swing pivots
+  function chartPattern(H,L,C){
+    var n=C.length; if(n<30) return null;
+    var w=3, i, k, hiP=[], loP=[];
+    for(i=w;i<n-w;i++){
+      var isLo=true, isHi=true;
+      for(k=1;k<=w;k++){
+        if(L[i]>L[i-k]||L[i]>L[i+k]) isLo=false;
+        if(H[i]<H[i-k]||H[i]<H[i+k]) isHi=false;
+      }
+      if(isHi) hiP.push({x:i,y:H[i]});
+      if(isLo) loP.push({x:i,y:L[i]});
+    }
+    function fit(pts){
+      if(pts.length<2) return null;
+      var q=pts.slice(-4);
+      if(q[q.length-1].x-q[0].x < 12){ if(pts.length>=3) q=pts.slice(-3); else return null; }
+      if(q[q.length-1].x-q[0].x < 10) return null;
+      var m=q.length, sx=0,sy=0,sxx=0,sxy=0;
+      q.forEach(function(p){ sx+=p.x; sy+=p.y; sxx+=p.x*p.x; sxy+=p.x*p.y; });
+      var den=m*sxx-sx*sx; if(den===0) return null;
+      var slope=(m*sxy-sx*sy)/den, intr=(sy-slope*sx)/m;
+      return {slope:slope, intr:intr, x0:q[0].x};
+    }
+    var top=fit(hiP), bot=fit(loP);
+    if(!top && !bot) return null;
+    var price=C[n-1];
+    var st = top ? top.slope/price*100 : null;   // % per bar
+    var sb = bot ? bot.slope/price*100 : null;
+    var fl=0.05, name;
+    if(top && bot){
+      var upT=st>fl, dnT=st<-fl, flT=Math.abs(st)<=fl;
+      var upB=sb>fl, dnB=sb<-fl, flB=Math.abs(sb)<=fl;
+      if(flT && upB) name="Ascending triangle";
+      else if(dnT && flB) name="Descending triangle";
+      else if(dnT && upB) name="Symmetrical triangle";
+      else if(upT && upB) name=(sb>st?"Rising wedge":"Rising channel");
+      else if(dnT && dnB) name=(st>sb?"Falling wedge":"Falling channel");
+      else if(flT && flB) name="Rectangle range";
+      else if(upT && dnB) name="Broadening";
+      else name="Consolidation";
+    } else if(top){
+      name = st<-fl ? "Descending resistance" : st>fl ? "Rising highs" : "Flat resistance";
+    } else {
+      name = sb>fl ? "Rising support" : sb<-fl ? "Falling support" : "Flat support";
+    }
+    return {top:top, bot:bot, name:name};
   }
   // nearest swing support below / resistance above, from fractal pivots + rising EMA20
   function srLevels(h,l,c,e20){
@@ -5834,6 +5961,18 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
         var val=b.getAttribute("data-v");
         state.chartMA = val; save();
         $$("#bookMA button, #chartMA button").forEach(function(x){ x.setAttribute("aria-pressed", String(x.getAttribute("data-v")===val)); });
+        renderBook();
+        var sym=($("#a_sym").value||"").toUpperCase(); if(sym) renderChart(sym);
+      });
+    });
+    $$("#bookOverlay button").forEach(function(b){
+      var v=b.getAttribute("data-v");
+      b.setAttribute("aria-pressed", String(v==="sr" ? state.bookSR!==false : state.bookPat!==false));
+      b.addEventListener("click", function(){
+        var on = b.getAttribute("aria-pressed")!=="true";
+        b.setAttribute("aria-pressed", String(on));
+        if(v==="sr") state.bookSR=on; else state.bookPat=on;
+        save();
         renderBook();
         var sym=($("#a_sym").value||"").toUpperCase(); if(sym) renderChart(sym);
       });
