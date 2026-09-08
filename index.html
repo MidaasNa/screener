@@ -217,6 +217,21 @@ details.sub textarea{width:100%;min-height:116px;margin-top:8px;background:var(-
 #chart{overflow-x:auto}
 #bookChart{overflow-x:auto;max-width:100%}
 #bookChart .cx-svg{min-width:0;max-width:920px;margin-left:auto;margin-right:auto}
+.book-stage{position:relative}
+.book-arrow{position:absolute;top:38%;transform:translateY(-50%);z-index:6;
+  width:34px;height:46px;display:grid;place-items:center;padding:0;
+  font-size:22px;font-weight:600;line-height:1;
+  background:var(--surface);border:1px solid var(--line-strong);border-radius:9px;
+  color:var(--ink-soft);opacity:.7;box-shadow:0 1px 4px rgba(0,0,0,.12);
+  transition:opacity .15s ease,background .15s ease,color .15s ease}
+.book-arrow:hover{opacity:1;background:var(--btn-hi);color:var(--btn-ink);border-color:transparent}
+.book-arrow:active{transform:translateY(-50%) scale(.94)}
+.book-arrow:disabled{opacity:.22;cursor:default;background:var(--surface);color:var(--ink-soft)}
+.book-arrow.prev{left:6px} .book-arrow.next{right:6px}
+.book-pos{position:absolute;top:8px;right:12px;z-index:6;
+  font-size:11px;font-family:"IBM Plex Mono",monospace;color:var(--muted);
+  background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:2px 9px;opacity:.9}
+@media (max-width:640px){.book-arrow{width:30px;height:40px;font-size:19px}}
 .book-prob{display:inline-flex;align-items:center;gap:6px;font-size:11px;color:var(--muted);white-space:nowrap}
 .book-prob .pbar{width:72px;height:7px;background:var(--surface-2);border-radius:999px;overflow:hidden}
 .book-prob .pbar i{display:block;height:100%;border-radius:999px;background:var(--muted)}
@@ -339,7 +354,7 @@ table.oc-guide td:first-child{white-space:nowrap;width:1%}
     <span class="mark" aria-hidden="true">₹</span>
     <div>
       <h1>The 10% Ledger</h1>
-      <p>Momentum + pullback screener · NSE swing setups <span style="opacity:.5;font-size:11px">· build 2026-09-08z5</span></p>
+      <p>Momentum + pullback screener · NSE swing setups <span style="opacity:.5;font-size:11px">· build 2026-09-08z7</span></p>
     </div>
   </div>
   <div class="controls">
@@ -902,6 +917,9 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
           <select id="bookScope" style="margin-left:6px">
             <option value="all">All scanned — by score</option>
             <option value="actionable">Buy setups only (score ≥ 80, R:R ≥ 2)</option>
+            <option value="confhi">Confidence read — High only</option>
+            <option value="confmod">Confidence read — High + Moderate</option>
+            <option value="leanbull">Confidence read — bullish lean or better</option>
             <option value="setup">Any named setup</option>
             <option value="golden">Golden Guru</option>
             <option value="silver">Silver Guru</option>
@@ -928,11 +946,6 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
                  style="margin-left:6px;width:130px;padding:6px 8px;background:var(--bg);border:1px solid var(--line-strong);border-radius:6px;font-size:13px;text-transform:uppercase">
         </label>
         <datalist id="bookSyms"></datalist>
-        <div class="seg" id="bookNav" role="group" aria-label="Chart book navigation">
-          <button id="bookPrev" title="Previous (←)">‹ Prev</button>
-          <button id="bookNext" title="Next (→)">Next ›</button>
-        </div>
-        <span class="scan-meta" id="bookPos"></span>
         <div class="seg" id="bookTF" role="group" aria-label="Chart timeframe">
           <button data-v="daily" aria-pressed="true">D</button>
           <button data-v="weekly" aria-pressed="false">W</button>
@@ -952,7 +965,12 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
       </div>
       <div id="bookHead" class="summary" aria-live="polite"></div>
       <div id="bookConf" class="book-conf" aria-live="polite" hidden></div>
-      <div id="bookChart"><p class="empty">Run a scan (Screener → Scan now), then come back here to page through the charts.</p></div>
+      <div class="book-stage">
+        <button id="bookPrev" class="book-arrow prev" title="Previous (←)" aria-label="Previous chart">‹</button>
+        <button id="bookNext" class="book-arrow next" title="Next (→)" aria-label="Next chart">›</button>
+        <span class="book-pos" id="bookPos"></span>
+        <div id="bookChart"><p class="empty">Run a scan (Screener → Scan now), then come back here to page through the charts.</p></div>
+      </div>
       <div id="bookPlan"></div>
       <p class="hint" style="margin-top:10px">Entry / stop / targets are the tool's standard plan: entry at the breakout level (or your override in the Analyzer), stop under support or a fixed % if none, exit scaled at +5% / +7.5% / +10%, size fixed at 1% of capital at risk. For <b>Darvas Box</b> and <b>High Dry Fry</b> names the note above swaps in Darvas's own rule — a buy-stop above the prior day's high, stop 1% under entry or below the base low.</p>
     </div>
@@ -2567,6 +2585,9 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
   function bookInScope(d, scope){
     switch(scope){
       case "actionable": return evaluateRow(d).actionable;
+      case "confhi":     return confidenceRead(d, evaluateRow(d)).conf==="High";
+      case "confmod":  { var _c=confidenceRead(d, evaluateRow(d)).conf; return _c==="High"||_c==="Moderate"; }
+      case "leanbull":   return /bullish/i.test(confidenceRead(d, evaluateRow(d)).lean);
       case "setup":      return !!(d.setup && SETUP_LABEL[d.setup]);
       case "golden":     return !!d.gg;
       case "silver":     return !!d.sg;
@@ -2758,8 +2779,12 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
     if(e.expR>0.35) confN += 1; else if(e.expR<0) confN -= 1;
     if(state.regime==="red") confN -= 2;
     if(Math.abs(score)<14) confN -= 1;
-    var conf = confN>=4.2 ? "High" : confN>=2.2 ? "Moderate" : "Low";
-    if(conf==="High" && (state.regime!=="green" || !histReal)) conf="Moderate";
+    var conf = confN>=4.0 ? "High" : confN>=2.0 ? "Moderate" : "Low";
+    // "High" needs a supportive regime and a genuinely strong, aligned read
+    if(conf==="High"){
+      if(state.regime==="red") conf="Moderate";
+      else if(state.regime!=="green" && !(confN>=4.8 && score>=34)) conf="Moderate";
+    }
 
     var wk = Math.max(0.38, Math.min(0.63, 0.5 + score/500));
     var tgt = (d.probT10!=null) ? d.probT10 : (e.p10!=null ? e.p10 : null);
@@ -2780,6 +2805,11 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
     var pool = rows.filter(function(d){ return bookInScope(d, scope); });
     if(scope==="mb" || scope==="mba" || scope==="mbtop")
       pool.sort(function(a,b){ return (b.mb?b.mb.total:0) - (a.mb?a.mb.total:0); });
+    else if(scope==="confhi" || scope==="confmod" || scope==="leanbull"){
+      var cs={};
+      pool.forEach(function(d){ cs[d.symbol] = confidenceRead(d, evaluateRow(d)).score; });
+      pool.sort(function(a,b){ return cs[b.symbol] - cs[a.symbol]; });
+    }
     else
       pool.sort(function(a,b){ return scoreStock(b).total - scoreStock(a).total; });
     bookPool = pool;
@@ -2792,6 +2822,8 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
 
     if(!pool.length){
       if($("#bookPos")) $("#bookPos").textContent = "";
+      if($("#bookPrev")) $("#bookPrev").disabled = true;
+      if($("#bookNext")) $("#bookNext").disabled = true;
       if($("#bookWatch")){ $("#bookWatch").innerHTML = "☆ Watchlist"; $("#bookWatch").classList.remove("pos"); }
       if($("#bookProb")) $("#bookProb").innerHTML = "";
       if($("#bookConf")){ $("#bookConf").innerHTML = ""; $("#bookConf").hidden = true; }
