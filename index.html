@@ -326,6 +326,32 @@ table.oc-guide td:first-child{white-space:nowrap;width:1%}
 .hb i{display:block;height:100%;background:var(--pos);border-radius:999px}
 .hrow.dim .hb i{background:var(--muted)}
 
+/* execution scorecard */
+#jScorecard:empty{display:none}
+#jScorecard{margin-top:16px;border-top:2px solid var(--line-strong);padding-top:14px}
+#jScorecard h3{margin-bottom:8px}
+.sc-head{display:flex;flex-wrap:wrap;gap:8px 20px;align-items:baseline;margin-bottom:8px}
+.sc-big{font-family:"Fraunces",serif;font-size:31px;font-weight:600;line-height:1}
+.sc-big.pos{color:var(--pos)} .sc-big.neg{color:var(--neg)} .sc-big.warn{color:var(--warn)}
+.sc-big small{font-size:13px;color:var(--muted);font-weight:400;font-family:"IBM Plex Sans",sans-serif}
+.sc-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:9px 16px;margin:6px 0 12px}
+.sc-grid .k{font-size:10px;text-transform:uppercase;letter-spacing:.6px;color:var(--muted)}
+.sc-grid .v{font-family:"IBM Plex Mono",monospace;font-size:15px;font-variant-numeric:tabular-nums;margin-top:1px}
+.sc-grid .v.pos{color:var(--pos)} .sc-grid .v.neg{color:var(--neg)}
+.sc-eq{margin:4px 0 12px}
+.sc-eq svg{width:100%;max-width:420px;height:60px;display:block;margin-bottom:2px}
+.sc-eq .ln{fill:none;stroke:var(--btn);stroke-width:1.6}
+.sc-eq .zero{stroke:var(--line-strong);stroke-dasharray:2 2}
+table.sc-setup{width:auto;font-size:12px;margin:2px 0 12px;border-collapse:collapse}
+table.sc-setup th,table.sc-setup td{border-bottom:1px solid var(--line);padding:4px 14px 4px 0;text-align:left}
+table.sc-setup th{color:var(--muted);font-size:10px;text-transform:uppercase;letter-spacing:.5px}
+table.sc-setup td.num{font-family:"IBM Plex Mono",monospace;text-align:right}
+.sc-diag{display:flex;flex-direction:column;gap:6px;margin-top:4px}
+.sc-diag .snote{margin:0;padding:8px 11px;border-radius:7px;font-size:12.5px;line-height:1.5;color:var(--ink-soft)}
+.sc-diag .snote.neg{background:var(--neg-bg)}
+.sc-diag .snote.warn{background:var(--warn-bg)}
+.sc-diag .snote.pos{background:var(--pos-bg)}
+
 /* watchlist */
 .wl-item{display:flex;flex-wrap:wrap;gap:6px 14px;align-items:center;padding:10px 0;border-bottom:1px solid var(--line);font-size:12.5px}
 .wl-item:last-child{border-bottom:0}
@@ -359,7 +385,7 @@ table.oc-guide td:first-child{white-space:nowrap;width:1%}
     <span class="mark" aria-hidden="true">₹</span>
     <div>
       <h1>The 10% Ledger</h1>
-      <p>Momentum + pullback screener · NSE swing setups <span style="opacity:.5;font-size:11px">· build 2026-09-09f</span></p>
+      <p>Momentum + pullback screener · NSE swing setups <span style="opacity:.5;font-size:11px">· build 2026-09-09g</span></p>
     </div>
   </div>
   <div class="controls">
@@ -844,7 +870,7 @@ table.oc-guide td:first-child{white-space:nowrap;width:1%}
   <section id="tab-journal" hidden>
     <div class="panel">
       <div class="scan-head"><h2>Trading Journal</h2><span class="scan-meta" id="jSyncMeta"></span></div>
-      <p class="hint">Log every position. For each <b>open</b> trade the journal reads your <b>latest scan</b> and tells you whether the setup is still intact, where the trailing stop should be now, and <b>how far the move can still run</b> (next resistance, measured move, and this stock's own historical run). Optionally syncs to a Google Sheet so the log lives outside your browser.</p>
+      <p class="hint">Log every position. For each <b>open</b> trade the journal reads your <b>latest scan</b> and tells you whether the setup is still intact, where the trailing stop should be now, and <b>how far the move can still run</b>. Once you have <b>3+ closed trades</b> the <b>Execution scorecard</b> reads them back to you — your real expectancy, whether you cut losers and ride winners, position-size discipline, your edge by setup — because the setup is rarely why an account loses money. Optionally syncs to a Google Sheet.</p>
 
       <details class="sub" id="jSetup">
         <summary>Connect a Google Sheet (optional — one-time setup)</summary>
@@ -884,6 +910,8 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
       <div class="field-actions"><button class="primary" id="jAddBtn">Add position</button> <button id="jFillFromAnalyzer" class="ghost" title="Use the symbol / entry / stop currently in the Analyzer">◀ from Analyzer</button></div>
 
       <div class="summary" id="jSummary" aria-live="polite" style="margin-top:14px"></div>
+
+      <div id="jScorecard"></div>
 
       <h3 style="margin:14px 0 4px">Open positions</h3>
       <div class="table-wrap">
@@ -3265,6 +3293,120 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
     return { has:true, trend:trend, trail:trail, ceil:ceil, R:R, pnl:pnl, verdict:v, vcls:vc, ride:ride, price:p };
   }
 
+  // ---- execution scorecard: read the closed trades back to the trader ----
+  function executionScorecard(closed, cap){
+    var mean=function(a){ return a.length ? a.reduce(function(s,v){return s+v;},0)/a.length : 0; };
+    var t = closed.map(function(p){
+      var risk = (p.entryPrice>0 && p.stop>0 && p.entryPrice>p.stop) ? p.entryPrice-p.stop : null;
+      var ret  = (p.entryPrice>0 && p.exitPrice>0) ? (p.exitPrice-p.entryPrice)/p.entryPrice : null;
+      var R    = (risk!=null && p.exitPrice>0) ? (p.exitPrice-p.entryPrice)/risk : null;
+      var rAmt = (risk!=null && p.qty>0) ? risk*p.qty : null;
+      var pnl  = (ret!=null && p.qty>0) ? (p.exitPrice-p.entryPrice)*p.qty : null;
+      var held = (p.entryDate && p.exitDate) ? Math.max(0,Math.round((new Date(p.exitDate)-new Date(p.entryDate))/864e5)) : null;
+      return { sym:p.symbol, setup:(p.setup||"").trim()||"(none)", ret:ret, R:R,
+               riskPct:(rAmt!=null && cap>0)? rAmt/cap*100 : null, pnl:pnl, held:held,
+               win: ret!=null && ret>0, exit:p.exitDate||"" };
+    }).filter(function(x){ return x.R!=null && isFinite(x.R); });
+
+    if(t.length<3) return { n:t.length, enough:false };
+
+    var wins=t.filter(function(x){return x.win;}), losses=t.filter(function(x){return !x.win;});
+    var expR   = mean(t.map(function(x){return x.R;}));
+    var winRate= Math.round(wins.length/t.length*100);
+    var avgWinR = wins.length ? mean(wins.map(function(x){return x.R;})) : 0;
+    var avgLossR= losses.length ? mean(losses.map(function(x){return x.R;})) : 0;
+    var gW=0,gL=0; t.forEach(function(x){ if(x.R>0) gW+=x.R; else gL+=-x.R; });
+    var pf = gL>0 ? gW/gL : (gW>0?99:0);
+    var totalPnl = t.reduce(function(s,x){ return s+(x.pnl||0); },0);
+    var avgWinRet = wins.length ? mean(wins.map(function(x){return x.ret;})) : 0;
+    var capture = Math.round(avgWinRet/0.10*100);
+    var blown = losses.filter(function(x){ return x.R < -1.15; });
+    var wRisk = wins.filter(function(x){return x.riskPct!=null;}).map(function(x){return x.riskPct;});
+    var lRisk = losses.filter(function(x){return x.riskPct!=null;}).map(function(x){return x.riskPct;});
+    var sizingSkew = (wRisk.length && lRisk.length) ? mean(lRisk)-mean(wRisk) : null;
+    var wHold = wins.filter(function(x){return x.held!=null;}).map(function(x){return x.held;});
+    var lHold = losses.filter(function(x){return x.held!=null;}).map(function(x){return x.held;});
+    var holdWin = wHold.length ? Math.round(mean(wHold)) : null;
+    var holdLoss= lHold.length ? Math.round(mean(lHold)) : null;
+
+    var byDate = t.slice().sort(function(a,b){ return a.exit<b.exit?-1:a.exit>b.exit?1:0; });
+    var cum=0,peak=0,maxDD=0,curve=[];
+    byDate.forEach(function(x){ cum+=x.R; curve.push(cum); if(cum>peak)peak=cum; if(peak-cum>maxDD)maxDD=peak-cum; });
+    var curDD = peak-cum;
+    var revenge=0,revTot=0,i;
+    for(i=1;i<byDate.length;i++){
+      if(!byDate[i-1].win && byDate[i].riskPct!=null && byDate[i-1].riskPct!=null){
+        revTot++; if(byDate[i].riskPct > byDate[i-1].riskPct*1.15) revenge++;
+      }
+    }
+    var setups={}; t.forEach(function(x){ (setups[x.setup]=setups[x.setup]||[]).push(x); });
+    var setupRows = Object.keys(setups).map(function(k){
+      var g=setups[k];
+      return { setup:k, n:g.length, win:Math.round(g.filter(function(x){return x.win;}).length/g.length*100), avgR:mean(g.map(function(x){return x.R;})) };
+    }).filter(function(r){ return r.n>=2; }).sort(function(a,b){ return b.avgR-a.avgR; });
+
+    var diag=[];
+    if(expR<=0) diag.push({sev:"neg", t:"Realised expectancy is <b>"+expR.toFixed(2)+"R</b> — the system is losing money the way you're trading it. Fix the leaks below before adding size."});
+    if(blown.length && blown.length/losses.length >= 0.25)
+      diag.push({sev:"neg", t:"<b>"+blown.length+" of "+losses.length+" losers</b> ran past −1R (worst "+Math.min.apply(null,blown.map(function(x){return x.R;})).toFixed(1)+"R). You're not honouring stops — this is the first thing to fix; nothing else matters until it's done."});
+    if(avgLossR<0 && avgWinR>0 && avgWinR < Math.abs(avgLossR)*1.6)
+      diag.push({sev:"warn", t:"Avg win <b>+"+avgWinR.toFixed(1)+"R</b> vs avg loss <b>"+avgLossR.toFixed(1)+"R</b> — you're cutting winners almost as fast as losers. A momentum system needs winners ≥ 2× the average loss; let the trail stop end the trade."});
+    if(capture>0 && capture<70 && wins.length>=3)
+      diag.push({sev:"warn", t:"Your winners average <b>+"+Math.round(avgWinRet*100)+"%</b> — only "+capture+"% of the +10% plan target. You're booking profits early. Scale out in thirds and let the last third ride the trail."});
+    if(holdWin!=null && holdLoss!=null && holdLoss > holdWin*1.3 && holdLoss-holdWin>=2)
+      diag.push({sev:"warn", t:"You hold losers <b>"+holdLoss+" days</b> but winners only <b>"+holdWin+"</b> — backwards (the disposition effect). Set the stop and the trail on day one, then don't touch a winner."});
+    if(sizingSkew!=null && sizingSkew>0.3)
+      diag.push({sev:"warn", t:"Losing trades risked <b>"+mean(lRisk).toFixed(1)+"%</b> of capital vs <b>"+mean(wRisk).toFixed(1)+"%</b> on winners — you're betting bigger on the ones that don't work (conviction bias). Fix position size to a constant % and let it be boring."});
+    if(revTot>=3 && revenge/revTot>=0.5)
+      diag.push({sev:"warn", t:"<b>"+revenge+" of "+revTot+"</b> trades taken right after a loss were sized up 15%+ — revenge trading. Rule: after any loss, the next position is half size until you have a green trade."});
+    if(curDD>=3)
+      diag.push({sev:"neg", t:"You're <b>"+curDD.toFixed(1)+"R below your equity peak</b>. Drop to half size until you're back within 1R of it — drawdowns are when overtrading compounds."});
+    if(setupRows.length>=2){
+      var best=setupRows[0], worst=setupRows[setupRows.length-1];
+      if(best.avgR-worst.avgR>0.8 && worst.avgR<0.1)
+        diag.push({sev:"warn", t:'<b>'+esc(best.setup)+'</b> is your edge ('+best.win+'% win, +'+best.avgR.toFixed(1)+'R). <b>'+esc(worst.setup)+'</b> is a drain ('+worst.win+'% win, '+worst.avgR.toFixed(1)+'R) — stop taking it and see what your expectancy does.'});
+    }
+    if(cap>0 && expR>0.05 && totalPnl<0)
+      diag.unshift({sev:"neg", t:"Your <b>R-expectancy is positive but you're down in rupees</b> (<b>"+inr(totalPnl)+"</b>). Your position sizing is inverted — bigger bets on the trades that lose. Size every trade to the same % of capital and the rupee result will follow the R."});
+    if(!diag.length)
+      diag.push({sev:"pos", t:"No obvious execution leak — expectancy <b>"+expR.toFixed(2)+"R</b>, profit factor <b>"+(pf>=90?"∞":pf.toFixed(2))+"</b>. Keep the process identical and let the sample grow before you touch anything."});
+
+    return { n:t.length, enough:true, expR:expR, winRate:winRate, avgWinR:avgWinR, avgLossR:avgLossR,
+             pf:pf, totalPnl:totalPnl, capture:capture, avgWinRet:avgWinRet, blown:blown.length,
+             maxDD:maxDD, curDD:curDD, curve:curve, holdWin:holdWin, holdLoss:holdLoss,
+             setupRows:setupRows, diag:diag };
+  }
+  function renderScorecard(){
+    var host=$("#jScorecard"); if(!host) return;
+    var cap = state.capital || 0;
+    var closed = jList().filter(function(x){ return x.status==="closed"; });
+    var sc = executionScorecard(closed, cap);
+    var hd = '<h3>Execution scorecard <span class="dim" style="font-weight:400;font-size:13px">— your behaviour, not the setup&rsquo;s'+(sc.enough?' · '+sc.n+' closed trades':'')+'</span></h3>';
+    if(!sc.enough){
+      host.innerHTML = hd + '<p class="hint">Log at least <b>3 closed trades</b> and this reads them back to you: real expectancy in R and ₹, whether you cut losers and ride winners, position-size discipline, revenge-trading, and your edge broken out by setup. <b>'+sc.n+'</b> closed so far.</p>';
+      return;
+    }
+    var ecls = sc.expR>=0.15?"pos":sc.expR>=0?"warn":"neg";
+    var eq=sc.curve, mn=Math.min.apply(null,eq.concat([0])), mx=Math.max.apply(null,eq.concat([0])), rng=(mx-mn)||1;
+    var W=420,Hh=60,pd=3;
+    var pts=eq.map(function(v,i){ var x=pd+(eq.length<=1?0:i*(W-2*pd)/(eq.length-1)); var y=Hh-pd-(v-mn)/rng*(Hh-2*pd); return x.toFixed(1)+","+y.toFixed(1); }).join(" ");
+    var zY=(Hh-pd-(0-mn)/rng*(Hh-2*pd)).toFixed(1);
+    var spark='<div class="sc-eq"><svg viewBox="0 0 '+W+' '+Hh+'" preserveAspectRatio="none" aria-label="cumulative R equity curve"><line class="zero" x1="0" y1="'+zY+'" x2="'+W+'" y2="'+zY+'"/><polyline class="ln" points="'+pts+'"/></svg><span class="dim" style="font-size:10.5px">cumulative R · now '+sc.curDD.toFixed(1)+'R below peak (worst drawdown '+sc.maxDD.toFixed(1)+'R)</span></div>';
+    var stbl = sc.setupRows.length ? '<table class="sc-setup"><tr><th>Setup</th><th>Trades</th><th>Win%</th><th>Avg R</th></tr>'+
+      sc.setupRows.map(function(r){ return '<tr><td>'+esc(r.setup)+'</td><td class="num">'+r.n+'</td><td class="num">'+r.win+'%</td><td class="num '+(r.avgR>=0.15?"pos":r.avgR>=0?"":"neg")+'">'+(r.avgR>=0?"+":"")+r.avgR.toFixed(2)+'</td></tr>'; }).join("")+'</table>' : '';
+    host.innerHTML = hd +
+      '<div class="sc-head"><span class="sc-big '+ecls+'">'+(sc.expR>=0?"+":"")+sc.expR.toFixed(2)+'R <small>realised expectancy per trade — mean R-multiple across '+sc.n+' closed trades</small></span></div>'+
+      '<div class="sc-grid">'+
+        '<div><div class="k">Win rate</div><div class="v">'+sc.winRate+'%</div></div>'+
+        '<div><div class="k">Avg win / loss</div><div class="v"><span class="pos">+'+sc.avgWinR.toFixed(1)+'R</span> / <span class="neg">'+sc.avgLossR.toFixed(1)+'R</span></div></div>'+
+        '<div><div class="k">Profit factor</div><div class="v">'+(sc.pf>=90?"∞":sc.pf.toFixed(2))+'</div></div>'+
+        '<div><div class="k">Winners capture</div><div class="v">'+(sc.capture>0?sc.capture+'% of +10%':'–')+'</div></div>'+
+        (cap>0?'<div><div class="k">Total P&amp;L</div><div class="v '+(sc.totalPnl>=0?"pos":"neg")+'">'+inr(sc.totalPnl)+'</div></div>':'')+
+        (sc.holdWin!=null&&sc.holdLoss!=null?'<div><div class="k">Hold — win / loss</div><div class="v">'+sc.holdWin+'d / '+sc.holdLoss+'d</div></div>':'')+
+      '</div>'+
+      spark + stbl +
+      '<div class="sc-diag">'+sc.diag.map(function(x){ return '<p class="snote '+x.sev+'">'+x.t+'</p>'; }).join("")+'</div>';
+  }
   function renderJournal(){
     var openBody=$("#jOpenBody"), closedBody=$("#jClosedBody"); if(!openBody) return;
     if($("#jUrl") && !$("#jUrl").value) $("#jUrl").value = state.journalUrl||"";
@@ -3340,6 +3482,8 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
         switchTab("analyzer");
       });
     });
+
+    renderScorecard();
   }
 
   function renderRegimeBanner(){
