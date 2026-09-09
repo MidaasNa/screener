@@ -218,31 +218,33 @@ details.sub textarea{width:100%;min-height:116px;margin-top:8px;background:var(-
 #bookChart{overflow-x:auto;max-width:100%}
 #bookChart .cx-svg{min-width:0;max-width:920px;margin-left:auto;margin-right:auto}
 .book-stage{position:relative}
-.book-arrow{position:absolute;top:38%;transform:translateY(-50%);z-index:6;
-  width:34px;height:46px;display:grid;place-items:center;padding:0;
-  font-size:22px;font-weight:600;line-height:1;
-  background:var(--surface);border:1px solid var(--line-strong);border-radius:9px;
-  color:var(--ink-soft);opacity:.7;box-shadow:0 1px 4px rgba(0,0,0,.12);
-  transition:opacity .15s ease,background .15s ease,color .15s ease}
-.book-arrow:hover{opacity:1;background:var(--btn-hi);color:var(--btn-ink);border-color:transparent}
-.book-arrow:active{transform:translateY(-50%) scale(.94)}
-.book-arrow:disabled{opacity:.22;cursor:default;background:var(--surface);color:var(--ink-soft)}
-.book-arrow.prev{left:6px} .book-arrow.next{right:6px}
-.book-pos{position:absolute;top:8px;right:12px;z-index:6;
-  font-size:11px;font-family:"IBM Plex Mono",monospace;color:var(--muted);
-  background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:2px 9px;opacity:.9}
-@media (max-width:640px){.book-arrow{width:30px;height:40px;font-size:19px}}
+.book-nav-top{position:absolute;top:6px;left:50%;transform:translateX(-50%);z-index:6;
+  display:flex;align-items:center;gap:1px;padding:2px;
+  background:var(--surface);border:1px solid var(--line-strong);border-radius:999px;
+  box-shadow:0 1px 5px rgba(0,0,0,.14)}
+.book-arrow{width:28px;height:24px;display:grid;place-items:center;padding:0;
+  font-size:16px;font-weight:600;line-height:1;
+  background:transparent;border:0;border-radius:999px;color:var(--ink-soft);
+  transition:background .12s ease,color .12s ease}
+.book-arrow:hover{background:var(--btn-hi);color:var(--btn-ink)}
+.book-arrow:active{transform:scale(.9)}
+.book-arrow:disabled{opacity:.25;cursor:default;background:transparent;color:var(--ink-soft)}
+.book-pos{min-width:52px;text-align:center;padding:0 6px;
+  font-size:11px;font-family:"IBM Plex Mono",monospace;font-variant-numeric:tabular-nums;color:var(--muted)}
 .book-prob{display:inline-flex;align-items:center;gap:6px;font-size:11px;color:var(--muted);white-space:nowrap}
 .book-prob .pbar{width:72px;height:7px;background:var(--surface-2);border-radius:999px;overflow:hidden}
 .book-prob .pbar i{display:block;height:100%;border-radius:999px;background:var(--muted)}
 .book-prob .pbar i.pos{background:var(--pos)} .book-prob .pbar i.warn{background:var(--warn)} .book-prob .pbar i.neg{background:var(--neg)}
 .book-prob b{font-family:"IBM Plex Mono",monospace;font-variant-numeric:tabular-nums;color:var(--ink)}
-.book-conf{background:var(--surface-2);border:1px solid var(--line);border-radius:8px;padding:10px 12px;margin:0 0 12px;font-size:12px}
+.book-conf{background:var(--surface-2);border:1px solid var(--line);border-radius:8px;padding:10px 12px;margin:14px 0 0;font-size:12px}
 .bc-head{display:flex;flex-wrap:wrap;gap:8px 14px;align-items:baseline;margin-bottom:3px}
 .bc-lean{font-size:14px;font-weight:600}
 .bc-lean.pos{color:var(--pos)} .bc-lean.warn{color:var(--warn)} .bc-lean.neg{color:var(--neg)}
 .bc-conf{color:var(--muted)} .bc-conf b{color:var(--ink)}
 .bc-odds{color:var(--ink-soft);margin-bottom:2px} .bc-odds b{font-family:"IBM Plex Mono",monospace;font-variant-numeric:tabular-nums;color:var(--ink)}
+.bc-acc{color:var(--ink-soft);margin-top:6px;padding-top:6px;border-top:1px dashed var(--line)}
+.bc-acc b{color:var(--ink)} .bc-acc b.pos{color:var(--pos)} .bc-acc b.warn{color:var(--warn)} .bc-acc b.neg{color:var(--neg)}
+.bc-accnote{display:block;color:var(--muted);font-size:10.5px;margin-top:2px;line-height:1.45}
 .bc-row{display:flex;flex-wrap:wrap;gap:5px;align-items:flex-start;margin-top:6px}
 .bc-k{font-size:10px;text-transform:uppercase;letter-spacing:.5px;font-weight:700;min-width:50px;padding-top:3px}
 .bc-k.pos{color:var(--pos)} .bc-k.neg{color:var(--neg)}
@@ -294,7 +296,9 @@ table.mb-scen td.num{font-family:"IBM Plex Mono",monospace;text-align:right;padd
 .cx-tl.top{stroke:#c07bff} .cx-tl.bot{stroke:#37a6ff}
 .cx-tl.neck{stroke:#e8912a;stroke-width:1.4;stroke-dasharray:2 3}
 .cx-patlab{fill:#37a6ff;font-size:10px;font-weight:600;font-family:"IBM Plex Mono",monospace}
-.cx-legend .ksup{color:#12c98b} .cx-legend .ktl{color:#37a6ff}
+.cx-avwap{fill:none;stroke:#d6489b;stroke-width:1.7;stroke-dasharray:5 2;opacity:.95}
+.cx-flab.cx-avwaplab{fill:#d6489b;font-weight:600}
+.cx-legend .ksup{color:#12c98b} .cx-legend .ktl{color:#37a6ff} .cx-legend .kvwap{color:#d6489b}
 .cx-line.cx-ocput{stroke:var(--pos);stroke-dasharray:2 2;opacity:.75} .cx-flab.cx-ocput{fill:var(--pos);opacity:.8}
 .cx-line.cx-occall{stroke:var(--neg);stroke-dasharray:2 2;opacity:.75} .cx-flab.cx-occall{fill:var(--neg);opacity:.8}
 .cx-line.cx-ocmp{stroke:var(--muted);stroke-dasharray:1 2;opacity:.6} .cx-flab.cx-ocmp{fill:var(--muted);opacity:.7}
@@ -354,7 +358,7 @@ table.oc-guide td:first-child{white-space:nowrap;width:1%}
     <span class="mark" aria-hidden="true">₹</span>
     <div>
       <h1>The 10% Ledger</h1>
-      <p>Momentum + pullback screener · NSE swing setups <span style="opacity:.5;font-size:11px">· build 2026-09-08z7</span></p>
+      <p>Momentum + pullback screener · NSE swing setups <span style="opacity:.5;font-size:11px">· build 2026-09-09a</span></p>
     </div>
   </div>
   <div class="controls">
@@ -935,6 +939,8 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
             <option value="hiadr">High-ADR movers (≥ 4% daily range)</option>
             <option value="nr">NR4 / NR7 ↑ (bullish narrow-range coil)</option>
             <option value="gx">Fresh 10/50 SMA cross (≤ 5 sessions)</option>
+            <option value="accbo">Accumulated base — breaking out now</option>
+            <option value="accstrong">Accumulation — strong (in a base or not)</option>
             <option value="mbtop">Multibagger Radar — all, ranked by score</option>
             <option value="mb">Multibagger Radar — class A / B</option>
             <option value="mba">Multibagger Radar — class A only</option>
@@ -957,6 +963,7 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
         <div class="seg" id="bookOverlay" role="group" aria-label="Chart overlays">
           <button data-v="sr" aria-pressed="true" title="Bright horizontal support / resistance zones from clustered pivot highs &amp; lows (×n = touches)">S/R zones</button>
           <button data-v="pat" aria-pressed="true" title="Auto-fitted trendlines through recent swing highs / lows + pattern name (triangle, channel, wedge, range)">Patterns</button>
+          <button data-v="vwap" aria-pressed="true" title="Anchored VWAP from the start of the consolidation base — the volume-weighted average price paid while the base formed (a proxy for where accumulators are in)">Base VWAP</button>
         </div>
         <button id="bookRefreshLive" class="ghost" title="Fetch fresh candles for this stock">↻ live</button>
         <button id="bookWatch" class="ghost" title="Add / remove this stock from your watchlist">☆ Watchlist</button>
@@ -964,14 +971,16 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
         <span class="book-prob" id="bookProb" title="Estimated chance of +10% before the stop — from this stock's own history where available (‘e’ = a score-based estimate)"></span>
       </div>
       <div id="bookHead" class="summary" aria-live="polite"></div>
-      <div id="bookConf" class="book-conf" aria-live="polite" hidden></div>
       <div class="book-stage">
-        <button id="bookPrev" class="book-arrow prev" title="Previous (←)" aria-label="Previous chart">‹</button>
-        <button id="bookNext" class="book-arrow next" title="Next (→)" aria-label="Next chart">›</button>
-        <span class="book-pos" id="bookPos"></span>
+        <div class="book-nav-top" role="group" aria-label="Chart book navigation">
+          <button id="bookPrev" class="book-arrow" title="Previous (←)" aria-label="Previous chart">‹</button>
+          <span class="book-pos" id="bookPos"></span>
+          <button id="bookNext" class="book-arrow" title="Next (→)" aria-label="Next chart">›</button>
+        </div>
         <div id="bookChart"><p class="empty">Run a scan (Screener → Scan now), then come back here to page through the charts.</p></div>
       </div>
       <div id="bookPlan"></div>
+      <div id="bookConf" class="book-conf" aria-live="polite" hidden></div>
       <p class="hint" style="margin-top:10px">Entry / stop / targets are the tool's standard plan: entry at the breakout level (or your override in the Analyzer), stop under support or a fixed % if none, exit scaled at +5% / +7.5% / +10%, size fixed at 1% of capital at risk. For <b>Darvas Box</b> and <b>High Dry Fry</b> names the note above swaps in Darvas's own rule — a buy-stop above the prior day's high, stop 1% under entry or below the base low.</p>
     </div>
   </section>
@@ -1479,14 +1488,14 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
     universeSize: "200", customUniverse: "", leadingSectors: [],
     dropForming: true, fetchEvents: false, fetchResults: true, fetchDeep: true, scanCache: null, hostOverride: false,
     oc: {}, journal: [], journalUrl: "", bookIdx: 0, bookScope: "all",
-    bookSR: true, bookPat: true,
+    bookSR: true, bookPat: true, bookVwap: true,
     mbMinScore: 55, mbNoFlags: false, mbOpen: {}
   };
 
   var SAMPLE = [
-    "# cols: SYM,price,EMA20,EMA50,EMA200,RSI,volR,breakout,support,sector,macd,hhhl,resist,probT1,probT10,basePct,baseBars,stage2,RS,setup,trigger,trigWR,athPct,blueSky,revYoY,profYoY,epsYoY,qDate,profYoYPrev,ttmYoY,coil,mvt,gg,sg,dx,hdf,cdl,mb,vm,adr,nr,gx",
-    "HINDZINC, 627, 598, 560, 505, 69, 2.3, 620, 606, L, 1, 1, 0, 0.58, 0.33, 0.06, 22, 6, 88, HDF, inside-bar@0, 0.61, 0.01, 1, 0.19, 0.34, 0.31, 2026-06-30, 0.26, 0.3, , , , , 624|590|12|0.055|0.005|2.4|1|1|1, 0.42|0.16|0.028|1.8|12|624|560, hammer~0~3.4|inside~1~0.62, 72|10|82|C|compounder|15|16|11|7|10|8|5|24.5|13|100|0||0.14|0.18|0.19|1|1.1|0.35|0.09|280000|0|28~0.19~0.16~0.19~0.18|rev-accel+sector-tailwind, 3.4|1|1|1, 4.6, 7|0|1|0.018|1, 2|0.06",
-    "BEL, 415, 402, 395, 360, 66, 1.9, 409, 391, L, 1, 1, 0, 0.55, 0.31, 0.07, 18, 6, 84, BOB, hammer@1, 0.62, 0.03, 1, 0.21, 0.28, 0.27, 2026-06-30, 0.33, 0.24, 14|coil|0.022|0.71|0.006|411||||0.09, , 12|0.06|1|3.6|0.04|420, , , , ldbng~2~2.1|kicker~2~0.004, 80|16|96|B|inflection|16|16|10|8|12|8|6|38|22|100|1|cfdiv|0.16|0.22|0.24|1|0.9|0.05|0.11|95000|0|28~0.17~0.15~0.18~0.22|rev-accel+margin-up+roce-inflect+sector-tailwind, 4.1|0|1|1, 2.2, 4|1|0|0.026|1",
+    "# cols: SYM,price,EMA20,EMA50,EMA200,RSI,volR,breakout,support,sector,macd,hhhl,resist,probT1,probT10,basePct,baseBars,stage2,RS,setup,trigger,trigWR,athPct,blueSky,revYoY,profYoY,epsYoY,qDate,profYoYPrev,ttmYoY,coil,mvt,gg,sg,dx,hdf,cdl,mb,vm,adr,nr,gx,acc",
+    "HINDZINC, 627, 598, 560, 505, 69, 2.3, 620, 606, L, 1, 1, 0, 0.58, 0.33, 0.06, 22, 6, 88, HDF, inside-bar@0, 0.61, 0.01, 1, 0.19, 0.34, 0.31, 2026-06-30, 0.26, 0.3, , , , , 624|590|12|0.055|0.005|2.4|1|1|1, 0.42|0.16|0.028|1.8|12|624|560, hammer~0~3.4|inside~1~0.62, 72|10|82|C|compounder|15|16|11|7|10|8|5|24.5|13|100|0||0.14|0.18|0.19|1|1.1|0.35|0.09|280000|0|28~0.19~0.16~0.19~0.18|rev-accel+sector-tailwind, 3.4|1|1|1, 4.6, 7|0|1|0.018|1, 2|0.06, 74|strong|590|1.87|3|0.28|1",
+    "BEL, 415, 402, 395, 360, 66, 1.9, 409, 391, L, 1, 1, 0, 0.55, 0.31, 0.07, 18, 6, 84, BOB, hammer@1, 0.62, 0.03, 1, 0.21, 0.28, 0.27, 2026-06-30, 0.33, 0.24, 14|coil|0.022|0.71|0.006|411||||0.09, , 12|0.06|1|3.6|0.04|420, , , , ldbng~2~2.1|kicker~2~0.004, 80|16|96|B|inflection|16|16|10|8|12|8|6|38|22|100|1|cfdiv|0.16|0.22|0.24|1|0.9|0.05|0.11|95000|0|28~0.17~0.15~0.18~0.22|rev-accel+margin-up+roce-inflect+sector-tailwind, 4.1|0|1|1, 2.2, 4|1|0|0.026|1, , 60|mild|398|1.33|2|0.11|0",
     "JINDALSTEL, 1175, 1120, 1090, 1010, 60, 1.4, 1160, 1120, L, 1, 1, 1240, 0.5, 0.27, 0.11, 26, 5, 76, LBB, , , 0.11, 0, 0.08, 0.12, 0.1, 2026-03-31, 0.21, 0.1, , 4.2|50|0.014|1|1|0.03|12|78",
     "MEESHO, 205, 198, 190, 0, 63, 1.4, 200, 191, I, 1, 1, 0, 0.5, 0.26, 0.08, 14, 5, 72, S2P, pin-bar@0, 0.58, 0.05, 0, 0.33, 99, 99, 2026-06-30, , , 9|pop|0.021|0.66|0.032|201|1|0.043|1.9|0.08",
     "SAIL, 195, 190, 185, 132, 55, 0.9, 201, 188, L, 1, 0, 201, 0.44, 0.22, 0.06, 20, 5, 66, COIL, , , 0.14, 0, -0.04, -0.22, -0.21, 2026-06-30, -0.1, -0.15, , , , 0.18|11|1|3.8|178|2|0.015",
@@ -1692,6 +1701,11 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
       d.nr = (nrp[0] && +nrp[0]>=4) ? { n:+nrp[0]||0, ago:+nrp[1]||0, inside:nrp[2]==="1", rangePct:+nrp[3]||0, bull:nrp[4]==="1" } : null;
       var gxp = (p[41]||"").split("|");
       d.gx = (gxp[0]!=null && gxp[0]!=="" && isFinite(+gxp[0])) ? { ago:+gxp[0]||0, from50:+gxp[1]||0 } : null;
+      var acp = (p[42]||"").split("|");
+      d.acc = (acp[0]!=null && acp[0]!=="" && isFinite(+acp[0])) ? {
+        score:+acp[0]||0, label:(acp[1]||"neutral"), vwap:+acp[2]||0, updn:+acp[3]||0,
+        pockets:+acp[4]||0, clv:+acp[5]||0, bo:acp[6]==="1"
+      } : null;
       var st = deriveStructure(d.price, d.breakout, d.basePct, d.baseBars, d.volRatio);
       d.structurePts=st.pts; d.structureLbl=st.label;
       rows.push(d);
@@ -2603,6 +2617,8 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
       case "hiadr":        return d.adr!=null && d.adr>=4;
       case "nr":           return d.nr && d.nr.ago<=2 && d.nr.bull;
       case "gx":           return !!d.gx;
+      case "accbo":        return d.acc && d.acc.bo && /^(strong|mild)$/.test(d.acc.label);
+      case "accstrong":    return d.acc && d.acc.label==="strong";
       case "mb":         return d.mb && /^(A|B)$/.test(d.mb.cls);
       case "mba":        return d.mb && d.mb.cls==="A";
       case "mbtop":      return !!(d.mb && d.mb.total!=null);
@@ -2639,6 +2655,9 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
     if(d.adr!=null && d.adr>=3.5) tags.push({t:"ADR "+d.adr.toFixed(1)+"%", c: d.adr>=6?"pos":d.adr>=4?"warn":"dim"});
     if(d.nr && d.nr.ago<=2) tags.push({t:"NR"+d.nr.n+(d.nr.bull?" ↑":"")+(d.nr.inside?" ▫inside":"")+(d.nr.ago===0?" today":" "+d.nr.ago+"d"), c: d.nr.bull?"warn":"dim"});
     if(d.gx) tags.push({t:"✕ 10/50 SMA cross "+(d.gx.ago===0?"today":d.gx.ago+"d"), c:"pos"});
+    if(d.acc && d.acc.score)
+      tags.push({t:"Accum "+d.acc.label+(d.acc.bo?" · breaking out":"")+" · aVWAP "+nfmt(d.acc.vwap,0),
+                 c: d.acc.label==="strong"?"pos" : d.acc.label==="distribution"?"neg" : "warn"});
     if(d.blueSky) tags.push({t:"All-time high", c:"pos"});
     var rt = resultTiming(d.qDate);
     if(rt && rt.dueSoon) tags.push({t:"⚠ result due ~"+rt.nextTxt, c:"neg"});
@@ -2751,6 +2770,17 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
 
     if(d.rsi>=82){ score-=6; neg.push("RSI "+Math.round(d.rsi)+" — overbought, near-term pullback risk"); }
 
+    if(d.acc && d.acc.score){
+      if(d.acc.label==="strong"){ score+=12; pos.push("accumulation signature in the base (up/down vol, OBV, pockets)"); }
+      else if(d.acc.label==="mild"){ score+=5; pos.push("some accumulation in the base"); }
+      else if(d.acc.label==="distribution"){ score-=12; neg.push("distribution in the base — more selling than buying"); }
+      if(d.acc.vwap>0 && d.price>0){
+        var vd=(d.price-d.acc.vwap)/d.acc.vwap;
+        if(vd>=-0.005 && vd<=0.06) pos.push("holding just above the base VWAP — base buyers in the money");
+        else if(vd<-0.02) neg.push("below the base VWAP — trapped supply from base buyers overhead");
+      }
+    }
+
     var rg=resultGrade(d);
     if(rg.code==="superb"){ score+=8; pos.push("latest quarter — strong growth"); }
     else if(rg.code==="weak"){ score-=10; neg.push("latest quarter — profit or sales shrinking"); }
@@ -2790,7 +2820,8 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
     var tgt = (d.probT10!=null) ? d.probT10 : (e.p10!=null ? e.p10 : null);
 
     return { lean:lean, leanCls:leanCls, conf:conf, score:score,
-             wkUp:wk, tgt:tgt, tgtEst:(d.probT10==null), pos:pos.slice(0,6), neg:neg.slice(0,5) };
+             wkUp:wk, tgt:tgt, tgtEst:(d.probT10==null), pos:pos.slice(0,7), neg:neg.slice(0,6),
+             acc:(d.acc && d.acc.score) ? d.acc : null };
   }
 
   function renderBook(){
@@ -2800,7 +2831,7 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
     if($("#bookScope") && $("#bookScope").value!==scope) $("#bookScope").value = scope;
     $$("#bookTF button").forEach(function(x){ x.setAttribute("aria-pressed", String(x.getAttribute("data-v")===(state.chartTF||"daily"))); });
     $$("#bookMA button").forEach(function(x){ x.setAttribute("aria-pressed", String(x.getAttribute("data-v")===(state.chartMA||"ema"))); });
-    $$("#bookOverlay button").forEach(function(x){ var v=x.getAttribute("data-v"); x.setAttribute("aria-pressed", String(v==="sr" ? state.bookSR!==false : state.bookPat!==false)); });
+    $$("#bookOverlay button").forEach(function(x){ var v=x.getAttribute("data-v"); x.setAttribute("aria-pressed", String(v==="sr" ? state.bookSR!==false : v==="vwap" ? state.bookVwap!==false : state.bookPat!==false)); });
     var rows = parseBatch($("#batchInput").value);
     var pool = rows.filter(function(d){ return bookInScope(d, scope); });
     if(scope==="mb" || scope==="mba" || scope==="mbtop")
@@ -2810,6 +2841,8 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
       pool.forEach(function(d){ cs[d.symbol] = confidenceRead(d, evaluateRow(d)).score; });
       pool.sort(function(a,b){ return cs[b.symbol] - cs[a.symbol]; });
     }
+    else if(scope==="accbo" || scope==="accstrong")
+      pool.sort(function(a,b){ return (b.acc?b.acc.score:0) - (a.acc?a.acc.score:0); });
     else
       pool.sort(function(a,b){ return scoreStock(b).total - scoreStock(a).total; });
     bookPool = pool;
@@ -2871,6 +2904,16 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
       var cr = confidenceRead(d, e);
       var wkPct = Math.round(cr.wkUp*100);
       var tgtTxt = cr.tgt!=null ? (Math.round(cr.tgt*100)+"%"+(cr.tgtEst?" (est)":"")) : "–";
+      var accLine = "";
+      if(cr.acc){
+        var a=cr.acc, vd=a.vwap>0 ? (d.price-a.vwap)/a.vwap*100 : 0;
+        var acls = a.label==="strong"?"pos" : a.label==="distribution"?"neg" : "warn";
+        accLine = '<div class="bc-acc">Base accumulation: <b class="'+acls+'">'+a.label+'</b>'+
+          ' · avg price paid ≈ <b>'+inr(a.vwap)+'</b> ('+(vd>=0?'now +'+vd.toFixed(1)+'% above':'now '+vd.toFixed(1)+'% below')+')'+
+          ' · up/down vol '+a.updn.toFixed(2)+' · '+a.pockets+' pocket-pivot'+(a.pockets===1?'':'s')+
+          (a.bo?' · <b>breaking out now</b>':'')+
+          '<span class="bc-accnote">volume-weighted average traded price since the base began — a proxy for accumulators’ cost, not confirmed institutional data (check bulk/block deals &amp; shareholding on Trendlyne)</span></div>';
+      }
       $("#bookConf").hidden = false;
       $("#bookConf").innerHTML =
         '<div class="bc-head">'+
@@ -2878,6 +2921,7 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
           '<span class="bc-conf">confidence: <b>'+cr.conf+'</b></span>'+
         '</div>'+
         '<div class="bc-odds">≈ <b>'+wkPct+'%</b> chance simply higher in 1–2 weeks · +10% target hit <b>'+tgtTxt+'</b> of the time · next day ≈ coin-flip</div>'+
+        accLine+
         (cr.pos.length ? '<div class="bc-row"><span class="bc-k pos">for</span>'+cr.pos.map(function(t){ return '<span class="bc-chip pos">'+esc(t)+'</span>'; }).join("")+'</div>' : '')+
         (cr.neg.length ? '<div class="bc-row"><span class="bc-k neg">against</span>'+cr.neg.map(function(t){ return '<span class="bc-chip neg">'+esc(t)+'</span>'; }).join("")+'</div>' : '')+
         '<div class="bc-note">A weighted read of the signals in this scan — a probability, not a prediction. Daily direction is noise; the edge is in the odds + reward:risk + position sizing, not in being right about tomorrow.</div>';
@@ -3538,6 +3582,7 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
       '<span><i class="kbase"></i>base</span>'+
       (state.bookSR!==false?'<span class="ksup"><i></i>S/R zone ×n</span>':'')+
       (state.bookPat!==false?'<span class="ktl"><i></i>trendline / pattern</span>':'')+
+      (state.bookVwap!==false?'<span class="kvwap"><i></i>base VWAP</span>':'')+
       '<span class="kent"><i></i>entry</span><span class="kstp"><i></i>stop</span><span class="ktgt"><i></i>+10%</span>'+
     '</div>';
   }
@@ -3612,6 +3657,21 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
       return pts.length>1 ? '<polyline points="'+pts.join(" ")+'" class="'+cls+'"/>' : '';
     }
     g.push(poly(e200,"cx-e200")); g.push(poly(e50,"cx-e50")); g.push(poly(e20,"cx-e20"));
+    // anchored VWAP from the start of the consolidation base — a proxy for the average
+    // price accumulators paid while the stock was building the base ("institutional cost")
+    if(state.bookVwap!==false && bs && bs.bars>=7){
+      var full=o.c.length, bEnd=full-1-2, bStart=Math.max(1, bEnd-bs.bars+1);
+      var pvA=0, vvA=0, vwArr=[];
+      for(var vi=0; vi<full; vi++){
+        if(vi>=bStart){ var tpA=(o.h[vi]+o.l[vi]+o.c[vi])/3; pvA += tpA*(o.v[vi]||0); vvA += (o.v[vi]||0); }
+        vwArr.push(vi>=bStart && vvA>0 ? pvA/vvA : null);
+      }
+      var vwVis = vwArr.slice(s);
+      g.push(poly(vwVis,"cx-avwap"));
+      var vwLast = vwVis[n-1];
+      if(vwLast!=null && vwLast>lo && vwLast<hi)
+        g.push('<text x="'+(W-PR-2)+'" y="'+f1(placeY(Y(vwLast)-2))+'" class="cx-flab cx-avwaplab" text-anchor="end">base VWAP '+nfmt(vwLast,0)+'</text>');
+    }
     if(!opts.weekly && opts.trigAgo>=0){
       var tgi = n-1-opts.trigAgo;
       if(tgi>=0 && tgi<n){
@@ -4428,6 +4488,58 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
     if(ext > 0.05) return {tag:"ext", label:"past base +"+Math.round(ext*100)+"%", pts:6, cls:"neg"};
     return {tag:"", label:"–", pts:0, cls:"dim"};
   }
+  // "Was smart money accumulating this base?" — a price/volume proxy for institutional
+  // buying during a consolidation, plus the anchored VWAP from the base start (the
+  // volume-weighted average price paid over the base = a rough read of accumulators' cost).
+  function accumulationRead(h,l,c,vol,bs){
+    if(!bs || bs.bars<7) return null;
+    var n=c.length, bEnd=n-1-2, start=Math.max(1, bEnd-bs.bars+1);
+    if(bEnd-start < 6) return null;
+    // anchored VWAP: base start → now (typical price × volume)
+    var pv=0, vv=0, i;
+    for(i=start;i<n;i++){ var tp=(h[i]+l[i]+c[i])/3; pv += tp*(vol[i]||0); vv += (vol[i]||0); }
+    var vwap = vv>0 ? pv/vv : c[n-1];
+    // up vs down volume + close-location value + OBV slope, within the base only
+    var upV=0, dnV=0, clvS=0, clvN=0, obv=0, obvArr=[];
+    for(i=start;i<=bEnd;i++){
+      if(c[i]>=c[i-1]) upV += (vol[i]||0); else dnV += (vol[i]||0);
+      var rng=h[i]-l[i];
+      if(rng>0){ clvS += ((c[i]-l[i])-(h[i]-c[i]))/rng; clvN++; }
+      obv += (c[i]>=c[i-1]?1:-1)*(vol[i]||0); obvArr.push(obv);
+    }
+    var updn = dnV>0 ? upV/dnV : (upV>0?3:1);
+    var clv = clvN>0 ? clvS/clvN : 0;
+    var m=obvArr.length, sx=0,sy=0,sxx=0,sxy=0;
+    obvArr.forEach(function(y,x){ sx+=x; sy+=y; sxx+=x*x; sxy+=x*y; });
+    var den=m*sxx-sx*sx, obvSlope = den ? (m*sxy-sx*sy)/den : 0;
+    var avgVol = (vv/(n-start)) || 1;
+    var obvNorm = obvSlope / avgVol;              // ~ net up-volume bars added per session
+    // pocket pivots inside the base: an up day whose volume tops the biggest down-vol day of the prior 10
+    var pockets=0;
+    for(i=Math.max(start,11);i<=bEnd;i++){
+      if(c[i] <= c[i-1]) continue;
+      var maxDn=0, k;
+      for(k=i-10;k<i;k++){ if(k>=1 && c[k]<c[k-1] && (vol[k]||0)>maxDn) maxDn=vol[k]; }
+      if(maxDn>0 && (vol[i]||0) > maxDn) pockets++;
+    }
+    // of the 5 biggest-volume days in the base, how many closed up
+    var idx=[]; for(i=start;i<=bEnd;i++) idx.push(i);
+    idx.sort(function(a,b){ return (vol[b]||0)-(vol[a]||0); });
+    var bigUp=0; idx.slice(0,5).forEach(function(j){ if(c[j]>=c[j-1]) bigUp++; });
+    // ---- score ----
+    var s=50;
+    s += updn>=1.4?18 : updn>=1.15?10 : updn>=0.95?0 : updn>=0.8?-10 : -20;
+    s += clv>=0.25?12 : clv>=0.08?6 : clv>=-0.05?0 : -8;
+    s += obvNorm>=0.35?12 : obvNorm>=0.1?6 : obvNorm>=-0.1?0 : -8;
+    s += Math.min(12, pockets*4);
+    s += bigUp>=4?10 : bigUp>=3?6 : bigUp>=2?0 : -6;
+    s = Math.max(0, Math.min(100, Math.round(s)));
+    var label = s>=68?"strong" : s>=54?"mild" : s>=40?"neutral" : "distribution";
+    var price=c[n-1], ext=(price-bs.hi)/bs.hi;
+    return { score:s, label:label, vwap:vwap, updn:updn, clv:clv, obv:obvNorm,
+             pockets:pockets, bigUp:bigUp, ext:ext, bo:(ext>=-0.02 && ext<=0.06)?1:0,
+             aboveVwap: price>=vwap };
+  }
   // ATR as a % of price, over the last n bars
   function atrPct(h,l,c,n){
     var len=c.length; if(len < n+2) return 0;
@@ -5004,6 +5116,9 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
     // lighter volume + MA confirmation: 3× avg volume recently AND 10-DMA over 50-DMA
     var vmc = volMaConfirm(op,h,l,c,vol);
     var vmStr = vmc ? [vmc.mult, vmc.ago, (vmc.up?1:0), (vmc.rising?1:0)].join("|") : "";
+    // institutional-accumulation proxy over the consolidation base + anchored VWAP
+    var acc = accumulationRead(h,l,c,vol,bs);
+    var accStr = acc ? [acc.score, acc.label, r2(acc.vwap), r3(acc.updn), acc.pockets, r3(acc.clv), acc.bo].join("|") : "";
     // last ~400 bars kept for charting the top-ranked names — enough for a real EMA200 and a
     // usable weekly view (≈57 weeks). Rounded to keep localStorage small.
     var TB = 400, ts = Math.max(0, c.length - TB), rnd = function(x){ return Math.round(x*100)/100; };
@@ -5039,7 +5154,7 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
       blueSky: (bsky.newHigh && bsky.above) ? 1 : 0,
       fibZone: fib ? fib.zone : "",
       fibRetr: fib ? Math.round(fib.retr*100)/100 : null,
-      coil: coilStr, mvt: mvtStr, gg: ggStr, sg: sgStr, dx: dxStr, hdf: hdfStr, cdl: cdlStr, mb: "", vm: vmStr,
+      coil: coilStr, mvt: mvtStr, gg: ggStr, sg: sgStr, dx: dxStr, hdf: hdfStr, cdl: cdlStr, mb: "", vm: vmStr, acc: accStr,
       revYoY: null, profYoY: null, epsYoY: null, qDate: "", profYoYPrev: null, ttmYoY: null   // filled in later by applyFund()
     };
   }
@@ -5050,7 +5165,7 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
       r.basePct||0, r.baseBars||0, r.stage2||0, (r.rs==null?"":r.rs), (r.setup||""),
       (r.trig||""), (r.trigWR==null?"":r.trigWR), (r.athPct==null?"":r.athPct), (r.blueSky||0),
       (r.revYoY==null?"":r.revYoY), (r.profYoY==null?"":r.profYoY), (r.epsYoY==null?"":r.epsYoY), (r.qDate||""),
-      (r.profYoYPrev==null?"":r.profYoYPrev), (r.ttmYoY==null?"":r.ttmYoY), (r.coil||""), (r.mvt||""), (r.gg||""), (r.sg||""), (r.dx||""), (r.hdf||""), (r.cdl||""), (r.mb||""), (r.vm||""), (r.adr==null?"":r.adr), (r.nr||""), (r.gx||"")].join(", ");
+      (r.profYoYPrev==null?"":r.profYoYPrev), (r.ttmYoY==null?"":r.ttmYoY), (r.coil||""), (r.mvt||""), (r.gg||""), (r.sg||""), (r.dx||""), (r.hdf||""), (r.cdl||""), (r.mb||""), (r.vm||""), (r.adr==null?"":r.adr), (r.nr||""), (r.gx||""), (r.acc||"")].join(", ");
   }
 
   /* ---------- auto-screen: fetch adapters ---------- */
@@ -6162,11 +6277,11 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
     });
     $$("#bookOverlay button").forEach(function(b){
       var v=b.getAttribute("data-v");
-      b.setAttribute("aria-pressed", String(v==="sr" ? state.bookSR!==false : state.bookPat!==false));
+      b.setAttribute("aria-pressed", String(v==="sr" ? state.bookSR!==false : v==="vwap" ? state.bookVwap!==false : state.bookPat!==false));
       b.addEventListener("click", function(){
         var on = b.getAttribute("aria-pressed")!=="true";
         b.setAttribute("aria-pressed", String(on));
-        if(v==="sr") state.bookSR=on; else state.bookPat=on;
+        if(v==="sr") state.bookSR=on; else if(v==="vwap") state.bookVwap=on; else state.bookPat=on;
         save();
         renderBook();
         var sym=($("#a_sym").value||"").toUpperCase(); if(sym) renderChart(sym);
