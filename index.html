@@ -359,7 +359,7 @@ table.oc-guide td:first-child{white-space:nowrap;width:1%}
     <span class="mark" aria-hidden="true">₹</span>
     <div>
       <h1>The 10% Ledger</h1>
-      <p>Momentum + pullback screener · NSE swing setups <span style="opacity:.5;font-size:11px">· build 2026-09-09e</span></p>
+      <p>Momentum + pullback screener · NSE swing setups <span style="opacity:.5;font-size:11px">· build 2026-09-09f</span></p>
     </div>
   </div>
   <div class="controls">
@@ -919,6 +919,10 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
         <span class="scan-meta" id="bookMeta"></span>
       </div>
       <p class="hint">Flip through your last scan one chart at a time — like a printed chart book. Each page shows the candlestick chart, <b>which screens the stock passes</b>, and the full trade plan: entry, stop-loss, exit target, reward:risk and position size. Use <b>‹ Prev / Next ›</b> or the ← → arrow keys, or type a symbol in <b>Find</b> to jump straight to it.</p>
+      <details class="sub" id="vsStudy">
+        <summary>Volume-shock follow-through — what they historically do <span class="hint" id="vsStudySum"></span></summary>
+        <div id="vsStudyOut" class="hint" style="margin-top:6px"></div>
+      </details>
       <div class="scan-head" style="margin-top:2px;flex-wrap:wrap;gap:8px">
         <label class="chk" style="margin-left:0">Show
           <select id="bookScope" style="margin-left:6px">
@@ -1499,9 +1503,9 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
   };
 
   var SAMPLE = [
-    "# cols: SYM,price,EMA20,EMA50,EMA200,RSI,volR,breakout,support,sector,macd,hhhl,resist,probT1,probT10,basePct,baseBars,stage2,RS,setup,trigger,trigWR,athPct,blueSky,revYoY,profYoY,epsYoY,qDate,profYoYPrev,ttmYoY,coil,mvt,gg,sg,dx,hdf,cdl,mb,vm,adr,nr,gx,acc,vsk",
-    "HINDZINC, 627, 598, 560, 505, 69, 2.3, 620, 606, L, 1, 1, 0, 0.58, 0.33, 0.06, 22, 6, 88, HDF, inside-bar@0, 0.61, 0.01, 1, 0.19, 0.34, 0.31, 2026-06-30, 0.26, 0.3, , , , , 624|590|12|0.055|0.005|2.4|1|1|1, 0.42|0.16|0.028|1.8|12|624|560, hammer~0~3.4|inside~1~0.62, 72|10|82|C|compounder|15|16|11|7|10|8|5|24.5|13|100|0||0.14|0.18|0.19|1|1.1|0.35|0.09|280000|0|28~0.19~0.16~0.19~0.18|rev-accel+sector-tailwind, 3.4|1|1|1, 4.6, 7|0|1|0.018|1, 2|0.06, 74|strong|590|1.87|3|0.28|1, 310|8.2|1|1",
-    "BEL, 415, 402, 395, 360, 66, 1.9, 409, 391, L, 1, 1, 0, 0.55, 0.31, 0.07, 18, 6, 84, BOB, hammer@1, 0.62, 0.03, 1, 0.21, 0.28, 0.27, 2026-06-30, 0.33, 0.24, 14|coil|0.022|0.71|0.006|411||||0.09, , 12|0.06|1|3.6|0.04|420, , , , ldbng~2~2.1|kicker~2~0.004, 80|16|96|B|inflection|16|16|10|8|12|8|6|38|22|100|1|cfdiv|0.16|0.22|0.24|1|0.9|0.05|0.11|95000|0|28~0.17~0.15~0.18~0.22|rev-accel+margin-up+roce-inflect+sector-tailwind, 4.1|0|1|1, 2.2, 4|1|0|0.026|1, , 60|mild|398|1.33|2|0.11|0, 150|4.4|0|1",
+    "# cols: SYM,price,EMA20,EMA50,EMA200,RSI,volR,breakout,support,sector,macd,hhhl,resist,probT1,probT10,basePct,baseBars,stage2,RS,setup,trigger,trigWR,athPct,blueSky,revYoY,profYoY,epsYoY,qDate,profYoYPrev,ttmYoY,coil,mvt,gg,sg,dx,hdf,cdl,mb,vm,adr,nr,gx,acc,vsk,vfh",
+    "HINDZINC, 627, 598, 560, 505, 69, 2.3, 620, 606, L, 1, 1, 0, 0.58, 0.33, 0.06, 22, 6, 88, HDF, inside-bar@0, 0.61, 0.01, 1, 0.19, 0.34, 0.31, 2026-06-30, 0.26, 0.3, , , , , 624|590|12|0.055|0.005|2.4|1|1|1, 0.42|0.16|0.028|1.8|12|624|560, hammer~0~3.4|inside~1~0.62, 72|10|82|C|compounder|15|16|11|7|10|8|5|24.5|13|100|0||0.14|0.18|0.19|1|1.1|0.35|0.09|280000|0|28~0.19~0.16~0.19~0.18|rev-accel+sector-tailwind, 3.4|1|1|1, 4.6, 7|0|1|0.018|1, 2|0.06, 74|strong|590|1.87|3|0.28|1, 310|8.2|1|1, 6|67|9.4|21|2|0|-4.1",
+    "BEL, 415, 402, 395, 360, 66, 1.9, 409, 391, L, 1, 1, 0, 0.55, 0.31, 0.07, 18, 6, 84, BOB, hammer@1, 0.62, 0.03, 1, 0.21, 0.28, 0.27, 2026-06-30, 0.33, 0.24, 14|coil|0.022|0.71|0.006|411||||0.09, , 12|0.06|1|3.6|0.04|420, , , , ldbng~2~2.1|kicker~2~0.004, 80|16|96|B|inflection|16|16|10|8|12|8|6|38|22|100|1|cfdiv|0.16|0.22|0.24|1|0.9|0.05|0.11|95000|0|28~0.17~0.15~0.18~0.22|rev-accel+margin-up+roce-inflect+sector-tailwind, 4.1|0|1|1, 2.2, 4|1|0|0.026|1, , 60|mild|398|1.33|2|0.11|0, 150|4.4|0|1, 4|75|11.2|24|1|0|-6.0",
     "JINDALSTEL, 1175, 1120, 1090, 1010, 60, 1.4, 1160, 1120, L, 1, 1, 1240, 0.5, 0.27, 0.11, 26, 5, 76, LBB, , , 0.11, 0, 0.08, 0.12, 0.1, 2026-03-31, 0.21, 0.1, , 4.2|50|0.014|1|1|0.03|12|78",
     "MEESHO, 205, 198, 190, 0, 63, 1.4, 200, 191, I, 1, 1, 0, 0.5, 0.26, 0.08, 14, 5, 72, S2P, pin-bar@0, 0.58, 0.05, 0, 0.33, 99, 99, 2026-06-30, , , 9|pop|0.021|0.66|0.032|201|1|0.043|1.9|0.08",
     "SAIL, 195, 190, 185, 132, 55, 0.9, 201, 188, L, 1, 0, 201, 0.44, 0.22, 0.06, 20, 5, 66, COIL, , , 0.14, 0, -0.04, -0.22, -0.21, 2026-06-30, -0.1, -0.15, , , , 0.18|11|1|3.8|178|2|0.015",
@@ -1718,6 +1722,11 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
         return { span:span, mult:+vsp[1]||0, ago:+vsp[2]||0, up:vsp[3]==="1",
                  lvl: span>=470 ? "2yr+" : span>=250 ? "1yr" : span>=124 ? "6mo" : "" };
       })() : null;
+      var vfp = (p[44]||"").split("|");
+      d.vfh = (vfp.length>=7 && (+vfp[0]||+vfp[4])) ? {
+        nu:+vfp[0]||0, hu:+vfp[1]||0, mu:+vfp[2]||0, xu:+vfp[3]||0,
+        nd:+vfp[4]||0, hd:+vfp[5]||0, md:+vfp[6]||0
+      } : null;
       var st = deriveStructure(d.price, d.breakout, d.basePct, d.baseBars, d.volRatio);
       d.structurePts=st.pts; d.structureLbl=st.label;
       rows.push(d);
@@ -2921,6 +2930,35 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
              acc:(d.acc && d.acc.score) ? d.acc : null };
   }
 
+  // aggregate the per-stock volume-shock follow-through stats across the whole scan
+  function volShockStudy(rows){
+    var us=0, uEvHit=0, uEvMed=0, uEvP75=0, ds=0, dEvHit=0, dEvMed=0, stU=0, stD=0;
+    rows.forEach(function(d){
+      var f=d.vfh; if(!f) return;
+      if(f.nu>0){ us+=f.nu; uEvHit+=f.nu*f.hu; uEvMed+=f.nu*f.mu; uEvP75+=f.nu*f.xu; stU++; }
+      if(f.nd>0){ ds+=f.nd; dEvHit+=f.nd*f.hd; dEvMed+=f.nd*f.md; stD++; }
+    });
+    if(!us && !ds) return null;
+    return {
+      up:   us ? { n:us, stocks:stU, hit:Math.round(uEvHit/us), med:Math.round(uEvMed/us*10)/10, p75:Math.round(uEvP75/us*10)/10 } : null,
+      down: ds ? { n:ds, stocks:stD, hit:Math.round(dEvHit/ds), med:Math.round(dEvMed/ds*10)/10 } : null
+    };
+  }
+  function renderVsStudy(rows){
+    var out=$("#vsStudyOut"), sum=$("#vsStudySum"); if(!out) return;
+    var s = volShockStudy(rows);
+    if(!s){ if(sum) sum.textContent="· no data"; out.innerHTML='<span class="empty">Run a scan (Screener → Scan now) — this reads every scanned stock’s 2-year history.</span>'; return; }
+    var u=s.up, dn=s.down;
+    if(sum) sum.textContent = u ? "· "+u.hit+"% higher after 20 days · median "+(u.med>=0?"+":"")+u.med+"%" : "";
+    out.innerHTML =
+      '<p style="margin:0 0 6px">Across this scan, at every historical bar that was the <b>highest volume in ~90+ sessions</b> and <b>≥ 2.5× the ~50-day average</b>, measured 20 sessions later:</p>'+
+      '<table class="oc-guide" style="max-width:560px">'+
+        '<tr><th>Shock bar</th><th>Events</th><th>Higher after 20d</th><th>Median move</th><th>Top-quartile move</th></tr>'+
+        (u ? '<tr><td><b class="pos">closed up</b></td><td class="num">'+u.n+' <span class="dim">('+u.stocks+' stocks)</span></td><td class="num"><b>'+u.hit+'%</b></td><td class="num">'+(u.med>=0?'+':'')+u.med+'%</td><td class="num pos">+'+u.p75+'%</td></tr>' : '')+
+        (dn ? '<tr><td><b class="neg">closed down</b></td><td class="num">'+dn.n+' <span class="dim">('+dn.stocks+' stocks)</span></td><td class="num">'+dn.hit+'%</td><td class="num">'+(dn.med>=0?'+':'')+dn.med+'%</td><td class="num dim">–</td></tr>' : '')+
+      '</table>'+
+      '<p style="margin:6px 0 0;color:var(--muted)">A ~50–52% base rate is a coin-flip for any NSE stock over 20 days. An <b>up-bar</b> shock with a hit rate meaningfully above that + a healthy median is the version worth acting on — best when it’s also at a base and the regime isn’t Red. Sample is your scanned universe, so it shifts with which stocks you scan.</p>';
+  }
   function renderBook(){
     var host = $("#bookChart"); if(!host) return;
     if($("#tab-book") && $("#tab-book").hidden) return;   // don't fetch charts for a hidden tab
@@ -2930,6 +2968,7 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
     $$("#bookMA button").forEach(function(x){ x.setAttribute("aria-pressed", String(x.getAttribute("data-v")===(state.chartMA||"ema"))); });
     $$("#bookOverlay button").forEach(function(x){ var v=x.getAttribute("data-v"); x.setAttribute("aria-pressed", String(v==="sr" ? state.bookSR!==false : v==="vwap" ? state.bookVwap!==false : state.bookPat!==false)); });
     var rows = parseBatch($("#batchInput").value);
+    renderVsStudy(rows);
     var pool = rows.filter(function(d){ return bookInScope(d, scope); });
     if(scope==="mb" || scope==="mba" || scope==="mbtop")
       pool.sort(function(a,b){ return (b.mb?b.mb.total:0) - (a.mb?a.mb.total:0); });
@@ -3020,6 +3059,15 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
           (a.bo?' · <b>breaking out now</b>':'')+
           '<span class="bc-accnote">volume-weighted average traded price since the base began — a proxy for accumulators’ cost, not confirmed institutional data (check bulk/block deals &amp; shareholding on Trendlyne)</span></div>';
       }
+      var vfLine = "";
+      if(d.vfh && d.vfh.nu>=2){
+        var f=d.vfh;
+        vfLine = '<div class="bc-acc">Volume-shock history (this stock): <b>'+f.nu+'</b> up-bar shock'+(f.nu===1?'':'s')+
+          ' → higher 20 days later <b class="'+(f.hu>=55?"pos":f.hu>=45?"warn":"neg")+'">'+f.hu+'%</b> of the time'+
+          ' · median <b>'+(f.mu>=0?'+':'')+f.mu+'%</b> · when it worked <b>+'+f.xu+'%</b>'+
+          (f.nd>=2 ? ' <span class="bc-accnote">down-bar shocks ('+f.nd+'): median '+f.md+'% — usually distribution.</span>'
+                   : '<span class="bc-accnote">20-session forward move from this stock’s own past volume spikes (highest in ~90+ sessions, ≥2.5× average).</span>')+'</div>';
+      }
       $("#bookConf").hidden = false;
       $("#bookConf").innerHTML =
         '<div class="bc-head">'+
@@ -3027,7 +3075,7 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
           '<span class="bc-conf">confidence: <b>'+cr.conf+'</b></span>'+
         '</div>'+
         '<div class="bc-odds">≈ <b>'+wkPct+'%</b> chance simply higher in 1–2 weeks · +10% target hit <b>'+tgtTxt+'</b> of the time · next day ≈ coin-flip</div>'+
-        accLine+
+        accLine+ vfLine+
         (cr.pos.length ? '<div class="bc-row"><span class="bc-k pos">for</span>'+cr.pos.map(function(t){ return '<span class="bc-chip pos">'+esc(t)+'</span>'; }).join("")+'</div>' : '')+
         (cr.neg.length ? '<div class="bc-row"><span class="bc-k neg">against</span>'+cr.neg.map(function(t){ return '<span class="bc-chip neg">'+esc(t)+'</span>'; }).join("")+'</div>' : '')+
         '<div class="bc-note">A weighted read of the signals in this scan — a probability, not a prediction. Daily direction is noise; the edge is in the odds + reward:risk + position sizing, not in being right about tomorrow.</div>';
@@ -4669,6 +4717,34 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
     var up = c[bi] >= (c[bi-1]!=null ? c[bi-1] : c[bi]);
     return { span:span, mult:mult, ago:recAgo, up:up };
   }
+  // backtest THIS stock's own volume shocks: at every historical bar that was the highest
+  // volume in ≥90 prior sessions AND ≥2.5× its ~50-day average, what did price do over the
+  // next 20 sessions? Split by whether the shock bar closed up or down.
+  function vskForward(c, vol){
+    var n=c.length, H=20; if(n < 130) return null;
+    var up=[], dn=[], i, j;
+    for(i=90; i<=n-1-H; i++){
+      var vi=vol[i]||0; if(vi<=0) continue;
+      var maxPrior=0; for(j=i-90;j<i;j++){ if((vol[j]||0)>maxPrior) maxPrior=vol[j]; }
+      if(vi < maxPrior) continue;
+      var s=0,k=0; for(j=Math.max(0,i-50);j<i;j++){ s+=vol[j]||0; k++; }
+      if(vi < (k? s/k : 1)*2.5) continue;
+      var fwd=(c[i+H]/c[i]-1)*100;
+      (c[i] >= (c[i-1]!=null?c[i-1]:c[i]) ? up : dn).push(fwd);
+      i += 5;   // skip the rest of this volume cluster
+    }
+    function stat(a){
+      if(!a.length) return null;
+      var srt=a.slice().sort(function(x,y){return x-y;});
+      return { n:a.length,
+        hit: Math.round(a.filter(function(x){return x>0;}).length/a.length*100),
+        med: Math.round(srt[Math.floor(srt.length/2)]*10)/10,
+        p75: Math.round(srt[Math.min(srt.length-1,Math.floor(srt.length*0.75))]*10)/10 };
+    }
+    var u=stat(up), d=stat(dn);
+    if(!u && !d) return null;
+    return { nu:u?u.n:0, hu:u?u.hit:0, mu:u?u.med:0, xu:u?u.p75:0, nd:d?d.n:0, hd:d?d.hit:0, md:d?d.med:0 };
+  }
   // ATR as a % of price, over the last n bars
   function atrPct(h,l,c,n){
     var len=c.length; if(len < n+2) return 0;
@@ -5251,6 +5327,9 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
     // volume shocker — recent volume is the highest in months
     var vsk = volShock(c, vol);
     var vskStr = vsk ? [vsk.span, r3(vsk.mult), vsk.ago, (vsk.up?1:0)].join("|") : "";
+    // this stock's own volume-shock → 20-day follow-through, up-bar vs down-bar
+    var vf = vskForward(c, vol);
+    var vfhStr = vf ? [vf.nu, vf.hu, vf.mu, vf.xu, vf.nd, vf.hd, vf.md].join("|") : "";
     // last ~400 bars kept for charting the top-ranked names — enough for a real EMA200 and a
     // usable weekly view (≈57 weeks). Rounded to keep localStorage small.
     var TB = 400, ts = Math.max(0, c.length - TB), rnd = function(x){ return Math.round(x*100)/100; };
@@ -5286,7 +5365,7 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
       blueSky: (bsky.newHigh && bsky.above) ? 1 : 0,
       fibZone: fib ? fib.zone : "",
       fibRetr: fib ? Math.round(fib.retr*100)/100 : null,
-      coil: coilStr, mvt: mvtStr, gg: ggStr, sg: sgStr, dx: dxStr, hdf: hdfStr, cdl: cdlStr, mb: "", vm: vmStr, acc: accStr, vsk: vskStr,
+      coil: coilStr, mvt: mvtStr, gg: ggStr, sg: sgStr, dx: dxStr, hdf: hdfStr, cdl: cdlStr, mb: "", vm: vmStr, acc: accStr, vsk: vskStr, vfh: vfhStr,
       revYoY: null, profYoY: null, epsYoY: null, qDate: "", profYoYPrev: null, ttmYoY: null   // filled in later by applyFund()
     };
   }
@@ -5297,7 +5376,7 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
       r.basePct||0, r.baseBars||0, r.stage2||0, (r.rs==null?"":r.rs), (r.setup||""),
       (r.trig||""), (r.trigWR==null?"":r.trigWR), (r.athPct==null?"":r.athPct), (r.blueSky||0),
       (r.revYoY==null?"":r.revYoY), (r.profYoY==null?"":r.profYoY), (r.epsYoY==null?"":r.epsYoY), (r.qDate||""),
-      (r.profYoYPrev==null?"":r.profYoYPrev), (r.ttmYoY==null?"":r.ttmYoY), (r.coil||""), (r.mvt||""), (r.gg||""), (r.sg||""), (r.dx||""), (r.hdf||""), (r.cdl||""), (r.mb||""), (r.vm||""), (r.adr==null?"":r.adr), (r.nr||""), (r.gx||""), (r.acc||""), (r.vsk||"")].join(", ");
+      (r.profYoYPrev==null?"":r.profYoYPrev), (r.ttmYoY==null?"":r.ttmYoY), (r.coil||""), (r.mvt||""), (r.gg||""), (r.sg||""), (r.dx||""), (r.hdf||""), (r.cdl||""), (r.mb||""), (r.vm||""), (r.adr==null?"":r.adr), (r.nr||""), (r.gx||""), (r.acc||""), (r.vsk||""), (r.vfh||"")].join(", ");
   }
 
   /* ---------- auto-screen: fetch adapters ---------- */
