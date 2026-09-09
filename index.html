@@ -358,7 +358,7 @@ table.oc-guide td:first-child{white-space:nowrap;width:1%}
     <span class="mark" aria-hidden="true">₹</span>
     <div>
       <h1>The 10% Ledger</h1>
-      <p>Momentum + pullback screener · NSE swing setups <span style="opacity:.5;font-size:11px">· build 2026-09-09b</span></p>
+      <p>Momentum + pullback screener · NSE swing setups <span style="opacity:.5;font-size:11px">· build 2026-09-09c</span></p>
     </div>
   </div>
   <div class="controls">
@@ -921,6 +921,7 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
           <select id="bookScope" style="margin-left:6px">
             <option value="all">All scanned — by score</option>
             <option value="actionable">Buy setups only (score ≥ 80, R:R ≥ 2)</option>
+            <option value="entrynow">Entry live today — at the trigger, R:R ≥ 2</option>
             <option value="confhi">Confidence read — High only</option>
             <option value="confmod">Confidence read — High + Moderate</option>
             <option value="leanbull">Confidence read — bullish lean or better</option>
@@ -2596,9 +2597,18 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
     });
     return best;
   }
+  // "can I actually place this trade today?" — price sitting on the trigger line (not run
+  // away from it), reward:risk ≥ 2, a real setup (score ≥ 70), regime not Red.
+  function entryLiveToday(d){
+    var e = evaluateRow(d);
+    if(!(e.tr.rr >= 2) || e.v.tier < 3 || state.regime==="red") return false;
+    var ext = d.breakout>0 ? (d.price - d.breakout)/d.breakout : 0;
+    return ext >= -0.02 && ext <= 0.03;
+  }
   function bookInScope(d, scope){
     switch(scope){
       case "actionable": return evaluateRow(d).actionable;
+      case "entrynow":   return entryLiveToday(d);
       case "confhi":     return confidenceRead(d, evaluateRow(d)).conf==="High";
       case "confmod":  { var _c=confidenceRead(d, evaluateRow(d)).conf; return _c==="High"||_c==="Moderate"; }
       case "leanbull":   return /bullish/i.test(confidenceRead(d, evaluateRow(d)).lean);
@@ -2633,6 +2643,7 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
     if(e.actionable) tags.push({t:"Screener · "+e.v.label, c:"pos"});
     else if(e.v.tier>=3) tags.push({t:"Screener · "+e.v.label, c:"warn"});
     else tags.push({t:"Screener · "+e.v.label, c:"neg"});
+    if(entryLiveToday(d)) tags.push({t:"⦿ Entry live today · "+e.tr.rr.toFixed(1)+":1", c:"pos"});
     if(d.setup && SETUP_LABEL[d.setup]){
       var g=setupGrade(d);
       tags.push({t:SETUP_LABEL[d.setup]+(g?" "+g:""), c:(d.setup==="COIL"||d.setup==="S2")?"warn":"pos"});
@@ -2843,6 +2854,11 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
     }
     else if(scope==="accbo" || scope==="accstrong")
       pool.sort(function(a,b){ return (b.acc?b.acc.score:0) - (a.acc?a.acc.score:0); });
+    else if(scope==="entrynow"){
+      var rrc={};
+      pool.forEach(function(d){ rrc[d.symbol] = evaluateRow(d).tr.rr || 0; });
+      pool.sort(function(a,b){ return rrc[b.symbol] - rrc[a.symbol]; });
+    }
     else
       pool.sort(function(a,b){ return scoreStock(b).total - scoreStock(a).total; });
     bookPool = pool;
