@@ -352,6 +352,20 @@ table.sc-setup td.num{font-family:"IBM Plex Mono",monospace;text-align:right}
 .sc-diag .snote.warn{background:var(--warn-bg)}
 .sc-diag .snote.pos{background:var(--pos-bg)}
 
+/* today */
+.today-none{background:var(--surface-2);border:1px solid var(--line);border-radius:8px;padding:14px 16px;font-size:13px;line-height:1.6;color:var(--ink-soft)}
+.today-card{background:var(--surface);border:1px solid var(--line-strong);border-radius:10px;padding:12px 14px;margin-bottom:10px}
+.tc-top{display:flex;flex-wrap:wrap;align-items:center;gap:6px 8px;margin-bottom:9px}
+.tc-rank{width:20px;height:20px;display:grid;place-items:center;background:var(--btn);color:var(--btn-ink);border-radius:999px;font-size:11px;font-weight:700}
+.tc-sym{font-family:"IBM Plex Mono",monospace;font-weight:600;font-size:15px;letter-spacing:.3px}
+.tc-spacer{flex:1}
+.tc-plan{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px 16px}
+.tc-plan .k{font-size:10px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);display:block}
+.tc-plan .v{font-family:"IBM Plex Mono",monospace;font-size:14px;font-variant-numeric:tabular-nums}
+.tc-plan .v.pos{color:var(--pos)} .tc-plan .v.neg{color:var(--neg)}
+.tc-why{margin-top:9px;padding-top:8px;border-top:1px dashed var(--line);font-size:12px;color:var(--muted)}
+.tc-why::before{content:"why ";color:var(--muted);font-weight:600}
+
 /* watchlist */
 .wl-item{display:flex;flex-wrap:wrap;gap:6px 14px;align-items:center;padding:10px 0;border-bottom:1px solid var(--line);font-size:12.5px}
 .wl-item:last-child{border-bottom:0}
@@ -385,7 +399,7 @@ table.sc-setup td.num{font-family:"IBM Plex Mono",monospace;text-align:right}
     <span class="mark" aria-hidden="true">₹</span>
     <div>
       <h1>The 10% Ledger</h1>
-      <p>Momentum + pullback screener · NSE swing setups <span style="opacity:.5;font-size:11px">· build 2026-09-10a</span></p>
+      <p>Momentum + pullback screener · NSE swing setups <span style="opacity:.5;font-size:11px">· build 2026-09-10b</span></p>
     </div>
   </div>
   <div class="controls">
@@ -417,7 +431,8 @@ table.sc-setup td.num{font-family:"IBM Plex Mono",monospace;text-align:right}
 </header>
 
 <nav class="tabs" id="tabs">
-  <button data-tab="screener" class="active">Screener</button>
+  <button data-tab="today" class="active">Today</button>
+  <button data-tab="screener">Screener</button>
   <button data-tab="golden">Golden Guru</button>
   <button data-tab="silver">Silver Guru</button>
   <button data-tab="darvas">Darvas Box</button>
@@ -432,8 +447,34 @@ table.sc-setup td.num{font-family:"IBM Plex Mono",monospace;text-align:right}
 </nav>
 
 <main>
+  <!-- TODAY -->
+  <section id="tab-today">
+    <div class="regime-banner" id="todayRegime"></div>
+    <div class="panel">
+      <div class="scan-head"><h2>Today</h2><span class="scan-meta" id="todayMeta"></span></div>
+      <p class="hint">One screen. It runs the funnel — <b>Green regime → RS ≥ 80 → your one setup → price still at the trigger</b> — and hands you the short list to watch today with the exact buy-stop level. Most days it is short or empty. <b>That is correct</b> — no trade is the right call more often than not.</p>
+      <div class="scan-head" style="margin-top:2px;flex-wrap:wrap;gap:10px">
+        <label class="chk" style="margin-left:0">My setup
+          <select id="todaySetup" style="margin-left:6px">
+            <option value="golden">Golden Guru — 10/50 cross out of a base</option>
+            <option value="brk">Stage-2 breakout — BOB / VCP / pullback→MA / long base</option>
+            <option value="hdf">High Dry Fry — thrust → baby base → breakout</option>
+            <option value="coilpop">10-DMA Coil — just popped</option>
+            <option value="any">Any named setup</option>
+          </select>
+        </label>
+        <label class="chk" style="margin-left:0" title="Only stocks in a sector you marked as leading (Screener → Leading sectors)"><input type="checkbox" id="todayLead"> Leading sectors only</label>
+        <label class="chk" style="margin-left:0" title="Position size is calculated at this % of capital at risk. Keep it small (0.25%) until the Execution Scorecard shows a positive edge over 20+ trades.">Starter risk <input id="todayRisk" type="text" inputmode="decimal" value="0.25" style="width:44px;margin-left:4px;padding:2px 5px;background:var(--bg);border:1px solid var(--line-strong);border-radius:4px">%</label>
+      </div>
+      <div id="todayList"><p class="empty">Run a scan (Screener → Scan now), then come back here.</p></div>
+      <p class="hint" style="margin-top:14px;border-top:1px solid var(--line);padding-top:11px">
+        <b>The rules —</b> set a price alert at the <b>Buy-stop</b> in your broker app. When it triggers, buy; no deliberation. Stop where shown. Size at the starter risk until 20 trades are logged and the Execution Scorecard shows your edge. Never chase a gap-up open. If this screen is empty, there is no trade today — sitting out is the job.
+      </p>
+    </div>
+  </section>
+
   <!-- SCREENER -->
-  <section id="tab-screener">
+  <section id="tab-screener" hidden>
     <div class="regime-banner" id="regimeBanner"></div>
 
     <div class="panel">
@@ -1532,6 +1573,7 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
     dropForming: true, fetchEvents: false, fetchResults: true, fetchDeep: true, scanCache: null, hostOverride: false,
     oc: {}, journal: [], journalUrl: "", bookIdx: 0, bookScope: "all",
     bookSR: true, bookPat: true, bookVwap: true,
+    todaySetup: "golden", todayLead: false, todayRisk: "0.25",
     mbMinScore: 55, mbNoFlags: false, mbOpen: {}
   };
 
@@ -4323,6 +4365,113 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
     save(); renderWatchlist();
   }
 
+  /* ---------- "Today" — the one-screen funnel ---------- */
+  var TODAY_SETUP_LABEL = {
+    golden:"Golden Guru", brk:"Stage-2 breakout", hdf:"High Dry Fry",
+    coilpop:"a fresh 10-DMA coil pop", any:"any named setup"
+  };
+  function todayWatch(row){
+    var sc=scoreStock(row), tr=computeTrade(row), v=verdict(sc.total,tr.rr), ps=positionSize(tr.entry,tr.stop);
+    state.watchlist = state.watchlist || [];
+    state.watchlist = state.watchlist.filter(function(w){ return w.symbol!==row.symbol; });
+    state.watchlist.unshift({
+      symbol:row.symbol, total:sc.total, verdict:v.label.replace(/ —.*/,""), cls:v.cls,
+      entry:tr.entry, stop:tr.stop, t10:tr.t10,
+      qty: state.regime==="red"?0:(regimeMult()<1?ps.regimeQty:ps.qty),
+      tf: state.timeframe, date: new Date().toISOString().slice(0,10)
+    });
+    save(); renderWatchlist();
+  }
+  function renderToday(){
+    var host=$("#todayList"); if(!host) return;
+    var setup = state.todaySetup || "golden";
+    if($("#todaySetup")) $("#todaySetup").value = setup;
+    if($("#todayLead")) $("#todayLead").checked = !!state.todayLead;
+    if($("#todayRisk") && document.activeElement!==$("#todayRisk")) $("#todayRisk").value = state.todayRisk || "0.25";
+
+    var rb=$("#todayRegime");
+    if(rb){
+      rb.className = "regime-banner "+state.regime;
+      rb.innerHTML = state.regime==="green"
+        ? "<b>Green regime.</b> New trades are on the table — take the ones below at starter size, on a buy-stop."
+        : state.regime==="yellow"
+          ? "<b>Yellow regime — the Nifty is not trending.</b> Breakouts fail more here. Best move: no new trades, manage what's open. At most, half size on the top name only."
+          : "<b>Red regime — broad selling.</b> No new longs. Protect capital. This screen stays empty on purpose.";
+    }
+
+    var rows = parseBatch($("#batchInput").value);
+    if($("#todayMeta")) $("#todayMeta").textContent = rows.length ? rows.length+" scanned" : "";
+    if(!rows.length){ host.innerHTML='<p class="empty">Run a scan (Screener → Scan now), then come back here.</p>'; return; }
+    if(state.regime==="red"){ host.innerHTML='<div class="today-none">Red regime — nothing to do today but protect capital. Manage open positions in the Trading Journal; take no new longs.</div>'; return; }
+
+    var risk = Math.max(0.05, Math.min(2, parseFloat(state.todayRisk||"0.25") || 0.25));
+    var lead = !!state.todayLead;
+    function setupOk(d){
+      if(setup==="golden")  return !!d.gg;
+      if(setup==="brk")     return d.setup && /^(BOB|S2P|LBB|VCP)$/.test(d.setup);
+      if(setup==="hdf")     return d.setup==="HDF";
+      if(setup==="coilpop") return d.coil && d.coil.state==="pop" && (d.coil.popAgo==null || d.coil.popAgo<=2);
+      return !!(d.setup && SETUP_LABEL[d.setup]);
+    }
+    var pool = rows.filter(function(d){
+      if(!(d.rs!=null && d.rs>=80)) return false;
+      if(lead && d.sectorLbl!=="leading") return false;
+      if(!setupOk(d)) return false;
+      return entryLiveToday(d);
+    }).map(function(d){ return {d:d, e:evaluateRow(d)}; })
+      .sort(function(a,b){ return (b.d.rs-a.d.rs) || ((b.d.probT1||0)-(a.d.probT1||0)); })
+      .slice(0,8);
+
+    if($("#todayMeta")) $("#todayMeta").textContent = rows.length+" scanned · "+pool.length+" for today";
+
+    if(!pool.length){
+      host.innerHTML = '<div class="today-none">Nothing meets today’s criteria — <b>'+
+        (state.regime==="green"?"Green regime":esc(state.regime)+" regime")+" + RS ≥ 80"+(lead?" + leading sector":"")+
+        " + <b>"+esc(TODAY_SETUP_LABEL[setup]||setup)+"</b> + price still at the trigger."+
+        ' <br><b>This is the normal outcome most days.</b> Do not loosen the filters to manufacture a trade. Come back tomorrow, or set <i>My setup</i> to <i>Any named setup</i> for a wider look.</div>';
+      return;
+    }
+
+    host.innerHTML = pool.map(function(p,i){
+      var d=p.d, e=p.e, tr=e.tr;
+      var budget = state.capital * risk/100, per = tr.entry-tr.stop;
+      var qty = per>0 ? Math.floor(budget/per) : 0;
+      var cr = confidenceRead(d, e);
+      var why = (cr.pos && cr.pos.length) ? cr.pos.slice(0,2).join(" · ") : (SETUP_LABEL[d.setup]||"");
+      var setLbl = SETUP_LABEL[d.setup] || (d.gg?"Golden Guru":(d.coil&&d.coil.state==="pop"?"coil pop":"setup"));
+      return '<div class="today-card">'+
+        '<div class="tc-top">'+
+          '<span class="tc-rank">'+(i+1)+'</span>'+
+          '<span class="tc-sym">'+esc(d.symbol)+'</span>'+
+          '<span class="chip">RS '+Math.round(d.rs)+'</span>'+
+          '<span class="chip">'+esc(setLbl)+'</span>'+
+          (d.adr!=null?'<span class="chip">ADR '+d.adr.toFixed(1)+'%</span>':'')+
+          (d.probT1!=null?'<span class="chip">+5% odds '+Math.round(d.probT1*100)+'%</span>':'')+
+          '<span class="tc-spacer"></span>'+
+          '<button class="openbtn tc-wl" data-sym="'+esc(d.symbol)+'">☆ watch</button>'+
+          '<button class="openbtn tc-an" data-sym="'+esc(d.symbol)+'">Analyze →</button>'+
+        '</div>'+
+        '<div class="tc-plan">'+
+          '<div><span class="k">Buy-stop · set alert here</span><span class="v pos">'+inr(tr.entry)+'</span></div>'+
+          '<div><span class="k">Stop</span><span class="v neg">'+inr(tr.stop)+' ('+((tr.stop-tr.entry)/tr.entry*100).toFixed(1)+'%)</span></div>'+
+          '<div><span class="k">Targets +5% / +10%</span><span class="v">'+inr(tr.t5)+' / '+inr(tr.t10)+'</span></div>'+
+          '<div><span class="k">Size @ '+risk+'% risk</span><span class="v">'+nfmt(qty,0)+' sh · '+inr(qty*tr.entry)+'</span></div>'+
+          '<div><span class="k">Reward : Risk</span><span class="v '+(tr.rr>=2?"pos":"neg")+'">'+tr.rr.toFixed(1)+' : 1</span></div>'+
+        '</div>'+
+        (why?'<div class="tc-why">'+esc(why)+'</div>':'')+
+      '</div>';
+    }).join("");
+
+    $$("#todayList .tc-an").forEach(function(b){ b.addEventListener("click", function(){
+      var row=rows.filter(function(r){ return r.symbol===b.getAttribute("data-sym"); })[0];
+      if(row){ loadIntoAnalyzer(row); switchTab("analyzer"); }
+    }); });
+    $$("#todayList .tc-wl").forEach(function(b){ b.addEventListener("click", function(){
+      var row=rows.filter(function(r){ return r.symbol===b.getAttribute("data-sym"); })[0];
+      if(row){ todayWatch(row); b.textContent="★ watching"; b.disabled=true; }
+    }); });
+  }
+
   /* ---------- auto-screen: universe ---------- */
   var SECTORS = ["IT","Bank","Financials","Auto","Pharma","FMCG","Consumer","Metal","OilGas","Power","Infra","CapGoods","Chemicals","Telecom","Realty"];
 
@@ -6275,7 +6424,7 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
     if(!force && state.scanCache && state.scanCache.date===today && state.scanCache.csv && state.scanCache.uniKey===uniKey){
       $("#batchInput").value = state.scanCache.csv;
       state.batchInput = state.scanCache.csv; save();
-      applyLeadingSectors(); renderScreener(); renderGolden(); renderSilver(); renderDarvas(); renderHDF(); renderCoil(); renderCandles(); renderMultibagger(); renderJournal(); renderBook();
+      applyLeadingSectors(); renderScreener(); renderGolden(); renderSilver(); renderDarvas(); renderHDF(); renderCoil(); renderCandles(); renderMultibagger(); renderJournal(); renderBook(); renderToday();
       setStatus("cached", false);
       $("#scanErrline").textContent = "Showing today's cached scan of these "+uni.length+" names — press “Force refresh” to re-fetch.";
       return;
@@ -6489,6 +6638,7 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
       renderMultibagger();
       renderJournal();
       renderBook();
+      renderToday();
       setStatus(aborted?"stopped":"done", false);
       scanMetaFromCache();
       if(!ok.length){
@@ -6569,7 +6719,8 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
   /* ---------- tabs / theme / controls ---------- */
   function switchTab(name){
     $$("#tabs button").forEach(function(b){ b.classList.toggle("active", b.getAttribute("data-tab")===name); });
-    ["screener","golden","silver","darvas","hdf","coil","candles","mb","journal","book","analyzer","playbook"].forEach(function(t){ $("#tab-"+t).hidden = (t!==name); });
+    ["today","screener","golden","silver","darvas","hdf","coil","candles","mb","journal","book","analyzer","playbook"].forEach(function(t){ $("#tab-"+t).hidden = (t!==name); });
+    if(name==="today") renderToday();
     if(name==="candles") renderCandles();
     if(name==="mb") renderMultibagger();
     if(name==="book") renderBook();
@@ -6623,16 +6774,21 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
     renderWatchlist();
     initScanUI();
     renderScreener();
+    renderToday();
     fillOC(($("#a_sym").value||"").toUpperCase());
+
+    if($("#todaySetup")) $("#todaySetup").addEventListener("change", function(){ state.todaySetup = this.value; save(); renderToday(); });
+    if($("#todayLead")) $("#todayLead").addEventListener("change", function(){ state.todayLead = this.checked; save(); renderToday(); });
+    if($("#todayRisk")) $("#todayRisk").addEventListener("input", function(){ state.todayRisk = this.value; save(); renderToday(); });
 
     $("#tabs").addEventListener("click", function(e){
       var b = e.target.closest("button"); if(b) switchTab(b.getAttribute("data-tab"));
     });
     $("#themeBtn").addEventListener("click", toggleTheme);
-    $("#scoreBtn").addEventListener("click", function(){ state.batchInput = $("#batchInput").value; save(); renderScreener(); renderGolden(); renderSilver(); renderDarvas(); renderHDF(); renderCoil(); renderCandles(); renderMultibagger(); renderJournal(); renderBook(); });
+    $("#scoreBtn").addEventListener("click", function(){ state.batchInput = $("#batchInput").value; save(); renderScreener(); renderGolden(); renderSilver(); renderDarvas(); renderHDF(); renderCoil(); renderCandles(); renderMultibagger(); renderJournal(); renderBook(); renderToday(); });
     $("#batchInput").addEventListener("change", function(){ state.batchInput = $("#batchInput").value; save(); });
-    $("#sampleBtn").addEventListener("click", function(){ $("#batchInput").value = SAMPLE; state.batchInput = SAMPLE; save(); renderScreener(); renderGolden(); renderSilver(); renderDarvas(); renderHDF(); renderCoil(); renderCandles(); renderMultibagger(); renderJournal(); renderBook(); });
-    $("#clearBtn").addEventListener("click", function(){ $("#batchInput").value = ""; state.batchInput = ""; save(); renderScreener(); renderGolden(); renderSilver(); renderDarvas(); renderHDF(); renderCoil(); renderCandles(); renderMultibagger(); renderJournal(); renderBook(); });
+    $("#sampleBtn").addEventListener("click", function(){ $("#batchInput").value = SAMPLE; state.batchInput = SAMPLE; save(); renderScreener(); renderGolden(); renderSilver(); renderDarvas(); renderHDF(); renderCoil(); renderCandles(); renderMultibagger(); renderJournal(); renderBook(); renderToday(); });
+    $("#clearBtn").addEventListener("click", function(){ $("#batchInput").value = ""; state.batchInput = ""; save(); renderScreener(); renderGolden(); renderSilver(); renderDarvas(); renderHDF(); renderCoil(); renderCandles(); renderMultibagger(); renderJournal(); renderBook(); renderToday(); });
     $("#onlyActionable").addEventListener("change", renderScreener);
     $("#onlyBreakout").addEventListener("change", renderScreener);
     $("#onlyStage2").addEventListener("change", renderScreener);
@@ -6769,13 +6925,13 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
     });
 
     ["capital","riskpct"].forEach(function(id){
-      $("#"+id).addEventListener("input", function(){ readNums(); renderScreener(); });
+      $("#"+id).addEventListener("input", function(){ readNums(); renderScreener(); renderToday(); });
     });
     $$("#timeframe button").forEach(function(b){
       b.addEventListener("click", function(){ setSeg("timeframe", b.getAttribute("data-v"), "timeframe", renderScreener); });
     });
     $$("#regime button").forEach(function(b){
-      b.addEventListener("click", function(){ setSeg("regime", b.getAttribute("data-v"), "regime", renderScreener); });
+      b.addEventListener("click", function(){ setSeg("regime", b.getAttribute("data-v"), "regime", function(){ renderScreener(); renderToday(); }); });
     });
     $$("#resultsTable thead th").forEach(function(th){
       th.addEventListener("click", function(){
