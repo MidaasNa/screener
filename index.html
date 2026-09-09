@@ -385,7 +385,7 @@ table.sc-setup td.num{font-family:"IBM Plex Mono",monospace;text-align:right}
     <span class="mark" aria-hidden="true">₹</span>
     <div>
       <h1>The 10% Ledger</h1>
-      <p>Momentum + pullback screener · NSE swing setups <span style="opacity:.5;font-size:11px">· build 2026-09-09g</span></p>
+      <p>Momentum + pullback screener · NSE swing setups <span style="opacity:.5;font-size:11px">· build 2026-09-09j</span></p>
     </div>
   </div>
   <div class="controls">
@@ -510,6 +510,8 @@ table.sc-setup td.num{font-family:"IBM Plex Mono",monospace;text-align:right}
         </label>
         <label class="chk" style="margin-left:0" title="NR4 / NR7 — the latest bar's daily range is the narrowest of the last 4 / 7 days — a coil that usually expands within a few sessions. This filter keeps only the ones inside an uptrend (price over a rising 20>50 EMA), so the expansion is biased UP. ▫ = also an inside bar."><input type="checkbox" id="onlyNR"> NR4 / NR7 ↑ (bullish)</label>
         <label class="chk" style="margin-left:0" title="The 10-day SMA crossed above the 50-day SMA in the last ~5 sessions and is still above — the fresh 'base resolving up' cross (no base / volume conditions attached)."><input type="checkbox" id="onlyGX"> Fresh 10/50 cross</label>
+        <label class="chk" style="margin-left:0" title="The 10-WEEK SMA crossed above the 50-WEEK SMA in the last ~8 weeks and is still above — a major higher-timeframe trend turn (Stage-1 → Stage-2 on the weekly). Much rarer and slower than the daily cross; needs ~1.3 years of history."><input type="checkbox" id="onlyGXW"> Fresh weekly 10/50 cross</label>
+        <label class="chk" style="margin-left:0" title="Both crosses at once — a fresh 10/50 golden cross on the DAILY chart AND on the WEEKLY chart, both still above. The daily and weekly trend turning up together is the strongest version of the signal (and the rarest)."><input type="checkbox" id="onlyGXBoth"> Daily + weekly 10/50 cross</label>
         <label class="chk" style="margin-left:0"><input type="checkbox" id="onlyActionable"> Actionable</label>
       </div>
       <div class="summary" id="summary" aria-live="polite"></div>
@@ -975,6 +977,8 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
             <option value="hiadr">High-ADR movers (≥ 4% daily range)</option>
             <option value="nr">NR4 / NR7 ↑ (bullish narrow-range coil)</option>
             <option value="gx">Fresh 10/50 SMA cross (≤ 5 sessions)</option>
+            <option value="gxw">Fresh weekly 10/50 SMA cross (≤ 8 weeks)</option>
+            <option value="gxboth">Fresh 10/50 cross — daily AND weekly</option>
             <option value="volshock">Volume shockers — highest volume in 6 months+</option>
             <option value="accbo">Accumulated base — breaking out now</option>
             <option value="accstrong">Accumulation — strong (in a base or not)</option>
@@ -1531,9 +1535,9 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
   };
 
   var SAMPLE = [
-    "# cols: SYM,price,EMA20,EMA50,EMA200,RSI,volR,breakout,support,sector,macd,hhhl,resist,probT1,probT10,basePct,baseBars,stage2,RS,setup,trigger,trigWR,athPct,blueSky,revYoY,profYoY,epsYoY,qDate,profYoYPrev,ttmYoY,coil,mvt,gg,sg,dx,hdf,cdl,mb,vm,adr,nr,gx,acc,vsk,vfh",
-    "HINDZINC, 627, 598, 560, 505, 69, 2.3, 620, 606, L, 1, 1, 0, 0.58, 0.33, 0.06, 22, 6, 88, HDF, inside-bar@0, 0.61, 0.01, 1, 0.19, 0.34, 0.31, 2026-06-30, 0.26, 0.3, , , , , 624|590|12|0.055|0.005|2.4|1|1|1, 0.42|0.16|0.028|1.8|12|624|560, hammer~0~3.4|inside~1~0.62, 72|10|82|C|compounder|15|16|11|7|10|8|5|24.5|13|100|0||0.14|0.18|0.19|1|1.1|0.35|0.09|280000|0|28~0.19~0.16~0.19~0.18|rev-accel+sector-tailwind, 3.4|1|1|1, 4.6, 7|0|1|0.018|1, 2|0.06, 74|strong|590|1.87|3|0.28|1, 310|8.2|1|1, 6|67|9.4|21|2|0|-4.1",
-    "BEL, 415, 402, 395, 360, 66, 1.9, 409, 391, L, 1, 1, 0, 0.55, 0.31, 0.07, 18, 6, 84, BOB, hammer@1, 0.62, 0.03, 1, 0.21, 0.28, 0.27, 2026-06-30, 0.33, 0.24, 14|coil|0.022|0.71|0.006|411||||0.09, , 12|0.06|1|3.6|0.04|420, , , , ldbng~2~2.1|kicker~2~0.004, 80|16|96|B|inflection|16|16|10|8|12|8|6|38|22|100|1|cfdiv|0.16|0.22|0.24|1|0.9|0.05|0.11|95000|0|28~0.17~0.15~0.18~0.22|rev-accel+margin-up+roce-inflect+sector-tailwind, 4.1|0|1|1, 2.2, 4|1|0|0.026|1, , 60|mild|398|1.33|2|0.11|0, 150|4.4|0|1, 4|75|11.2|24|1|0|-6.0",
+    "# cols: SYM,price,EMA20,EMA50,EMA200,RSI,volR,breakout,support,sector,macd,hhhl,resist,probT1,probT10,basePct,baseBars,stage2,RS,setup,trigger,trigWR,athPct,blueSky,revYoY,profYoY,epsYoY,qDate,profYoYPrev,ttmYoY,coil,mvt,gg,sg,dx,hdf,cdl,mb,vm,adr,nr,gx,acc,vsk,vfh,gxw",
+    "HINDZINC, 627, 598, 560, 505, 69, 2.3, 620, 606, L, 1, 1, 0, 0.58, 0.33, 0.06, 22, 6, 88, HDF, inside-bar@0, 0.61, 0.01, 1, 0.19, 0.34, 0.31, 2026-06-30, 0.26, 0.3, , , , , 624|590|12|0.055|0.005|2.4|1|1|1, 0.42|0.16|0.028|1.8|12|624|560, hammer~0~3.4|inside~1~0.62, 72|10|82|C|compounder|15|16|11|7|10|8|5|24.5|13|100|0||0.14|0.18|0.19|1|1.1|0.35|0.09|280000|0|28~0.19~0.16~0.19~0.18|rev-accel+sector-tailwind, 3.4|1|1|1, 4.6, 7|0|1|0.018|1, 2|0.06, 74|strong|590|1.87|3|0.28|1, 310|8.2|1|1, 6|67|9.4|21|2|0|-4.1, 3|0.12",
+    "BEL, 415, 402, 395, 360, 66, 1.9, 409, 391, L, 1, 1, 0, 0.55, 0.31, 0.07, 18, 6, 84, BOB, hammer@1, 0.62, 0.03, 1, 0.21, 0.28, 0.27, 2026-06-30, 0.33, 0.24, 14|coil|0.022|0.71|0.006|411||||0.09, , 12|0.06|1|3.6|0.04|420, , , , ldbng~2~2.1|kicker~2~0.004, 80|16|96|B|inflection|16|16|10|8|12|8|6|38|22|100|1|cfdiv|0.16|0.22|0.24|1|0.9|0.05|0.11|95000|0|28~0.17~0.15~0.18~0.22|rev-accel+margin-up+roce-inflect+sector-tailwind, 4.1|0|1|1, 2.2, 4|1|0|0.026|1, , 60|mild|398|1.33|2|0.11|0, 150|4.4|0|1, 4|75|11.2|24|1|0|-6.0, 5|0.07",
     "JINDALSTEL, 1175, 1120, 1090, 1010, 60, 1.4, 1160, 1120, L, 1, 1, 1240, 0.5, 0.27, 0.11, 26, 5, 76, LBB, , , 0.11, 0, 0.08, 0.12, 0.1, 2026-03-31, 0.21, 0.1, , 4.2|50|0.014|1|1|0.03|12|78",
     "MEESHO, 205, 198, 190, 0, 63, 1.4, 200, 191, I, 1, 1, 0, 0.5, 0.26, 0.08, 14, 5, 72, S2P, pin-bar@0, 0.58, 0.05, 0, 0.33, 99, 99, 2026-06-30, , , 9|pop|0.021|0.66|0.032|201|1|0.043|1.9|0.08",
     "SAIL, 195, 190, 185, 132, 55, 0.9, 201, 188, L, 1, 0, 201, 0.44, 0.22, 0.06, 20, 5, 66, COIL, , , 0.14, 0, -0.04, -0.22, -0.21, 2026-06-30, -0.1, -0.15, , , , 0.18|11|1|3.8|178|2|0.015",
@@ -1755,6 +1759,8 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
         nu:+vfp[0]||0, hu:+vfp[1]||0, mu:+vfp[2]||0, xu:+vfp[3]||0,
         nd:+vfp[4]||0, hd:+vfp[5]||0, md:+vfp[6]||0
       } : null;
+      var gxwp = (p[45]||"").split("|");
+      d.gxw = (gxwp[0]!=null && gxwp[0]!=="" && isFinite(+gxwp[0])) ? { ago:+gxwp[0]||0, from50:+gxwp[1]||0 } : null;
       var st = deriveStructure(d.price, d.breakout, d.basePct, d.baseBars, d.volRatio);
       d.structurePts=st.pts; d.structureLbl=st.label;
       rows.push(d);
@@ -2011,6 +2017,8 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
     var minADR = onlyADR ? (parseFloat($("#minAdr") && $("#minAdr").value) || 0) : 0;
     var onlyNRf = $("#onlyNR") && $("#onlyNR").checked;
     var onlyGXf = $("#onlyGX") && $("#onlyGX").checked;
+    var onlyGXWf = $("#onlyGXW") && $("#onlyGXW").checked;
+    var onlyGXBothf = $("#onlyGXBoth") && $("#onlyGXBoth").checked;
     var shown = evals;
     if(onlyS2) shown = shown.filter(function(e){ return !!e.d.setup; });
     if(onlyTrg) shown = shown.filter(function(e){ var t=trigParts(e.d); return t && t.ago<=2; });
@@ -2020,6 +2028,8 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
     if(minADR>0) shown = shown.filter(function(e){ return e.d.adr!=null && e.d.adr >= minADR; });
     if(onlyNRf) shown = shown.filter(function(e){ return e.d.nr && e.d.nr.ago<=2 && e.d.nr.bull; });
     if(onlyGXf) shown = shown.filter(function(e){ return !!e.d.gx; });
+    if(onlyGXWf) shown = shown.filter(function(e){ return !!e.d.gxw; });
+    if(onlyGXBothf) shown = shown.filter(function(e){ return !!e.d.gx && !!e.d.gxw; });
     if(onlyAct) shown = shown.filter(function(e){ return e.actionable; });
 
     if(!shown.length){
@@ -2035,7 +2045,8 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
             (e.d.mvt?' <span class="pos" title="'+esc(e.d.mvt.mult+'× volume on an up bar '+(e.d.mvt.ago===0?'today':e.d.mvt.ago+' session'+(e.d.mvt.ago>1?'s':'')+' ago')+' on the '+e.d.mvt.ma+'-SMA'+(e.d.mvt.gcAgo!=null?' · 10/50 golden cross '+e.d.mvt.gcAgo+' sessions ago':'')+(e.d.mvt.track!=null?' · price tracked the 10-SMA '+e.d.mvt.track+'% of bars since':''))+'" style="font-size:9px">⚡'+e.d.mvt.mult+'×@'+e.d.mvt.ma+'</span>':'')+
             (e.d.adr!=null?' <span class="'+(e.d.adr>=4?'pos':e.d.adr>=2.5?'':'dim')+'" title="Average Daily Range '+e.d.adr.toFixed(1)+'% — Qullamaggie volatility filter (≥4% = a breakout can run fast)" style="font-size:9px">'+e.d.adr.toFixed(1)+'%adr</span>':'')+
             (e.d.nr && e.d.nr.ago<=2?' <span class="'+(e.d.nr.bull?'warn':'dim')+'" title="NR'+e.d.nr.n+' — narrowest daily range of the last '+e.d.nr.n+' days'+(e.d.nr.inside?', and an inside bar':'')+(e.d.nr.ago===0?' (today)':' ('+e.d.nr.ago+'d ago)')+'. '+(e.d.nr.bull?'In an uptrend — expansion usually resolves with the trend, i.e. up.':'NOT in an uptrend — direction of the expansion is a coin-flip.')+'" style="font-size:9px">NR'+e.d.nr.n+(e.d.nr.inside?'▫':'')+(e.d.nr.bull?'↑':'')+'</span>':'')+
-            (e.d.gx?' <span class="pos" title="10-day SMA crossed above the 50-day SMA '+(e.d.gx.ago===0?'today':e.d.gx.ago+' session'+(e.d.gx.ago>1?'s':'')+' ago')+' — price now '+(e.d.gx.from50>=0?'+':'')+Math.round(e.d.gx.from50*100)+'% vs the 50-SMA" style="font-size:9px">✕10/50 '+(e.d.gx.ago===0?'0d':e.d.gx.ago+'d')+'</span>':'')+'</td>'+
+            (e.d.gx?' <span class="pos" title="10-day SMA crossed above the 50-day SMA '+(e.d.gx.ago===0?'today':e.d.gx.ago+' session'+(e.d.gx.ago>1?'s':'')+' ago')+' — price now '+(e.d.gx.from50>=0?'+':'')+Math.round(e.d.gx.from50*100)+'% vs the 50-SMA" style="font-size:9px">✕10/50 '+(e.d.gx.ago===0?'0d':e.d.gx.ago+'d')+'</span>':'')+
+            (e.d.gxw?' <span class="pos" title="10-WEEK SMA crossed above the 50-week SMA '+(e.d.gxw.ago===0?'this week':e.d.gxw.ago+' week'+(e.d.gxw.ago>1?'s':'')+' ago')+' — a major weekly-trend turn. Price now '+(e.d.gxw.from50>=0?'+':'')+Math.round(e.d.gxw.from50*100)+'% vs the 50-week SMA" style="font-size:9px">✕W '+(e.d.gxw.ago===0?'0w':e.d.gxw.ago+'w')+'</span>':'')+'</td>'+
           '<td class="num">'+e.sc.total+'</td>'+
           '<td class="num">'+rsCell(e.d.rs)+'</td>'+
           '<td><span class="pill '+e.v.cls+'">'+esc(e.v.label.replace(/ —.*/,""))+'</span></td>'+
@@ -2071,6 +2082,8 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
     var hiAdr = evals.filter(function(e){ return e.d.adr!=null && e.d.adr>=4; }).length;
     var nrN = evals.filter(function(e){ return e.d.nr && e.d.nr.ago<=2 && e.d.nr.bull; }).length;
     var gxN = evals.filter(function(e){ return !!e.d.gx; }).length;
+    var gxwN = evals.filter(function(e){ return !!e.d.gxw; }).length;
+    var gxBothN = evals.filter(function(e){ return !!e.d.gx && !!e.d.gxw; }).length;
     var aplus = evals.filter(function(e){ return setupGrade(e.d)==="A+"; }).length;
     var topRs = evals.slice().filter(function(e){return e.d.rs!=null;}).sort(function(a,b){return b.d.rs-a.d.rs;})[0];
     summary.innerHTML =
@@ -2084,6 +2097,7 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
       (hiAdr?'<span class="chip"><b>'+hiAdr+'</b> ADR ≥ 4%</span>':'')+
       (nrN?'<span class="chip"><b>'+nrN+'</b> NR4/7 ↑</span>':'')+
       (gxN?'<span class="chip"><b>'+gxN+'</b> fresh 10/50 cross</span>':'')+
+      (gxwN?'<span class="chip"><b>'+gxwN+'</b> weekly 10/50 cross'+(gxBothN?' · <span class="pos">'+gxBothN+' also daily</span>':'')+'</span>':'')+
       '<span class="chip"><b>'+act+'</b> actionable</span>'+
       (topRs?'<span class="chip">strongest: <b>'+esc(topRs.d.symbol)+'</b> RS '+topRs.d.rs+'</span>':'')+
       (best?'<span class="chip">top score: <b>'+esc(best.d.symbol)+'</b> ('+best.sc.total+')</span>':'');
@@ -2737,6 +2751,8 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
       case "hiadr":        return d.adr!=null && d.adr>=4;
       case "nr":           return d.nr && d.nr.ago<=2 && d.nr.bull;
       case "gx":           return !!d.gx;
+      case "gxw":          return !!d.gxw;
+      case "gxboth":       return !!d.gx && !!d.gxw;
       case "volshock":     return d.vsk && d.vsk.span>=124;
       case "accbo":        return d.acc && d.acc.bo && /^(strong|mild)$/.test(d.acc.label);
       case "accstrong":    return d.acc && d.acc.label==="strong";
@@ -2777,7 +2793,9 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
     else if(d.vm) tags.push({t:"⚡ "+d.vm.mult+"× vol + 10>50 DMA"+(d.vm.ago===0?" today":" "+d.vm.ago+"d"), c:"pos"});
     if(d.adr!=null && d.adr>=3.5) tags.push({t:"ADR "+d.adr.toFixed(1)+"%", c: d.adr>=6?"pos":d.adr>=4?"warn":"dim"});
     if(d.nr && d.nr.ago<=2) tags.push({t:"NR"+d.nr.n+(d.nr.bull?" ↑":"")+(d.nr.inside?" ▫inside":"")+(d.nr.ago===0?" today":" "+d.nr.ago+"d"), c: d.nr.bull?"warn":"dim"});
-    if(d.gx) tags.push({t:"✕ 10/50 SMA cross "+(d.gx.ago===0?"today":d.gx.ago+"d"), c:"pos"});
+    if(d.gx && d.gxw) tags.push({t:"✕✕ 10/50 cross aligned — daily "+(d.gx.ago===0?"today":d.gx.ago+"d")+" + weekly "+(d.gxw.ago===0?"this wk":d.gxw.ago+"w"), c:"pos"});
+    else if(d.gx) tags.push({t:"✕ 10/50 SMA cross "+(d.gx.ago===0?"today":d.gx.ago+"d"), c:"pos"});
+    else if(d.gxw) tags.push({t:"✕ weekly 10/50 cross "+(d.gxw.ago===0?"this week":d.gxw.ago+"w")+" · +"+Math.round(d.gxw.from50*100)+"% vs 50w", c:"pos"});
     if(d.vsk && d.vsk.lvl)
       tags.push({t:"📊 Vol shock · biggest in "+d.vsk.lvl+" · "+d.vsk.mult.toFixed(1)+"×"+(d.vsk.up?" ↑":" ↓")+(d.vsk.ago===0?" today":" "+d.vsk.ago+"d"),
                  c: d.vsk.up ? "pos" : "warn"});
@@ -2887,7 +2905,9 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
       else if(ext<-0.05){ score-=6; neg.push("still well below the breakout level"); }
     }
 
-    if(d.gx){ score+=8; pos.push("fresh 10/50 golden cross ("+d.gx.ago+"d)"); }
+    if(d.gx && d.gxw){ score+=22; pos.push("10/50 golden cross on BOTH daily ("+d.gx.ago+"d) and weekly ("+d.gxw.ago+"w) — trend turning up on both timeframes"); }
+    else if(d.gx){ score+=8; pos.push("fresh 10/50 golden cross ("+d.gx.ago+"d)"); }
+    else if(d.gxw){ score+=10; pos.push("fresh WEEKLY 10/50 golden cross ("+d.gxw.ago+"w) — a higher-timeframe trend turn"); }
     if(d.mvt){ score+=10; pos.push("3×+ volume thrust on the "+d.mvt.ma+"-day MA"); }
     else if(d.vm){ score+=8; pos.push(d.vm.mult+"× volume + 10>50 DMA"); }
     if(d.coil && d.coil.state==="pop"){ score+=8; pos.push("just released from a tight coil"); }
@@ -3009,6 +3029,10 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
       pool.sort(function(a,b){ return (b.acc?b.acc.score:0) - (a.acc?a.acc.score:0); });
     else if(scope==="volshock")
       pool.sort(function(a,b){ return (b.vsk?b.vsk.span:0) - (a.vsk?a.vsk.span:0); });
+    else if(scope==="gxw")
+      pool.sort(function(a,b){ return (a.gxw?a.gxw.ago:99) - (b.gxw?b.gxw.ago:99); });
+    else if(scope==="gxboth")
+      pool.sort(function(a,b){ return (a.gx?a.gx.ago:99) - (b.gx?b.gx.ago:99); });
     else if(scope==="mbearly")
       pool.sort(function(a,b){ var ea=mbEarly(a),eb=mbEarly(b); return (eb?eb.score:0)-(ea?ea.score:0); });
     else if(scope==="entrynow"){
@@ -3873,10 +3897,10 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
     return fetchYahoo(sym, cfg);
   }
   function chartLegend(tf){
-    var sma = state.chartMA==="sma";
+    var sma = state.chartMA==="sma", wk = tf==="weekly";
     return '<div class="cx-legend">'+
-      '<span>'+(tf==="weekly"?"weekly":"daily")+'</span>'+
-      '<span class="k20"><i></i>'+(sma?"SMA10":"EMA20")+'</span><span class="k50"><i></i>'+(sma?"SMA50":"EMA50")+'</span>'+
+      '<span>'+(wk?"weekly":"daily")+'</span>'+
+      '<span class="k20"><i></i>'+(sma?(wk?"SMA10w":"SMA10"):"EMA20")+'</span><span class="k50"><i></i>'+(sma?(wk?"SMA50w":"SMA50"):"EMA50")+'</span>'+
       '<span><i class="kbase"></i>base</span>'+
       (state.bookSR!==false?'<span class="ksup"><i></i>S/R zone ×n</span>':'')+
       (state.bookPat!==false?'<span class="ktl"><i></i>trendline / pattern</span>':'')+
@@ -4528,6 +4552,28 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
       if(s10[i-1] <= s50[i-1] && s10[i] > s50[i]){
         if(!(s10[n-1] > s50[n-1])) return null;                 // must still be above now
         return { ago: n-1-i, from50: s50[n-1]>0 ? (c[n-1]-s50[n-1])/s50[n-1] : 0 };
+      }
+    }
+    return null;
+  }
+  // 10-week SMA crossed above the 50-week SMA in the last ~6 weeks and is still above —
+  // a major weekly-trend turn (Stage-1 → Stage-2 on the higher timeframe).
+  function weeklyCross(dc, dd){
+    if(!dc || dc.length < 320 || !dd) return null;   // ~64 trading weeks — enough for a usable 50-week SMA
+    var wc=[], curKey=null, i;
+    for(i=0;i<dc.length;i++){
+      var dt=new Date(dd[i]+"T00:00:00Z"), day=dt.getUTCDay();
+      dt.setUTCDate(dt.getUTCDate() + (day===0?-6:1-day));
+      var key=dt.toISOString().slice(0,10);
+      if(key!==curKey){ curKey=key; wc.push(dc[i]); } else wc[wc.length-1]=dc[i];
+    }
+    var n=wc.length; if(n<55) return null;
+    var s10=smaArr(wc,10), s50=smaArr(wc,50);
+    for(i=n-1; i>=n-8 && i>=1; i--){
+      if(s10[i]==null || s50[i]==null || s10[i-1]==null || s50[i-1]==null) break;
+      if(s10[i-1] <= s50[i-1] && s10[i] > s50[i]){
+        if(!(s10[n-1] > s50[n-1])) return null;
+        return { ago: n-1-i, from50: s50[n-1]>0 ? (wc[n-1]-s50[n-1])/s50[n-1] : 0 };
       }
     }
     return null;
@@ -5418,6 +5464,8 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
     var nrStr = nr ? [nr.n, nr.ago, (nr.inside?1:0), Math.round(nr.rangePct*1000)/1000, (nr.bull?1:0)].join("|") : "";
     var gx = freshCross(c);
     var gxStr = gx ? [gx.ago, Math.round(gx.from50*1000)/1000].join("|") : "";
+    var gxw = weeklyCross(c, ds);
+    var gxwStr = gxw ? [gxw.ago, Math.round(gxw.from50*1000)/1000].join("|") : "";
     var sb = stairBases(h,l,c);
     var nC=c.length, low5=Math.min.apply(null, l.slice(-5));
     var e20rise = e20a[nC-1]!=null && e20a[Math.max(0,nC-9)]!=null && e20a[nC-1] > e20a[Math.max(0,nC-9)];
@@ -5474,9 +5522,9 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
     // this stock's own volume-shock → 20-day follow-through, up-bar vs down-bar
     var vf = vskForward(c, vol);
     var vfhStr = vf ? [vf.nu, vf.hu, vf.mu, vf.xu, vf.nd, vf.hd, vf.md].join("|") : "";
-    // last ~400 bars kept for charting the top-ranked names — enough for a real EMA200 and a
-    // usable weekly view (≈57 weeks). Rounded to keep localStorage small.
-    var TB = 400, ts = Math.max(0, c.length - TB), rnd = function(x){ return Math.round(x*100)/100; };
+    // last ~520 bars kept for charting the top-ranked names — enough for EMA200 and a
+    // full weekly SMA10/50 view (≈104 weeks). Rounded to keep localStorage small.
+    var TB = 520, ts = Math.max(0, c.length - TB), rnd = function(x){ return Math.round(x*100)/100; };
     var tail = {
       o: op.slice(ts).map(rnd), h: h.slice(ts).map(rnd), l: l.slice(ts).map(rnd),
       c: c.slice(ts).map(rnd), v: vol.slice(ts).map(function(x){return Math.round(x);}),
@@ -5509,7 +5557,7 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
       blueSky: (bsky.newHigh && bsky.above) ? 1 : 0,
       fibZone: fib ? fib.zone : "",
       fibRetr: fib ? Math.round(fib.retr*100)/100 : null,
-      coil: coilStr, mvt: mvtStr, gg: ggStr, sg: sgStr, dx: dxStr, hdf: hdfStr, cdl: cdlStr, mb: "", vm: vmStr, acc: accStr, vsk: vskStr, vfh: vfhStr,
+      coil: coilStr, mvt: mvtStr, gg: ggStr, sg: sgStr, dx: dxStr, hdf: hdfStr, cdl: cdlStr, mb: "", vm: vmStr, acc: accStr, vsk: vskStr, vfh: vfhStr, gxw: gxwStr,
       revYoY: null, profYoY: null, epsYoY: null, qDate: "", profYoYPrev: null, ttmYoY: null   // filled in later by applyFund()
     };
   }
@@ -5520,7 +5568,7 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
       r.basePct||0, r.baseBars||0, r.stage2||0, (r.rs==null?"":r.rs), (r.setup||""),
       (r.trig||""), (r.trigWR==null?"":r.trigWR), (r.athPct==null?"":r.athPct), (r.blueSky||0),
       (r.revYoY==null?"":r.revYoY), (r.profYoY==null?"":r.profYoY), (r.epsYoY==null?"":r.epsYoY), (r.qDate||""),
-      (r.profYoYPrev==null?"":r.profYoYPrev), (r.ttmYoY==null?"":r.ttmYoY), (r.coil||""), (r.mvt||""), (r.gg||""), (r.sg||""), (r.dx||""), (r.hdf||""), (r.cdl||""), (r.mb||""), (r.vm||""), (r.adr==null?"":r.adr), (r.nr||""), (r.gx||""), (r.acc||""), (r.vsk||""), (r.vfh||"")].join(", ");
+      (r.profYoYPrev==null?"":r.profYoYPrev), (r.ttmYoY==null?"":r.ttmYoY), (r.coil||""), (r.mvt||""), (r.gg||""), (r.sg||""), (r.dx||""), (r.hdf||""), (r.cdl||""), (r.mb||""), (r.vm||""), (r.adr==null?"":r.adr), (r.nr||""), (r.gx||""), (r.acc||""), (r.vsk||""), (r.vfh||""), (r.gxw||"")].join(", ");
   }
 
   /* ---------- auto-screen: fetch adapters ---------- */
@@ -6583,6 +6631,8 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
     if($("#minAdr")) $("#minAdr").addEventListener("input", function(){ if($("#onlyAdr").checked) renderScreener(); });
     if($("#onlyNR")) $("#onlyNR").addEventListener("change", renderScreener);
     if($("#onlyGX")) $("#onlyGX").addEventListener("change", renderScreener);
+    if($("#onlyGXW")) $("#onlyGXW").addEventListener("change", renderScreener);
+    if($("#onlyGXBoth")) $("#onlyGXBoth").addEventListener("change", renderScreener);
     if($("#coilWatchOnly")) $("#coilWatchOnly").addEventListener("change", renderCoil);
     if($("#coilUptrend")) $("#coilUptrend").addEventListener("change", renderCoil);
     if($("#ggUptrend")) $("#ggUptrend").addEventListener("change", renderGolden);
