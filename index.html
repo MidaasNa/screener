@@ -385,7 +385,7 @@ table.sc-setup td.num{font-family:"IBM Plex Mono",monospace;text-align:right}
     <span class="mark" aria-hidden="true">₹</span>
     <div>
       <h1>The 10% Ledger</h1>
-      <p>Momentum + pullback screener · NSE swing setups <span style="opacity:.5;font-size:11px">· build 2026-09-09k</span></p>
+      <p>Momentum + pullback screener · NSE swing setups <span style="opacity:.5;font-size:11px">· build 2026-09-10a</span></p>
     </div>
   </div>
   <div class="controls">
@@ -959,6 +959,7 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
             <option value="all">All scanned — by score</option>
             <option value="actionable">Buy setups only (score ≥ 80, R:R ≥ 2)</option>
             <option value="entrynow">Entry live today — at the trigger, R:R ≥ 2</option>
+            <option value="fast">Fast movers — best odds of a quick pop (ADR ≥ 5% + trigger firing)</option>
             <option value="confhi">Confidence read — High only</option>
             <option value="confmod">Confidence read — High + Moderate</option>
             <option value="leanbull">Confidence read — bullish lean or better</option>
@@ -2733,6 +2734,14 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
     switch(scope){
       case "actionable": return evaluateRow(d).actionable;
       case "entrynow":   return entryLiveToday(d);
+      case "fast":     { // best odds of a fast pop: high volatility + a trigger firing now + a valid trade + not Red
+        if(state.regime==="red") return false;
+        if(!(d.adr!=null && d.adr>=5)) return false;
+        var ef=evaluateRow(d); if(!(ef.tr.rr>=2) || ef.v.tier<2) return false;
+        var coilPop=d.coil && d.coil.state==="pop" && (d.coil.popAgo==null || d.coil.popAgo<=2);
+        var nrRel=d.nr && d.nr.ago<=1 && d.nr.bull;
+        return !!(d.mvt || d.vm || coilPop || nrRel || /@[012]$/.test(d.trig||""));
+      }
       case "confhi":     return confidenceRead(d, evaluateRow(d)).conf==="High";
       case "confmod":  { var _c=confidenceRead(d, evaluateRow(d)).conf; return _c==="High"||_c==="Moderate"; }
       case "leanbull":   return /bullish/i.test(confidenceRead(d, evaluateRow(d)).lean);
@@ -2772,6 +2781,7 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
     else if(e.v.tier>=3) tags.push({t:"Screener · "+e.v.label, c:"warn"});
     else tags.push({t:"Screener · "+e.v.label, c:"neg"});
     if(entryLiveToday(d)) tags.push({t:"⦿ Entry live today · "+e.tr.rr.toFixed(1)+":1", c:"pos"});
+    if(bookInScope(d,"fast")) tags.push({t:"⚡ Fast mover · ADR "+d.adr.toFixed(1)+"%"+(d.probT1!=null?" · +5% "+Math.round(d.probT1*100)+"%":""), c:"warn"});
     if(d.setup && SETUP_LABEL[d.setup]){
       var g=setupGrade(d);
       tags.push({t:SETUP_LABEL[d.setup]+(g?" "+g:""), c:(d.setup==="COIL"||d.setup==="S2")?"warn":"pos"});
@@ -3040,6 +3050,8 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
       pool.forEach(function(d){ rrc[d.symbol] = evaluateRow(d).tr.rr || 0; });
       pool.sort(function(a,b){ return rrc[b.symbol] - rrc[a.symbol]; });
     }
+    else if(scope==="fast")
+      pool.sort(function(a,b){ return (b.probT1||0) - (a.probT1||0) || (b.adr||0) - (a.adr||0); });
     else
       pool.sort(function(a,b){ return scoreStock(b).total - scoreStock(a).total; });
     bookPool = pool;
