@@ -385,7 +385,7 @@ table.sc-setup td.num{font-family:"IBM Plex Mono",monospace;text-align:right}
     <span class="mark" aria-hidden="true">₹</span>
     <div>
       <h1>The 10% Ledger</h1>
-      <p>Momentum + pullback screener · NSE swing setups <span style="opacity:.5;font-size:11px">· build 2026-09-09j</span></p>
+      <p>Momentum + pullback screener · NSE swing setups <span style="opacity:.5;font-size:11px">· build 2026-09-09k</span></p>
     </div>
   </div>
   <div class="controls">
@@ -2795,7 +2795,7 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
     if(d.nr && d.nr.ago<=2) tags.push({t:"NR"+d.nr.n+(d.nr.bull?" ↑":"")+(d.nr.inside?" ▫inside":"")+(d.nr.ago===0?" today":" "+d.nr.ago+"d"), c: d.nr.bull?"warn":"dim"});
     if(d.gx && d.gxw) tags.push({t:"✕✕ 10/50 cross aligned — daily "+(d.gx.ago===0?"today":d.gx.ago+"d")+" + weekly "+(d.gxw.ago===0?"this wk":d.gxw.ago+"w"), c:"pos"});
     else if(d.gx) tags.push({t:"✕ 10/50 SMA cross "+(d.gx.ago===0?"today":d.gx.ago+"d"), c:"pos"});
-    else if(d.gxw) tags.push({t:"✕ weekly 10/50 cross "+(d.gxw.ago===0?"this week":d.gxw.ago+"w")+" · +"+Math.round(d.gxw.from50*100)+"% vs 50w", c:"pos"});
+    else if(d.gxw) tags.push({t:"✕ weekly 10/50 cross "+(d.gxw.ago===0?"this week":d.gxw.ago+"w")+" · +"+Math.round(d.gxw.from50*100)+"% vs 50w"+(d.gxw.from50>0.12?" (extended)":""), c: d.gxw.from50>0.12 ? "warn" : "pos"});
     if(d.vsk && d.vsk.lvl)
       tags.push({t:"📊 Vol shock · biggest in "+d.vsk.lvl+" · "+d.vsk.mult.toFixed(1)+"×"+(d.vsk.up?" ↑":" ↓")+(d.vsk.ago===0?" today":" "+d.vsk.ago+"d"),
                  c: d.vsk.up ? "pos" : "warn"});
@@ -6647,7 +6647,13 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
     if($("#mbMinScore")) $("#mbMinScore").addEventListener("input", function(){ state.mbMinScore = +this.value; save(); if($("#mbMinScoreVal")) $("#mbMinScoreVal").textContent = this.value; renderMultibagger(); });
     if($("#mbNoFlags")) $("#mbNoFlags").addEventListener("change", function(){ state.mbNoFlags = this.checked; save(); renderMultibagger(); });
     if($("#mbList")) $("#mbList").addEventListener("change", renderMultibagger);
-    if($("#bookScope")) $("#bookScope").addEventListener("change", function(){ state.bookScope = this.value; state.bookIdx = 0; save(); renderBook(); });
+    if($("#bookScope")) $("#bookScope").addEventListener("change", function(){
+      state.bookScope = this.value; state.bookIdx = 0;
+      // match the chart to what the filter measures, so the cross is actually visible
+      if(this.value==="gxw"){ state.chartTF="weekly"; state.chartMA="sma"; }
+      else if(this.value==="gx" || this.value==="gxboth"){ state.chartTF="daily"; state.chartMA="sma"; }
+      save(); renderBook();
+    });
     if($("#bookPrev")) $("#bookPrev").addEventListener("click", function(){ bookGo(-1); });
     if($("#bookNext")) $("#bookNext").addEventListener("click", function(){ bookGo(1); });
     if($("#bookOpen")) $("#bookOpen").addEventListener("click", function(){ var d=bookPool[state.bookIdx]; if(d){ loadIntoAnalyzer(d); switchTab("analyzer"); } });
