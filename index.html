@@ -359,7 +359,7 @@ table.oc-guide td:first-child{white-space:nowrap;width:1%}
     <span class="mark" aria-hidden="true">₹</span>
     <div>
       <h1>The 10% Ledger</h1>
-      <p>Momentum + pullback screener · NSE swing setups <span style="opacity:.5;font-size:11px">· build 2026-09-09d</span></p>
+      <p>Momentum + pullback screener · NSE swing setups <span style="opacity:.5;font-size:11px">· build 2026-09-09e</span></p>
     </div>
   </div>
   <div class="controls">
@@ -791,7 +791,7 @@ table.oc-guide td:first-child{white-space:nowrap;width:1%}
         <h2>Multibagger Radar</h2>
         <span class="scan-meta" id="mbMeta"></span>
       </div>
-      <p class="hint">Built from the "Pre-Multibagger Stock Screener" spec, over ~10 years of annual financials (Yahoo, same request as quarterly results — turn on <b>Deep fundamentals</b> on the Screener and re-scan). <b>Fundamental Score /100</b> = Earnings growth 20 · Business quality 20 (ROCE + margins + capital efficiency) · Cash-flow quality 15 · Balance sheet 10 (sector-adjusted for banks) · Competitive advantage 15 · Management 10 · Valuation 10. Plus an <b>Inflection Score /20</b> — ten computable catalysts (revenue &amp; profit acceleration, margin expansion, ROCE inflection, capex ramp, rising asset turns, cash-flow acceleration, FCF turning positive, debt reduction, structural-growth sector). <b>Total /120</b> → A / B / C / D / E. Each row expands (<b>▸</b>) to the 7-pillar breakdown, the reverse-DCF implied growth, and the 3× / 5× / 10× required-CAGR math.</p>
+      <p class="hint">Built from the "Pre-Multibagger Stock Screener" spec, over ~10 years of annual financials (Yahoo, same request as quarterly results — turn on <b>Deep fundamentals</b> on the Screener and re-scan). <b>Fundamental Score /100</b> = Earnings growth 20 · Business quality 20 (ROCE + margins + capital efficiency) · Cash-flow quality 15 · Balance sheet 10 (sector-adjusted for banks) · Competitive advantage 15 · Management 10 · Valuation 10. Plus an <b>Inflection Score /20</b> — ten computable catalysts (revenue &amp; profit acceleration, margin expansion, ROCE inflection, capex ramp, rising asset turns, cash-flow acceleration, FCF turning positive, debt reduction, structural-growth sector). <b>Total /120</b> → A / B / C / D / E. Each row expands (<b>▸</b>) to the 7-pillar breakdown, the reverse-DCF implied growth, and the 3× / 5× / 10× required-CAGR math. The <b>Early/Ign</b> column is a timing overlay (adapted from the mphinance "Multi-Bagger DNA" screen): small cap + <i>hasn't re-rated yet</i> (6-month return low) + growth accelerating + volume waking up → 🚀 ignition / 🛰 early / ◔ watch. Use the <b>"Early / volume ignition"</b> list to rank by it — a high fundamental score <i>and</i> a high Early/Ign score is the "good business the market is just starting to notice" case.</p>
       <p class="hint" style="color:var(--warn)"><b>What this CANNOT see</b> (no browser-reachable feed): promoter pledging &amp; holding trend, promoter buy/sell, auditor resignation or a qualified opinion, related-party transactions, preferential allotments, order book, capacity / utilisation, customer concentration, market share, forward analyst estimates. The <b>Competitive advantage</b> and <b>Management</b> pillars are <b>proxies</b> (durable high ROCE + pricing power; dilution + reinvestment returns). Every row has <b>Verify ↗</b> links — do those checks yourself. A high score means "worth a proper deep read", not "safe to buy".</p>
       <div class="scan-head" style="margin-top:2px;flex-wrap:wrap;gap:10px">
         <label class="chk" style="margin-left:0">List
@@ -803,6 +803,7 @@ table.oc-guide td:first-child{white-space:nowrap;width:1%}
             <option value="smallcap">Small-cap opportunities</option>
             <option value="hidden">Hidden gems</option>
             <option value="turnaround">Turnarounds</option>
+            <option value="early">Early / volume ignition</option>
           </select>
         </label>
         <label class="chk" style="margin-left:0">Min Total
@@ -822,6 +823,7 @@ table.oc-guide td:first-child{white-space:nowrap;width:1%}
             <th title="Compounder / Growth-inflection / Turnaround / Small-cap emerging / Cyclical / Hidden compounder">Archetype</th>
             <th title="Fundamental Score, re-normalised over the pillars that had data">Fund</th>
             <th title="Inflection Score — computable forward catalysts">Inflect</th>
+            <th title="Early / Volume Ignition — small cap + hasn't run yet + growth accelerating + volume waking up (the useful half of the mphinance 'Multi-Bagger DNA' screen). 🚀 ignition ≥ 78 · 🛰 early ≥ 62 · ◔ watch ≥ 45">Early/Ign</th>
             <th title="Annual revenue CAGR / net-profit CAGR over the years available">CAGR rev/PAT</th>
             <th title="Return on capital employed — EBIT ÷ (equity + debt). ↑ = higher than ~3 yrs ago">ROCE</th>
             <th title="5-yr cumulative operating cash flow ÷ cumulative net profit — want ≥ 1.0">CFO/PAT</th>
@@ -831,7 +833,7 @@ table.oc-guide td:first-child{white-space:nowrap;width:1%}
             <th title="Check what no feed can: pledging, auditor, related-party, allotments, promoter selling">Verify</th>
             <th></th>
           </tr></thead>
-          <tbody id="mbBody"><tr><td colspan="15" class="empty">Turn on <b>Deep fundamentals</b> on the Screener tab, run a scan, then come back here.</td></tr></tbody>
+          <tbody id="mbBody"><tr><td colspan="16" class="empty">Turn on <b>Deep fundamentals</b> on the Screener tab, run a scan, then come back here.</td></tr></tbody>
         </table>
       </div>
       <p class="hint" style="margin-top:12px"><b>Auto red-flag codes:</b> <code>recv</code> receivables outrunning sales · <code>invty</code> inventory outrunning sales · <code>dilut</code> share count up &gt; 8% in a year or &gt; 20% over three · <code>debt</code> D/E &gt; 1.5 and rising, or interest &lt; 1.5× covered · <code>margin</code> net margin +8 pts without matching sales growth · <code>cfdiv</code> profit reported but operating cash flow far below · <code>fcf</code> free cash flow negative 3 of the last 4 years (suppressed if it's a clear capex-for-growth phase). A blank pillar or low coverage means <i>go read the annual report</i>. The 3×/5×/10× math answers the spec's key question — <i>what profit CAGR would the price require, and is that plausible next to what the company has actually delivered?</i></p>
@@ -947,6 +949,7 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
             <option value="mbtop">Multibagger Radar — all, ranked by score</option>
             <option value="mb">Multibagger Radar — class A / B</option>
             <option value="mba">Multibagger Radar — class A only</option>
+            <option value="mbearly">Multibagger + early / volume ignition</option>
             <option value="watchlist">Watchlist</option>
           </select>
         </label>
@@ -2460,6 +2463,53 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
            '<a href="https://trendlyne.com/equity/share-price/'+s+'/" target="_blank" rel="noopener" title="Trendlyne — promoter pledge trend, DII/FII, forecasts">TL</a> '+
            '<a href="https://www.bseindia.com/corporates/ann.html" target="_blank" rel="noopener" title="BSE announcements — auditor changes, board meetings, preferential allotments">BSE</a>';
   }
+  // "Early / Volume Ignition" overlay for the Multibagger Radar — the useful half of the
+  // mphinance "Multi-Bagger DNA" screen, adapted to data we actually have for NSE.
+  // Small cap + hasn't re-rated yet + growth accelerating + volume waking up.
+  function mbEarly(d){
+    if(d._eg !== undefined) return d._eg;
+    if(!d.mb){ return (d._eg = null); }
+    var m=d.mb, bits=[];
+    var b=function(v,stops,scores){ for(var i=0;i<stops.length;i++){ if(v<=stops[i]) return scores[i]; } return scores[scores.length-1]; };
+
+    // 1) Room to run — smaller market cap = more headroom  (20%)
+    var room = m.mcapCr==null ? 50 : b(m.mcapCr, [2000,5000,15000,40000,100000], [100,88,66,42,22,8]);
+    if(m.mcapCr!=null && m.mcapCr<3000) bits.push("small-cap · ₹"+nfmt(m.mcapCr,0)+" cr");
+
+    // 2) Early in the move — working, but not yet a crowded momentum name  (30%)
+    // uses RS (the 6-month relative-strength percentile): sweet spot ~35–58.
+    var rs = d.rs!=null ? d.rs : 50;
+    var early = b(rs, [15,35,58,74,87], [40,80,100,72,42,20]);
+    if(rs>=35 && rs<=58) bits.push("early — RS "+Math.round(rs)+", working but not crowded");
+    else if(rs>=87) bits.push("RS "+Math.round(rs)+" — the market already knows");
+    else if(rs<15) bits.push("RS "+Math.round(rs)+" — deep laggard");
+
+    // 3) Growth acceleration  (20%)
+    var g = m.revCAGR!=null ? m.revCAGR : (m.patCAGR!=null ? m.patCAGR : null);
+    var accel = g==null ? 25 : b(g, [0.08,0.15,0.25,0.45,0.90], [15,45,80,100,75,55]);
+    if(m.iBits && (m.iBits.indexOf("rev-accel")>=0 || m.iBits.indexOf("pat-accel")>=0)){ accel=Math.min(100,accel+18); bits.push("growth accelerating"); }
+    if(d.profYoY!=null && d.profYoY>0.25) accel=Math.min(100,accel+10);
+
+    // 4) Volume ignition — the market is starting to notice  (30%)
+    var ign=20;
+    if(d.vsk && d.vsk.lvl){
+      ign = d.vsk.up ? (d.vsk.span>=250?100:82) : 45;
+      if(d.vsk.up) bits.push("volume ignition · biggest in "+d.vsk.lvl);
+    }
+    else if(d.mvt){ ign=85; bits.push("3× volume thrust @ MA"); }
+    else if(d.vm){ ign=70; bits.push(d.vm.mult+"× volume + 10>50 DMA"); }
+    else if((d.volRatio||1)>=2) ign=55;
+    else if((d.volRatio||1)>=1.3) ign=40;
+
+    var score = Math.round(room*0.20 + early*0.30 + accel*0.20 + ign*0.30);
+    // catching a falling knife isn't "early" — it's early to the downside
+    if(d.ema50>0 && d.price>0 && d.price < d.ema50*0.95){ score=Math.min(score,40); bits.push("below the 50-DMA — not igniting yet"); }
+
+    var tier = score>=78 ? "ignition" : score>=62 ? "early" : score>=45 ? "watch" : "";
+    return (d._eg = { score:score, tier:tier, room:Math.round(room), early:Math.round(early),
+                      accel:Math.round(accel), ign:Math.round(ign), bits:bits.slice(0,4) });
+  }
+  var MB_EARLY_ICON = { ignition:"🚀", early:"🛰", watch:"◔" };
   function mbListPredicate(list){
     return function(d){
       var m=d.mb;
@@ -2470,6 +2520,7 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
         case "smallcap":   return m.mcapCr!=null && m.mcapCr<=8000 && (m.total||0)>=70;
         case "hidden":     return m.arch==="hidden" || (m.impG!=null && m.patCAGR!=null && m.impG < m.patCAGR-0.03 && (m.fund||0)>=60);
         case "turnaround": return m.arch==="turnaround";
+        case "early":      var eg=mbEarly(d); return !!(eg && (eg.tier==="early" || eg.tier==="ignition"));
         default:           return true;
       }
     };
@@ -2501,8 +2552,17 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
     }
     if(m.iBits.length) missing.push("Catalysts firing: "+m.iBits.map(function(b){return MB_IBIT[b]||b;}).join(" · ")+".");
     if(m.cov<70) missing.push("Yahoo data coverage is only "+m.cov+"% — several pillars are estimated or blank. Read the annual report before trusting the score.");
-    return '<tr class="mb-detail"><td></td><td colspan="14">'+
+    var eg = mbEarly(d);
+    var egHtml = eg ? (
+      '<p class="hint" style="margin:8px 0 3px"><b>Early / Volume Ignition</b> — score <b class="'+(eg.tier==="ignition"?"pos":eg.tier==="early"?"warn":"dim")+'">'+(MB_EARLY_ICON[eg.tier]?MB_EARLY_ICON[eg.tier]+' ':'')+eg.score+'/100</b>'+(eg.bits.length?' · '+eg.bits.map(esc).join(' · '):'')+'</p>'+
+      '<div class="mb-pills">'+
+        mbBar(eg.room,100,"Room to run (small cap)") + mbBar(eg.early,100,"Early in the move") +
+        mbBar(eg.accel,100,"Growth acceleration") + mbBar(eg.ign,100,"Volume ignition") +
+      '</div>'
+    ) : "";
+    return '<tr class="mb-detail"><td></td><td colspan="15">'+
       '<div class="mb-pills">'+pill+'</div>'+
+      egHtml+
       '<p class="hint" style="margin:6px 0 2px">* Competitive advantage &amp; Management are <b>proxies</b> — no moat / promoter data feed exists. '+
       'Verify pledging, auditor, related-party, allotments &amp; promoter selling via the links.</p>'+
       scenHtml+
@@ -2527,6 +2587,7 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
     }).sort(function(a,b){
       if(list==="inflection") return b.mb.infl-a.mb.infl || b.mb.total-a.mb.total;
       if(list==="smallcap")   return (a.mb.mcapCr||9e9)-(b.mb.mcapCr||9e9);
+      if(list==="early"){ var ea=mbEarly(a), eb=mbEarly(b); return (eb?eb.score:0)-(ea?ea.score:0) || b.mb.total-a.mb.total; }
       return b.mb.total - a.mb.total || a.mb.red - b.mb.red;
     });
 
@@ -2559,6 +2620,10 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
         '<td class="num" style="font-size:11px">'+(m.arch?esc(MB_ARCH[m.arch]||m.arch):'<span class="dim">–</span>')+'</td>'+
         '<td class="num">'+m.fund+'<span class="dim">/100</span></td>'+
         '<td class="num">'+(m.infl>=12?'<span class="pos">':m.infl>=6?'<span class="warn">':'<span class="dim">')+m.infl+'</span><span class="dim">/20</span></td>'+
+        '<td class="num">'+(function(){ var eg=mbEarly(d); if(!eg) return '<span class="dim">–</span>';
+          var c = eg.tier==="ignition"?"pos" : eg.tier==="early"?"warn" : "dim";
+          var ic = MB_EARLY_ICON[eg.tier]||"";
+          return '<span class="'+c+'" title="Room to run '+eg.room+' · Early '+eg.early+' · Growth accel '+eg.accel+' · Volume ignition '+eg.ign+'">'+(ic?ic+' ':'')+eg.score+'</span>'; })()+'</td>'+
         '<td class="num" style="font-size:11px">'+cagrTxt+'</td>'+
         '<td class="num">'+roceTxt+'</td>'+
         '<td class="num">'+(m.cfoPat!=null?(m.cfoPat>=0.9?'<span class="pos">':m.cfoPat>=0.6?'<span class="warn">':'<span class="neg">')+m.cfoPat.toFixed(2)+'</span>':'–')+'</td>'+
@@ -2569,7 +2634,7 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
         '<td><button class="openbtn ana" data-sym="'+esc(d.symbol)+'">Analyze →</button></td>'+
       '</tr>';
       return tr + (isOpen ? mbDetailRow(d) : "");
-    }).join("") : '<tr><td colspan="15" class="empty">'+(withMb.length ? 'Nothing in "'+esc(($("#mbList")&&$("#mbList").selectedOptions[0]&&$("#mbList").selectedOptions[0].textContent)||list)+'" scores ≥ '+minS+(noFlags?' with zero auto red-flags':'')+'. Lower the slider or change the list.' : 'No deep-fundamentals data yet — turn on <b>Deep fundamentals</b> on the Screener tab and run a scan.')+'</td></tr>';
+    }).join("") : '<tr><td colspan="16" class="empty">'+(withMb.length ? 'Nothing in "'+esc(($("#mbList")&&$("#mbList").selectedOptions[0]&&$("#mbList").selectedOptions[0].textContent)||list)+'" scores ≥ '+minS+(noFlags?' with zero auto red-flags':'')+'. Lower the slider or change the list.' : 'No deep-fundamentals data yet — turn on <b>Deep fundamentals</b> on the Screener tab and run a scan.')+'</td></tr>';
 
     $$("#mbBody .mb-exp").forEach(function(btn){
       btn.addEventListener("click", function(){
@@ -2640,6 +2705,7 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
       case "accstrong":    return d.acc && d.acc.label==="strong";
       case "mb":         return d.mb && /^(A|B)$/.test(d.mb.cls);
       case "mba":        return d.mb && d.mb.cls==="A";
+      case "mbearly":   { var eg=mbEarly(d); return !!(d.mb && d.mb.total!=null && eg && (eg.tier==="early"||eg.tier==="ignition")); }
       case "mbtop":      return !!(d.mb && d.mb.total!=null);
       case "watchlist":  return bookWL()[d.symbol]===1;
       default:           return true;
@@ -2690,6 +2756,9 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
     if(d.mb && d.mb.total!=null){
       var ac = d.mb.arch ? (MB_ARCH[d.mb.arch]||d.mb.arch) : "";
       tags.push({t:"Multibagger "+d.mb.cls+" · "+d.mb.total+"/120"+(ac?" · "+ac:""), c: /^(A|B)$/.test(d.mb.cls) ? "pos" : d.mb.cls==="C" ? "warn" : "neg"});
+      var eg = mbEarly(d);
+      if(eg && (eg.tier==="early" || eg.tier==="ignition"))
+        tags.push({t:(MB_EARLY_ICON[eg.tier]||"")+" Early/Ignition "+eg.score+(eg.bits[0]?" · "+eg.bits[0]:""), c: eg.tier==="ignition"?"pos":"warn"});
     }
     return tags;
   }
@@ -2873,6 +2942,8 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
       pool.sort(function(a,b){ return (b.acc?b.acc.score:0) - (a.acc?a.acc.score:0); });
     else if(scope==="volshock")
       pool.sort(function(a,b){ return (b.vsk?b.vsk.span:0) - (a.vsk?a.vsk.span:0); });
+    else if(scope==="mbearly")
+      pool.sort(function(a,b){ var ea=mbEarly(a),eb=mbEarly(b); return (eb?eb.score:0)-(ea?ea.score:0); });
     else if(scope==="entrynow"){
       var rrc={};
       pool.forEach(function(d){ rrc[d.symbol] = evaluateRow(d).tr.rr || 0; });
