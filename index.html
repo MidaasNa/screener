@@ -358,7 +358,7 @@ table.oc-guide td:first-child{white-space:nowrap;width:1%}
     <span class="mark" aria-hidden="true">₹</span>
     <div>
       <h1>The 10% Ledger</h1>
-      <p>Momentum + pullback screener · NSE swing setups <span style="opacity:.5;font-size:11px">· build 2026-09-09a</span></p>
+      <p>Momentum + pullback screener · NSE swing setups <span style="opacity:.5;font-size:11px">· build 2026-09-09b</span></p>
     </div>
   </div>
   <div class="controls">
@@ -3670,7 +3670,7 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
       g.push(poly(vwVis,"cx-avwap"));
       var vwLast = vwVis[n-1];
       if(vwLast!=null && vwLast>lo && vwLast<hi)
-        g.push('<text x="'+(W-PR-2)+'" y="'+f1(placeY(Y(vwLast)-2))+'" class="cx-flab cx-avwaplab" text-anchor="end">base VWAP '+nfmt(vwLast,0)+'</text>');
+        g.push('<text x="'+(W-PR-2)+'" y="'+f1(Y(vwLast)+9)+'" class="cx-flab cx-avwaplab" text-anchor="end">base VWAP '+nfmt(vwLast,0)+'</text>');
     }
     if(!opts.weekly && opts.trigAgo>=0){
       var tgi = n-1-opts.trigAgo;
