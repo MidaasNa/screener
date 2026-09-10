@@ -297,12 +297,11 @@ table.mb-scen td.num{font-family:"IBM Plex Mono",monospace;text-align:right;padd
 .cx-tl.neck{stroke:#e8912a;stroke-width:1.4;stroke-dasharray:2 3}
 .cx-patlab{fill:#37a6ff;font-size:10px;font-weight:600;font-family:"IBM Plex Mono",monospace}
 .cx-trend{stroke:#4f7fa8;stroke-width:1.7;fill:none;opacity:.92}
-.cx-trend.minor{stroke-width:1.3;stroke-dasharray:4 3;opacity:.78}
-.cx-trend.mid{stroke:#9a7fc0}
+.cx-trend.minor{stroke:#9a7fc0;stroke-width:1.5;stroke-dasharray:5 3;opacity:.9}
 .cx-avwap{fill:none;stroke:#d6489b;stroke-width:1.7;stroke-dasharray:5 2;opacity:.95}
 .cx-flab.cx-avwaplab{fill:#d6489b;font-weight:600}
 .cx-volshock{fill:#8b5cf6;stroke:#8b5cf6}
-.cx-legend .ksup{color:#12c98b} .cx-legend .ktl{color:#37a6ff} .cx-legend .kvwap{color:#d6489b} .cx-legend .ktrend{color:#4f7fa8}
+.cx-legend .ksup{color:#12c98b} .cx-legend .ktl{color:#37a6ff} .cx-legend .kvwap{color:#d6489b} .cx-legend .ktrend{color:#4f7fa8} .cx-legend .ktrendm{color:#9a7fc0}
 .cx-line.cx-ocput{stroke:var(--pos);stroke-dasharray:2 2;opacity:.75} .cx-flab.cx-ocput{fill:var(--pos);opacity:.8}
 .cx-line.cx-occall{stroke:var(--neg);stroke-dasharray:2 2;opacity:.75} .cx-flab.cx-occall{fill:var(--neg);opacity:.8}
 .cx-line.cx-ocmp{stroke:var(--muted);stroke-dasharray:1 2;opacity:.6} .cx-flab.cx-ocmp{fill:var(--muted);opacity:.7}
@@ -402,7 +401,7 @@ table.sc-setup td.num{font-family:"IBM Plex Mono",monospace;text-align:right}
     <span class="mark" aria-hidden="true">₹</span>
     <div>
       <h1>The 10% Ledger</h1>
-      <p>Momentum + pullback screener · NSE swing setups <span style="opacity:.5;font-size:11px">· build 2026-09-10k</span></p>
+      <p>Momentum + pullback screener · NSE swing setups <span style="opacity:.5;font-size:11px">· build 2026-09-10l</span></p>
     </div>
   </div>
   <div class="controls">
@@ -1051,7 +1050,7 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
         </div>
         <div class="seg" id="bookOverlay" role="group" aria-label="Chart overlays">
           <button data-v="sr" aria-pressed="true" title="Bright horizontal support / resistance zones from clustered pivot highs &amp; lows (×n = touches)">S/R zones</button>
-          <button data-v="trend" aria-pressed="true" title="Classic diagonal trendlines — the best-fit rising line under the swing lows and falling / flat line over the swing highs, across the whole visible chart, extended to now">Trendlines</button>
+          <button data-v="trend" aria-pressed="true" title="Diagonal trendlines — the best-fit rising line under the swing lows and falling / flat line over the swing highs across the whole visible chart, PLUS a dashed purple line for the current leg (the trend inside the trend) when it has turned or steepened away from the big line">Trendlines</button>
           <button data-v="pat" aria-pressed="true" title="Named chart pattern over the recent structure — triangle / channel / wedge / range / double top-bottom — with its shorter trendlines and the label">Pattern</button>
           <button data-v="vwap" aria-pressed="true" title="Anchored VWAP from the start of the consolidation base — the volume-weighted average price paid while the base formed (a proxy for where accumulators are in)">Base VWAP</button>
         </div>
@@ -3991,7 +3990,7 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
       '<span class="k20"><i></i>'+(sma?(wk?"SMA10w":"SMA10"):"EMA20")+'</span><span class="k50"><i></i>'+(sma?(wk?"SMA50w":"SMA50"):"EMA50")+'</span>'+
       '<span><i class="kbase"></i>base</span>'+
       (state.bookSR!==false?'<span class="ksup"><i></i>S/R zone ×n</span>':'')+
-      (state.bookTrend!==false?'<span class="ktrend"><i></i>trendline</span>':'')+
+      (state.bookTrend!==false?'<span class="ktrend"><i></i>trendline</span><span class="ktrendm"><i></i>current leg</span>':'')+
       (state.bookPat!==false?'<span class="ktl"><i></i>pattern</span>':'')+
       (state.bookVwap!==false?'<span class="kvwap"><i></i>base VWAP</span>':'')+
       '<span class="kent"><i></i>entry</span><span class="kstp"><i></i>stop</span><span class="ktgt"><i></i>+10%</span>'+
@@ -4916,24 +4915,56 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
       out.push({ x1:fit.x1, y1:fit.m*fit.x1+fit.c, x2:n-1, y2:fit.m*(n-1)+fit.c,
                  cls:(side>0?"sup":"res")+(minor?" minor":"") });
     }
-    var sMain=best(lo,1), rMain=best(hi,-1);
-    add(sMain,1,false); add(rMain,-1,false);
-    // "trend inside the trend": a regression line through the closes of the most recent ~45%
-    // of the chart, drawn only when its direction clearly diverges from the big trendline
-    var pct=function(m){ return m/(price||1)*100; };
-    var mainSlope = sMain ? pct(sMain.m) : (rMain ? pct(rMain.m) : 0);
-    var rc = C.slice(Math.round(n*0.55));
-    if(rc.length >= 15){
-      var mm=rc.length, sx=0,sy=0,sxx=0,sxy=0;
-      rc.forEach(function(y,x){ sx+=x; sy+=y; sxx+=x*x; sxy+=x*y; });
-      var den2 = mm*sxx-sx*sx;
-      if(den2){
-        var sl=(mm*sxy-sx*sy)/den2, ic=(sy-sl*sx)/mm, slPct=pct(sl), r0=n-rc.length;
-        // only when the recent leg diverges sharply from the big trend (a real acceleration or a rollover)
-        if(Math.abs(slPct-mainSlope) > 0.13 || (Math.abs(mainSlope)>0.04 && Math.abs(slPct)>0.04 && (slPct>0)!==(mainSlope>0)))
-          out.push({ x1:r0, y1:ic, x2:n-1, y2:sl*(rc.length-1)+ic, cls:"mid minor" });
+    add(best(lo,1),1,false); add(best(hi,-1),-1,false);
+
+    // "trend inside the trend" — the CURRENT leg. Find the swing extreme that started the most
+    // recent leg (the last major turning point), then draw the line along the pivots since that
+    // turn: rising support if the leg is up, falling resistance if the leg is down. This is the
+    // near-term trend a swing trader actually rides, drawn whenever a clear leg exists — even
+    // when it runs the same direction as (but steeper/shallower than) the big trendline.
+    (function innerLeg(){
+      // "trend inside the trend" — segment the visible closes into legs with a ~3% zig-zag,
+      // then draw the current leg: a line from the last swing pivot to the latest bar. In an
+      // up-leg it rides the lows (support); in a down-leg it caps the highs (resistance).
+      var thr = 0.03, j, piv2=[], dir=0, hiV=C[0], hiX=0, loV=C[0], loX=0;
+      for(j=1;j<n;j++){
+        var v=C[j];
+        if(v>hiV){ hiV=v; hiX=j; }
+        if(v<loV){ loV=v; loX=j; }
+        if(dir>=0 && v <= hiV*(1-thr)){ piv2.push({x:hiX,y:hiV}); dir=-1; loV=v; loX=j; }
+        else if(dir<=0 && v >= loV*(1+thr)){ piv2.push({x:loX,y:loV}); dir=1; hiV=v; hiX=j; }
       }
-    }
+      var guess = piv2[piv2.length-1];
+      // if the last confirmed pivot is only a few bars old, the leg before it is the one to show
+      if(guess && n-1-guess.x < 8 && piv2.length>=2) guess = piv2[piv2.length-2];
+      if(!guess || guess.x < n*0.12 || guess.x > n-12) return;
+      var up = C[n-1] >= C[guess.x];
+      // pin the anchor to the true leg extreme (the zig-zag pivot can be a bar or two off):
+      // lowest low from the guess forward for an up-leg, highest high for a down-leg.
+      var ax = guess.x, ay = up ? L[ax] : H[ax];
+      for(j=Math.max(1,guess.x-2);j<n-4;j++){
+        if(up ? L[j] < ay : H[j] > ay){ ay = up ? L[j] : H[j]; ax = j; }
+      }
+      var span = n-1-ax;
+      if(span < 12 || ax < n*0.1) return;
+      // rubber-band from the anchor: shallowest line that still clears every intervening
+      // low (up-leg support) / high (down-leg resistance). Anchor is the true extreme, so the
+      // sign comes out right by construction.
+      var slope=null;
+      for(j=ax+2;j<n;j++){
+        var sl = up ? (L[j]-ay)/(j-ax) : (H[j]-ay)/(j-ax);
+        if(slope==null || (up ? sl<slope : sl>slope)) slope=sl;
+      }
+      if(slope==null) return;
+      if(up ? slope <= 0 : slope >= 0) return;                     // not actually a leg in that direction
+      var y1=ay, y2=ay+slope*span;
+      if(Math.abs(y2-y1)/(price||1) < 0.025) return;               // too flat → not a real leg
+      // skip if it's just a copy of the big line (same direction & similar slope)
+      var mainFit = up ? best(lo,1) : best(hi,-1);
+      var mM = mainFit ? mainFit.m/(price||1) : 0, mL = slope/(price||1);
+      if((mM>0)===(mL>0) && Math.abs(mL-mM) < 0.0014) return;
+      out.push({ x1:ax, y1:y1, x2:n-1, y2:y2, cls:(up?"sup":"res")+" minor" });
+    })();
     return out.length ? out : null;
   }
   // recent-structure chart pattern: works on the last ~40% of the visible window only
