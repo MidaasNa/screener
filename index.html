@@ -301,7 +301,9 @@ table.mb-scen td.num{font-family:"IBM Plex Mono",monospace;text-align:right;padd
 .cx-avwap{fill:none;stroke:#d6489b;stroke-width:1.7;stroke-dasharray:5 2;opacity:.95}
 .cx-flab.cx-avwaplab{fill:#d6489b;font-weight:600}
 .cx-volshock{fill:#8b5cf6;stroke:#8b5cf6}
-.cx-legend .ksup{color:#12c98b} .cx-legend .ktl{color:#37a6ff} .cx-legend .kvwap{color:#d6489b} .cx-legend .ktrend{color:#4f7fa8} .cx-legend .ktrendm{color:#9a7fc0}
+.cx-stretch{fill:none;stroke:#7a8cff;stroke-width:1;stroke-dasharray:2 3;opacity:.6}
+.cx-flab.cx-stretchlab{fill:#7a8cff;opacity:.75}
+.cx-legend .ksup{color:#12c98b} .cx-legend .ktl{color:#37a6ff} .cx-legend .kvwap{color:#d6489b} .cx-legend .ktrend{color:#4f7fa8} .cx-legend .ktrendm{color:#9a7fc0} .cx-legend .kstretch{color:#7a8cff}
 .cx-line.cx-ocput{stroke:var(--pos);stroke-dasharray:2 2;opacity:.75} .cx-flab.cx-ocput{fill:var(--pos);opacity:.8}
 .cx-line.cx-occall{stroke:var(--neg);stroke-dasharray:2 2;opacity:.75} .cx-flab.cx-occall{fill:var(--neg);opacity:.8}
 .cx-line.cx-ocmp{stroke:var(--muted);stroke-dasharray:1 2;opacity:.6} .cx-flab.cx-ocmp{fill:var(--muted);opacity:.7}
@@ -401,7 +403,7 @@ table.sc-setup td.num{font-family:"IBM Plex Mono",monospace;text-align:right}
     <span class="mark" aria-hidden="true">₹</span>
     <div>
       <h1>The 10% Ledger</h1>
-      <p>Momentum + pullback screener · NSE swing setups <span style="opacity:.5;font-size:11px">· build 2026-09-10l</span></p>
+      <p>Momentum + pullback screener · NSE swing setups <span style="opacity:.5;font-size:11px">· build 2026-09-10m</span></p>
     </div>
   </div>
   <div class="controls">
@@ -589,7 +591,7 @@ table.sc-setup td.num{font-family:"IBM Plex Mono",monospace;text-align:right}
       <details class="sub" id="rawBox">
         <summary>Raw data — paste your own or edit the scan output</summary>
         <p class="hint">One stock per line, comma or tab separated. First 6 fields required. Edit any row and press “Score all”.</p>
-        <code class="cols">SYM, price, EMA20, EMA50, EMA200, RSI, volR, breakout, support, sector, macd, hhhl, resist, probT1, probT10, basePct, baseBars, stage2, RS, setup, trigger, trigWR, athPct, blueSky(1/0), revYoY, profYoY, epsYoY, qDate, profYoYPrev, ttmYoY, coil(...), mvt(...), gg(...), sg(...), dx(...), hdf(thrust|correction|babyRange|volSurge|bars|hi|lo), cdl(code~ago~stat | …), mb(fund|infl|total|cls|arch|…), vm(mult|ago|up|rising), adr(%), nr(4or7|ago|inside|rangePct|bull), gx(crossAgo|from50)</code>
+        <code class="cols">SYM, price, EMA20, EMA50, EMA200, RSI, volR, breakout, support, sector, macd, hhhl, resist, probT1, probT10, basePct, baseBars, stage2, RS, setup, trigger, trigWR, athPct, blueSky(1/0), revYoY, profYoY, epsYoY, qDate, profYoYPrev, ttmYoY, coil(...), mvt(...), gg(...), sg(...), dx(...), hdf(thrust|correction|babyRange|volSurge|bars|hi|lo), cdl(code~ago~stat | …), mb(fund|infl|total|cls|arch|…), vm(mult|ago|up|rising), adr(%), nr(4or7|ago|inside|rangePct|bull), gx(crossAgo|from50), acc(...), vsk(...), vfh(...), gxw(...), sx(z|atrExt|slope|band|nu|tagU|fwdU|advU|nd|tagD|fwdD|advD)</code>
         <textarea id="batchInput" spellcheck="false" aria-label="Stock data input"></textarea>
         <div class="row-actions">
           <button class="primary" id="scoreBtn">Score all</button>
@@ -998,6 +1000,10 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
         <summary>Volume-shock follow-through — what they historically do <span class="hint" id="vsStudySum"></span></summary>
         <div id="vsStudyOut" class="hint" style="margin-top:6px"></div>
       </details>
+      <details class="sub" id="sxStudy">
+        <summary>Stretch from the 20-EMA — what happens after an over-extension <span class="hint" id="sxStudySum"></span></summary>
+        <div id="sxStudyOut" class="hint" style="margin-top:6px"></div>
+      </details>
       <div class="scan-head" style="margin-top:2px;flex-wrap:wrap;gap:8px">
         <label class="chk" style="margin-left:0">Show
           <select id="bookScope" style="margin-left:6px">
@@ -1028,6 +1034,7 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
             <option value="volshock">Volume shockers — highest volume in 6 months+</option>
             <option value="accbo">Accumulated base — breaking out now (tight base near the highs · RS ≥ 55)</option>
             <option value="accstrong">Accumulation — strong (in a base or not)</option>
+            <option value="stretchext">Over-extended from the 20-EMA — mean-reversion watch</option>
             <option value="mbtop">Multibagger Radar — all, ranked by score</option>
             <option value="mb">Multibagger Radar — class A / B</option>
             <option value="mba">Multibagger Radar — class A only</option>
@@ -1053,6 +1060,7 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
           <button data-v="trend" aria-pressed="true" title="Diagonal trendlines — the best-fit rising line under the swing lows and falling / flat line over the swing highs across the whole visible chart, PLUS a dashed purple line for the current leg (the trend inside the trend) when it has turned or steepened away from the big line">Trendlines</button>
           <button data-v="pat" aria-pressed="true" title="Named chart pattern over the recent structure — triangle / channel / wedge / range / double top-bottom — with its shorter trendlines and the label">Pattern</button>
           <button data-v="vwap" aria-pressed="true" title="Anchored VWAP from the start of the consolidation base — the volume-weighted average price paid while the base formed (a proxy for where accumulators are in)">Base VWAP</button>
+          <button data-v="stretch" aria-pressed="false" title="±2σ envelope of price's normal divergence from the 20-EMA (the Disparity Index band). Price outside it is over-extended — see the Stretch read below the plan for what that historically means for this stock">Stretch band</button>
         </div>
         <button id="bookRefreshLive" class="ghost" title="Fetch fresh candles for this stock">↻ live</button>
         <button id="bookWatch" class="ghost" title="Add / remove this stock from your watchlist">☆ Watchlist</button>
@@ -1070,6 +1078,7 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
       </div>
       <div id="bookPlan"></div>
       <div id="bookConf" class="book-conf" aria-live="polite" hidden></div>
+      <div id="bookStretch" class="book-conf" aria-live="polite" hidden></div>
       <p class="hint" style="margin-top:10px">Entry / stop / targets are the tool's standard plan: entry at the breakout level (or your override in the Analyzer), stop under support or a fixed % if none, exit scaled at +5% / +7.5% / +10%, size fixed at 1% of capital at risk. For <b>Darvas Box</b> and <b>High Dry Fry</b> names the note above swaps in Darvas's own rule — a buy-stop above the prior day's high, stop 1% under entry or below the base low.</p>
     </div>
   </section>
@@ -1382,6 +1391,24 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
       <p>A bar is an <b>NR4</b> when its daily high-to-low range is the <i>narrowest of the last 4 days</i>; <b>NR7</b> = narrowest of the last 7 (stronger). Volatility contracts before it expands — an NR7, especially one that's <i>also an inside bar</i> (marked <b>▫</b>), very often precedes a directional move within a few sessions. It's the single-bar version of the 10-DMA coil: a precise "energy is coiled, watch for the break" flag. (Borrowed from PKScreener / the Crabel–Raschke playbook.)</p>
       <p>Shown as an <code>NR7↑</code> / <code>NR4▫↑</code> badge on the symbol (when it printed in the last 3 sessions), in the Analyzer, and as a Chart Book chip. NR on its own doesn't say which way the expansion breaks, so the tool tags each one <b>bullish</b> only when the coil sits <i>inside an uptrend</i> — price above a rising 20-EMA that's above the 50-EMA (the <b>↑</b> mark). The Screener's <b>NR4 / NR7 ↑ (bullish)</b> checkbox and Chart Book's <b>bullish narrow-range coil</b> deck both keep <i>only</i> those; the non-bullish ones still show a dimmed badge for reference but are filtered out. Set an alert just beyond the NR bar's high and let the trend carry the expansion.</p>
 
+      <h3>Stretch from the mean — the mean-reversion read</h3>
+      <p>"How far can price get from its moving average before it snaps back?" is a real, studied question. The tool measures the gap from the <b>20-EMA</b> three ways and shows a read below the trade plan in the Chart Book:</p>
+      <ul>
+        <li><b>Disparity Index</b> = <code>(close − 20-EMA) / 20-EMA × 100</code> — the raw % divergence (Steve Nison / Japanese technical analysis).</li>
+        <li><b>z-score</b> of that disparity over the last ~120 bars — "<i>how many standard deviations</i> extended is this, for <i>this</i> stock?" ±2σ is the edge of normal; ~±1.2σ is "getting there".</li>
+        <li><b>ATR-extension</b> = <code>(close − 20-EMA) / ATR(14)</code> — volatility-normalised, so it's comparable across stocks and regimes.</li>
+      </ul>
+      <p><b>What the research actually says</b> — and it is <i>not</i> "extended = about to fall":</p>
+      <table>
+        <tr><th>Horizon</th><th>What an over-extension (≥ 2σ) does</th></tr>
+        <tr><td>≤ ~1 week</td><td>Usually <b>pauses / drifts back a little</b> toward the MA. It does <i>not</i> reliably top out. A 25-year non-survivorship Nasdaq-100 study found "first close above MA + Nσ" slightly <i>under</i>performs random over 5 days — the stock "consolidates, pauses, sometimes pulls back".</td></tr>
+        <tr><td>1–4 months</td><td><b>Momentum.</b> The same study: profit factor 3.46 at 50-SMA + 7.5× ATR vs 1.74 random at 120 days. Avramov-Kaplanski-Subrahmanyam (2021), <i>Moving-average distance as a predictor of equity returns</i>: a large 21d-vs-200d MA gap predicts <b>higher</b> future returns (~9% annualised long-side alpha). Stretched winners keep winning.</td></tr>
+        <tr><td>The extreme tail</td><td>Only at roughly <b>3σ ≈ 7.5–8× ATR above the 50-SMA</b> (~0.3% of all days) do sharp-reversion odds climb fast — and even then not instantly.</td></tr>
+      </table>
+      <p><b>The "angle" of the MA is the context filter.</b> The tool reports the 20-EMA slope in %/bar. A <i>flat or rolling-over</i> MA under a stretched price → reversion is more likely to come <i>by price dropping</i>. A <i>steeply rising</i> MA → the stretch usually resolves <b>sideways</b> (the MA catches up) while price consolidates. Degrees on a chart are meaningless (they change with zoom); slope-per-bar is the honest version.</p>
+      <p><b>So the tradable signal is the oversold side.</b> Price stretched <b>≤ −2σ below</b> a <i>rising</i> 20-EMA = a pullback in an uptrend — the snap-back toward the mean is the higher-odds move, and the confidence read adds points for it. Stretched <b>above</b> is mostly a "<b>don't chase / expect a pause</b>" flag, not a short signal — the read spells out the reversion reference (the 20-EMA level) and, from <i>this stock's own history</i>, how often past over-extensions tagged the 20-EMA within 10 days and the median move + the dip you'd have sat through.</p>
+      <p>Turn on <b>Stretch band</b> in the chart overlays to draw the ±2σ envelope around the 20-EMA. The <b>Over-extended from the 20-EMA</b> Chart Book deck lists the names furthest outside their band; the Chart Book "Stretch from the 20-EMA" study aggregates the after-an-over-extension numbers across your whole scan. (CSV field <code>sx</code>.)</p>
+
       <h3>Volume thrust at the moving average — the ⚡ badge (the RATNAVEER pattern)</h3>
       <p>A tight, high-quality trigger for a stock right at the start of a run. All of these have to be true:</p>
       <ul>
@@ -1577,15 +1604,15 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
     universeSize: "200", customUniverse: "", leadingSectors: [],
     dropForming: true, fetchEvents: false, fetchResults: true, fetchDeep: true, scanCache: null, hostOverride: false,
     oc: {}, journal: [], journalUrl: "", bookIdx: 0, bookScope: "all",
-    bookSR: true, bookPat: true, bookVwap: true, bookTrend: true,
+    bookSR: true, bookPat: true, bookVwap: true, bookTrend: true, bookStretchBand: false,
     todaySetup: "golden", todayLead: false, todayRisk: "0.25",
     mbMinScore: 55, mbNoFlags: false, mbOpen: {}
   };
 
   var SAMPLE = [
-    "# cols: SYM,price,EMA20,EMA50,EMA200,RSI,volR,breakout,support,sector,macd,hhhl,resist,probT1,probT10,basePct,baseBars,stage2,RS,setup,trigger,trigWR,athPct,blueSky,revYoY,profYoY,epsYoY,qDate,profYoYPrev,ttmYoY,coil,mvt,gg,sg,dx,hdf,cdl,mb,vm,adr,nr,gx,acc,vsk,vfh,gxw",
-    "HINDZINC, 627, 598, 560, 505, 69, 2.3, 620, 606, L, 1, 1, 0, 0.58, 0.33, 0.06, 22, 6, 88, HDF, inside-bar@0, 0.61, 0.01, 1, 0.19, 0.34, 0.31, 2026-06-30, 0.26, 0.3, , , , , 624|590|12|0.055|0.005|2.4|1|1|1, 0.42|0.16|0.028|1.8|12|624|560, hammer~0~3.4|inside~1~0.62, 72|10|82|C|compounder|15|16|11|7|10|8|5|24.5|13|100|0||0.14|0.18|0.19|1|1.1|0.35|0.09|280000|0|28~0.19~0.16~0.19~0.18|rev-accel+sector-tailwind, 3.4|1|1|1, 4.6, 7|0|1|0.018|1, 2|0.06, 74|strong|590|1.87|3|0.28|1, 310|8.2|1|1, 6|67|9.4|21|2|0|-4.1, 3|0.12",
-    "BEL, 415, 402, 395, 360, 66, 1.9, 409, 391, L, 1, 1, 0, 0.55, 0.31, 0.07, 18, 6, 84, BOB, hammer@1, 0.62, 0.03, 1, 0.21, 0.28, 0.27, 2026-06-30, 0.33, 0.24, 14|coil|0.022|0.71|0.006|411||||0.09, , 12|0.06|1|3.6|0.04|420, , , , ldbng~2~2.1|kicker~2~0.004, 80|16|96|B|inflection|16|16|10|8|12|8|6|38|22|100|1|cfdiv|0.16|0.22|0.24|1|0.9|0.05|0.11|95000|0|28~0.17~0.15~0.18~0.22|rev-accel+margin-up+roce-inflect+sector-tailwind, 4.1|0|1|1, 2.2, 4|1|0|0.026|1, , 60|mild|398|1.33|2|0.11|0, 150|4.4|0|1, 4|75|11.2|24|1|0|-6.0, 5|0.07",
+    "# cols: SYM,price,EMA20,EMA50,EMA200,RSI,volR,breakout,support,sector,macd,hhhl,resist,probT1,probT10,basePct,baseBars,stage2,RS,setup,trigger,trigWR,athPct,blueSky,revYoY,profYoY,epsYoY,qDate,profYoYPrev,ttmYoY,coil,mvt,gg,sg,dx,hdf,cdl,mb,vm,adr,nr,gx,acc,vsk,vfh,gxw,sx",
+    "HINDZINC, 627, 598, 560, 505, 69, 2.3, 620, 606, L, 1, 1, 0, 0.58, 0.33, 0.06, 22, 6, 88, HDF, inside-bar@0, 0.61, 0.01, 1, 0.19, 0.34, 0.31, 2026-06-30, 0.26, 0.3, , , , , 624|590|12|0.055|0.005|2.4|1|1|1, 0.42|0.16|0.028|1.8|12|624|560, hammer~0~3.4|inside~1~0.62, 72|10|82|C|compounder|15|16|11|7|10|8|5|24.5|13|100|0||0.14|0.18|0.19|1|1.1|0.35|0.09|280000|0|28~0.19~0.16~0.19~0.18|rev-accel+sector-tailwind, 3.4|1|1|1, 4.6, 7|0|1|0.018|1, 2|0.06, 74|strong|590|1.87|3|0.28|1, 310|8.2|1|1, 6|67|9.4|21|2|0|-4.1, 3|0.12, 2.3|3.1|0.3|ext-up|9|67|1.2|5.1|5|60|-0.4|4.4",
+    "BEL, 415, 402, 395, 360, 66, 1.9, 409, 391, L, 1, 1, 0, 0.55, 0.31, 0.07, 18, 6, 84, BOB, hammer@1, 0.62, 0.03, 1, 0.21, 0.28, 0.27, 2026-06-30, 0.33, 0.24, 14|coil|0.022|0.71|0.006|411||||0.09, , 12|0.06|1|3.6|0.04|420, , , , ldbng~2~2.1|kicker~2~0.004, 80|16|96|B|inflection|16|16|10|8|12|8|6|38|22|100|1|cfdiv|0.16|0.22|0.24|1|0.9|0.05|0.11|95000|0|28~0.17~0.15~0.18~0.22|rev-accel+margin-up+roce-inflect+sector-tailwind, 4.1|0|1|1, 2.2, 4|1|0|0.026|1, , 60|mild|398|1.33|2|0.11|0, 150|4.4|0|1, 4|75|11.2|24|1|0|-6.0, 5|0.07, 1.4|1.9|0.18|warm-up|7|71|2.2|3.8|6|64|1.9|4.6",
     "JINDALSTEL, 1175, 1120, 1090, 1010, 60, 1.4, 1160, 1120, L, 1, 1, 1240, 0.5, 0.27, 0.11, 26, 5, 76, LBB, , , 0.11, 0, 0.08, 0.12, 0.1, 2026-03-31, 0.21, 0.1, , 4.2|50|0.014|1|1|0.03|12|78",
     "MEESHO, 205, 198, 190, 0, 63, 1.4, 200, 191, I, 1, 1, 0, 0.5, 0.26, 0.08, 14, 5, 72, S2P, pin-bar@0, 0.58, 0.05, 0, 0.33, 99, 99, 2026-06-30, , , 9|pop|0.021|0.66|0.032|201|1|0.043|1.9|0.08",
     "SAIL, 195, 190, 185, 132, 55, 0.9, 201, 188, L, 1, 0, 201, 0.44, 0.22, 0.06, 20, 5, 66, COIL, , , 0.14, 0, -0.04, -0.22, -0.21, 2026-06-30, -0.1, -0.15, , , , 0.18|11|1|3.8|178|2|0.015",
@@ -1809,6 +1836,12 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
       } : null;
       var gxwp = (p[45]||"").split("|");
       d.gxw = (gxwp[0]!=null && gxwp[0]!=="" && isFinite(+gxwp[0])) ? { ago:+gxwp[0]||0, from50:+gxwp[1]||0 } : null;
+      var sxp = (p[46]||"").split("|");
+      d.sx = (sxp[3] && isFinite(+sxp[0])) ? {
+        z:+sxp[0]||0, atrExt:+sxp[1]||0, slope:+sxp[2]||0, band:sxp[3],
+        nu:+sxp[4]||0, tagU:+sxp[5]||0, fwdU:+sxp[6]||0, advU:+sxp[7]||0,
+        nd:+sxp[8]||0, tagD:+sxp[9]||0, fwdD:+sxp[10]||0, advD:+sxp[11]||0
+      } : null;
       var st = deriveStructure(d.price, d.breakout, d.basePct, d.baseBars, d.volRatio);
       d.structurePts=st.pts; d.structureLbl=st.label;
       rows.push(d);
@@ -2820,6 +2853,7 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
         return ext>=-0.01 && ext<=0.05;                                        // at the line or just above, not extended
       }
       case "accstrong":    return d.acc && d.acc.label==="strong";
+      case "stretchext":   return !!(d.sx && (d.sx.band==="ext-up" || d.sx.band==="ext-dn"));
       case "mb":         return d.mb && /^(A|B)$/.test(d.mb.cls);
       case "mba":        return d.mb && d.mb.cls==="A";
       case "mbearly":   { var eg=mbEarly(d); return !!(d.mb && d.mb.total!=null && eg && (eg.tier==="early"||eg.tier==="ignition")); }
@@ -2867,6 +2901,9 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
     if(d.acc && d.acc.score)
       tags.push({t:"Accum "+d.acc.label+(d.acc.bo?" · breaking out":"")+" · aVWAP "+nfmt(d.acc.vwap,0),
                  c: d.acc.label==="strong"?"pos" : d.acc.label==="distribution"?"neg" : "warn"});
+    if(d.sx && (d.sx.band==="ext-up" || d.sx.band==="ext-dn"))
+      tags.push({t:"↕ Stretched "+(d.sx.z>=0?"+":"")+d.sx.z.toFixed(1)+"σ "+(d.sx.band==="ext-up"?"above":"below")+" 20-EMA",
+                 c: d.sx.band==="ext-dn" ? "warn" : "warn"});
     if(d.blueSky) tags.push({t:"All-time high", c:"pos"});
     var rt = resultTiming(d.qDate);
     if(rt && rt.dueSoon) tags.push({t:"⚠ result due ~"+rt.nextTxt, c:"neg"});
@@ -2989,6 +3026,18 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
 
     if(d.rsi>=82){ score-=6; neg.push("RSI "+Math.round(d.rsi)+" — overbought, near-term pullback risk"); }
 
+    if(d.sx && d.sx.band){
+      if(d.sx.band==="ext-up"){
+        if(d.sx.z>=3){ score-=10; neg.push("extreme "+d.sx.z.toFixed(1)+"σ stretch above the 20-EMA — mean reversion odds climb fast here"); }
+        else if(!(d.gx||d.gxw||d.mvt)){ score-=5; neg.push("over-extended "+d.sx.z.toFixed(1)+"σ above the 20-EMA — expect a pause / dip back to the line first"); }
+        else { neg.push("stretched "+d.sx.z.toFixed(1)+"σ above the 20-EMA — usually a pause, not a top, when the trend is this fresh"); }
+      } else if(d.sx.band==="ext-dn" && sc.trend>=14 && d.sx.slope>0){
+        score+=6; pos.push("stretched "+Math.abs(d.sx.z).toFixed(1)+"σ below a rising 20-EMA — mean-reversion bounce setup (pullback in an uptrend)");
+      } else if(d.sx.band==="ext-dn"){
+        neg.push("stretched "+Math.abs(d.sx.z).toFixed(1)+"σ below the 20-EMA — oversold, but not in a clean uptrend");
+      }
+    }
+
     if(d.acc && d.acc.score){
       if(d.acc.label==="strong"){ score+=12; pos.push("accumulation signature in the base (up/down vol, OBV, pockets)"); }
       else if(d.acc.label==="mild"){ score+=5; pos.push("some accumulation in the base"); }
@@ -3072,6 +3121,79 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
       '</table>'+
       '<p style="margin:6px 0 0;color:var(--muted)">A ~50–52% base rate is a coin-flip for any NSE stock over 20 days. An <b>up-bar</b> shock with a hit rate meaningfully above that + a healthy median is the version worth acting on — best when it’s also at a base and the regime isn’t Red. Sample is your scanned universe, so it shifts with which stocks you scan.</p>';
   }
+
+  // aggregate the per-stock stretch-from-20-EMA follow-through across the whole scan
+  function stretchStudy(rows){
+    var U={n:0,tag:0,fwd:0,adv:0,st:0}, D={n:0,tag:0,fwd:0,adv:0,st:0};
+    rows.forEach(function(d){
+      var f=d.sx; if(!f) return;
+      if(f.nu>0){ U.n+=f.nu; U.tag+=f.nu*f.tagU; U.fwd+=f.nu*f.fwdU; U.adv+=f.nu*f.advU; U.st++; }
+      if(f.nd>0){ D.n+=f.nd; D.tag+=f.nd*f.tagD; D.fwd+=f.nd*f.fwdD; D.adv+=f.nd*f.advD; D.st++; }
+    });
+    if(!U.n && !D.n) return null;
+    var mk=function(o){ return o.n ? { n:o.n, st:o.st, tag:Math.round(o.tag/o.n), fwd:Math.round(o.fwd/o.n*10)/10, adv:Math.round(o.adv/o.n*10)/10 } : null; };
+    return { up:mk(U), down:mk(D) };
+  }
+  function renderSxStudy(rows){
+    var out=$("#sxStudyOut"), sum=$("#sxStudySum"); if(!out) return;
+    var s = stretchStudy(rows);
+    if(!s){ if(sum) sum.textContent="· no data"; out.innerHTML='<span class="empty">Run a scan — this reads every scanned stock’s history of over-extensions from its 20-EMA.</span>'; return; }
+    var u=s.up, dn=s.down;
+    if(sum) sum.textContent = u ? "· back to the 20-EMA within 10d "+u.tag+"% of the time" : (dn?"· bounce to the 20-EMA "+dn.tag+"% of the time":"");
+    out.innerHTML =
+      '<p style="margin:0 0 6px">Across this scan, at every historical bar where price was <b>≥ 2σ from its 20-EMA</b> (the disparity z-score), measured over the next <b>10 sessions</b>:</p>'+
+      '<table class="oc-guide" style="max-width:600px">'+
+        '<tr><th>Stretch</th><th>Events</th><th>Tagged the 20-EMA ≤ 10d</th><th>Median 10-day move</th><th>Median excursion the other way</th></tr>'+
+        (u ? '<tr><td><b class="warn">≥ +2σ above</b></td><td class="num">'+u.n+' <span class="dim">('+u.st+' stocks)</span></td><td class="num"><b>'+u.tag+'%</b></td><td class="num">'+(u.fwd>=0?'+':'')+u.fwd+'%</td><td class="num neg">−'+u.adv+'%</td></tr>' : '')+
+        (dn ? '<tr><td><b class="pos">≤ −2σ below</b></td><td class="num">'+dn.n+' <span class="dim">('+dn.st+' stocks)</span></td><td class="num"><b>'+dn.tag+'%</b></td><td class="num">'+(dn.fwd>=0?'+':'')+dn.fwd+'%</td><td class="num pos">+'+dn.adv+'%</td></tr>' : '')+
+      '</table>'+
+      '<p style="margin:6px 0 0;color:var(--muted)">Note what the median 10-day move usually shows: an over-extension <b>up</b> mostly <i>pauses and drifts</i>, it rarely collapses — the bigger studies (25-yr Nasdaq-100; Avramov-Kaplanski-Subrahmanyam 2021) find extension is a <b>momentum</b> signal over weeks/months. The tradable edge is the <b>oversold</b> side — stretched below the 20-EMA in an uptrend is a pullback-buy. Sample shifts with which stocks you scan.</p>';
+  }
+
+  // live "stretch from the mean" read for the chart on screen (uses fresh candles)
+  function renderStretch(o){
+    var host=$("#bookStretch"); if(!host) return;
+    var r = o ? stretchRead(o) : null;
+    if(!r){ host.hidden=true; host.innerHTML=""; return; }
+    var fb = stretchForward(o.h, o.l, o.c);
+    var price=o.c[o.c.length-1], band=r.band;
+    var sig = (r.z>=0?"+":"")+r.z.toFixed(1)+"σ", atrTxt=(r.atrExt20>=0?"+":"")+r.atrExt20.toFixed(1)+"× ATR";
+    var slopeWord = r.slope20>0.20 ? "rising fast" : r.slope20>0.04 ? "rising" : r.slope20<-0.20 ? "falling fast" : r.slope20<-0.04 ? "falling" : "flat / rolling over";
+    var toMean = ((price-r.ema20)/price*100);
+    var head, cls, body;
+    if(band==="ext-up"){
+      cls="warn";
+      head="Over-extended above the 20-EMA — "+sig+" · "+atrTxt;
+      body="Historically this is a <b>pause or a shallow drift back</b>, not a top — the trend usually resumes. A reversion <i>down</i> needs a flat / rolling MA (this one is <b>"+slopeWord+"</b>) or a ≥ 3σ stretch. Snap-back reference: the 20-EMA at <b>"+inr(r.ema20)+"</b> ("+Math.abs(toMean).toFixed(1)+"% below).";
+    } else if(band==="ext-dn"){
+      cls="pos";
+      head="Over-extended below the 20-EMA — "+sig+" · "+atrTxt;
+      body="A <b>snap-back toward the mean is the higher-odds move</b> from here"+(r.slope20>0.04?", and the 20-EMA is still <b>"+slopeWord+"</b> — this reads as a pullback in an uptrend (the tradable side)":"")+". Mean ≈ <b>"+inr(r.ema20)+"</b> ("+Math.abs(toMean).toFixed(1)+"% above).";
+    } else if(band==="warm-up" || band==="warm-dn"){
+      cls="warn";
+      head=(band==="warm-up"?"Getting stretched above":"Getting stretched below")+" the 20-EMA — "+sig+" · "+atrTxt;
+      body="Still inside its normal ±2σ band. Wait for it to actually reach the band edge before treating the stretch as a signal.";
+    } else {
+      cls="";
+      head="Not stretched — "+sig+" from the 20-EMA";
+      body="Price is within its normal range around the mean ("+r.disp.toFixed(1)+"% from the line, typical is "+r.mean.toFixed(1)+" ± "+r.sd.toFixed(1)+"%). Structure and trend dominate here, not mean reversion.";
+    }
+    var fbLine="";
+    if(fb){
+      if((band==="ext-up"||band==="warm-up") && fb.nu>=3)
+        fbLine='<div class="bc-acc">This stock, past over-extensions <b>up</b> ('+fb.nu+'): back to the 20-EMA within 10 days <b>'+fb.tagU+'%</b> of the time · median 10-day move <b>'+(fb.fwdU>=0?'+':'')+fb.fwdU+'%</b> · median dip along the way <b class="neg">−'+fb.advU+'%</b>.</div>';
+      else if((band==="ext-dn"||band==="warm-dn") && fb.nd>=3)
+        fbLine='<div class="bc-acc">This stock, past over-extensions <b>down</b> ('+fb.nd+'): bounced to the 20-EMA within 10 days <b>'+fb.tagD+'%</b> of the time · median 10-day move <b>'+(fb.fwdD>=0?'+':'')+fb.fwdD+'%</b> · median bounce <b class="pos">+'+fb.advD+'%</b>.</div>';
+      else if(fb.nu>=3 || fb.nd>=3)
+        fbLine='<div class="bc-acc" style="color:var(--muted)">Past extremes for this stock — up ('+fb.nu+'): median 10-day '+(fb.fwdU>=0?'+':'')+fb.fwdU+'%, back to MA '+fb.tagU+'%; down ('+fb.nd+'): '+(fb.fwdD>=0?'+':'')+fb.fwdD+'%, to MA '+fb.tagD+'%.</div>';
+    }
+    host.hidden=false;
+    host.innerHTML =
+      '<div class="bc-head"><span class="bc-lean '+cls+'">'+esc(head)+'</span><span class="bc-conf">20-EMA slope: <b>'+(r.slope20>=0?"+":"")+r.slope20.toFixed(2)+'%/bar</b></span></div>'+
+      '<div class="bc-odds">'+body+'</div>'+
+      fbLine+
+      '<div class="bc-note">"Stretch" = the 20-EMA <b>Disparity Index</b> ('+r.disp.toFixed(1)+'% off the line) as a z-score over ~120 bars, plus the ATR-extension. Toggle <b>Stretch band</b> above to see the ±2σ envelope on the chart. Sources: Nison (Disparity Index); QuantifiedStrategies; the 25-yr Nasdaq-100 &amp; 2,700-ticker ATR-extension studies; Avramov, Kaplanski &amp; Subrahmanyam, <i>Moving-average distance as a predictor of equity returns</i> (2021). Short horizon → pause; multi-week → momentum; only ~3σ extremes reliably snap back.</div>';
+  }
   function renderBook(){
     var host = $("#bookChart"); if(!host) return;
     if($("#tab-book") && $("#tab-book").hidden) return;   // don't fetch charts for a hidden tab
@@ -3079,9 +3201,10 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
     if($("#bookScope") && $("#bookScope").value!==scope) $("#bookScope").value = scope;
     $$("#bookTF button").forEach(function(x){ x.setAttribute("aria-pressed", String(x.getAttribute("data-v")===(state.chartTF||"daily"))); });
     $$("#bookMA button").forEach(function(x){ x.setAttribute("aria-pressed", String(x.getAttribute("data-v")===(state.chartMA||"ema"))); });
-    $$("#bookOverlay button").forEach(function(x){ var v=x.getAttribute("data-v"); x.setAttribute("aria-pressed", String(v==="sr" ? state.bookSR!==false : v==="vwap" ? state.bookVwap!==false : v==="trend" ? state.bookTrend!==false : state.bookPat!==false)); });
+    $$("#bookOverlay button").forEach(function(x){ var v=x.getAttribute("data-v"); x.setAttribute("aria-pressed", String(v==="sr" ? state.bookSR!==false : v==="vwap" ? state.bookVwap!==false : v==="trend" ? state.bookTrend!==false : v==="stretch" ? state.bookStretchBand===true : state.bookPat!==false)); });
     var rows = parseBatch($("#batchInput").value);
     renderVsStudy(rows);
+    renderSxStudy(rows);
     var pool = rows.filter(function(d){ return bookInScope(d, scope); });
     if(scope==="mb" || scope==="mba" || scope==="mbtop")
       pool.sort(function(a,b){ return (b.mb?b.mb.total:0) - (a.mb?a.mb.total:0); });
@@ -3100,6 +3223,8 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
       pool.sort(function(a,b){ return (a.gx?a.gx.ago:99) - (b.gx?b.gx.ago:99); });
     else if(scope==="mbearly")
       pool.sort(function(a,b){ var ea=mbEarly(a),eb=mbEarly(b); return (eb?eb.score:0)-(ea?ea.score:0); });
+    else if(scope==="stretchext")
+      pool.sort(function(a,b){ return Math.abs((b.sx?b.sx.z:0)) - Math.abs((a.sx?a.sx.z:0)); });
     else if(scope==="entrynow"){
       var rrc={};
       pool.forEach(function(d){ rrc[d.symbol] = evaluateRow(d).tr.rr || 0; });
@@ -3124,6 +3249,7 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
       if($("#bookWatch")){ $("#bookWatch").innerHTML = "☆ Watchlist"; $("#bookWatch").classList.remove("pos"); }
       if($("#bookProb")) $("#bookProb").innerHTML = "";
       if($("#bookConf")){ $("#bookConf").innerHTML = ""; $("#bookConf").hidden = true; }
+      if($("#bookStretch")){ $("#bookStretch").innerHTML = ""; $("#bookStretch").hidden = true; }
       $("#bookHead").innerHTML = "";
       $("#bookPlan").innerHTML = "";
       host.innerHTML = '<p class="empty">'+(rows.length ? "No stock in your scan matches this filter — change the <b>Show</b> dropdown." : "Run a scan (Screener → Scan now), then come back here.")+'</p>';
@@ -3227,7 +3353,8 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
     var tf = state.chartTF==="weekly" ? "weekly" : "daily";
     var e = evaluateRow(d), tpx = trigParts(d);
     var opts = {symbol:sym, entry:e.tr.entry, stop:e.tr.stop, t10:e.tr.t10,
-                support:d.support, resistance:d.resistance, weekly: tf==="weekly", trigAgo: tpx?tpx.ago:-1};
+                support:d.support, resistance:d.resistance, weekly: tf==="weekly", trigAgo: tpx?tpx.ago:-1,
+                stretchBand: state.bookStretchBand===true};
     var _oc = readOC();
     if(sym===(($("#a_sym").value||"").toUpperCase()) && ocHasSignal(_oc)){
       opts.ocCall=_oc.call; opts.ocPut=_oc.put; opts.ocMaxpain=_oc.maxpain;
@@ -3241,9 +3368,10 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
     }
     function draw(o, staleNote){
       if(myTok!==bookToken) return;   // a later Prev/Next won this race
-      if(!o || !o.c || o.c.length<20){ host.innerHTML='<p class="empty">No chart data for '+esc(sym)+' — press <b>↻ live</b>, or it wasn’t among the charts kept from the scan (only the top names are cached).</p>'; return; }
+      if(!o || !o.c || o.c.length<20){ host.innerHTML='<p class="empty">No chart data for '+esc(sym)+' — press <b>↻ live</b>, or it wasn’t among the charts kept from the scan (only the top names are cached).</p>'; if($("#bookStretch")){ $("#bookStretch").hidden=true; } return; }
       var series = tf==="weekly" ? toWeekly(o) : o;
       if(series.c.length<20){ host.innerHTML='<p class="empty">not enough history for a weekly chart</p>'; return; }
+      renderStretch(o);   // the mean-reversion read always uses the daily series
       var age=chartAge(o), last=o.d[o.d.length-1];
       opts.liveLast = !!o.liveLast;
       opts.livePrice = o.liveLast ? o.c[o.c.length-1] : 0;
@@ -3993,6 +4121,7 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
       (state.bookTrend!==false?'<span class="ktrend"><i></i>trendline</span><span class="ktrendm"><i></i>current leg</span>':'')+
       (state.bookPat!==false?'<span class="ktl"><i></i>pattern</span>':'')+
       (state.bookVwap!==false?'<span class="kvwap"><i></i>base VWAP</span>':'')+
+      (state.bookStretchBand===true?'<span class="kstretch"><i></i>±2σ stretch</span>':'')+
       '<span class="kent"><i></i>entry</span><span class="kstp"><i></i>stop</span><span class="ktgt"><i></i>+10%</span>'+
     '</div>';
   }
@@ -4076,6 +4205,19 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
       return pts.length>1 ? '<polyline points="'+pts.join(" ")+'" class="'+cls+'"/>' : '';
     }
     g.push(poly(e200,"cx-e200")); g.push(poly(e50,"cx-e50")); g.push(poly(e20,"cx-e20"));
+    // ±2σ "stretch" envelope — price's normal divergence band around the 20-EMA (Disparity Index)
+    if(opts.stretchBand){
+      var _sr = stretchRead(o);
+      if(_sr && _sr.kb>0){
+        var e20f = emaArr(o.c,20), ub=[], db=[], bi, mv;
+        for(bi=0;bi<n;bi++){ mv=e20f[bi+s]; if(mv>0){ ub.push(f1(X(bi))+","+f1(Y(mv*(1+_sr.kb)))); db.push(f1(X(bi))+","+f1(Y(mv*(1-_sr.kb)))); } }
+        if(ub.length>1){
+          g.push('<polyline points="'+ub.join(" ")+'" class="cx-stretch"/>');
+          g.push('<polyline points="'+db.join(" ")+'" class="cx-stretch"/>');
+          g.push('<text x="'+(W-PR-2)+'" y="'+f1(Y(e20f[full-1]*(1+_sr.kb))-3)+'" class="cx-flab cx-stretchlab" text-anchor="end">+2σ</text>');
+        }
+      }
+    }
     // anchored VWAP from the start of the consolidation base — a proxy for the average
     // price accumulators paid while the stock was building the base ("institutional cost")
     if(state.bookVwap!==false && bs && bs.bars>=7){
@@ -5238,6 +5380,77 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
     if(!u && !d) return null;
     return { nu:u?u.n:0, hu:u?u.hit:0, mu:u?u.med:0, xu:u?u.p75:0, nd:d?d.n:0, hd:d?d.hit:0, md:d?d.med:0 };
   }
+
+  // ── Stretch from the mean (mean-reversion read) ──────────────────────────
+  // How far price has diverged from its 20-EMA, measured three ways:
+  //   • Disparity Index  = (close − EMA20) / EMA20 × 100        (Nison / Japanese TA)
+  //   • z-score of that disparity over the last ~120 bars       ("how many σ extended")
+  //   • ATR-extension    = (close − EMA20) / ATR(14)            (volatility-normalised)
+  // What the research actually says (25-yr non-survivorship Nasdaq-100 study; a separate
+  // 2,700-ticker 5-yr study; Avramov-Kaplanski-Subrahmanyam 2021 on moving-average distance):
+  //   – short horizon (≤ ~1 week): an over-extended close tends to PAUSE / drift back a
+  //     little, it does NOT reliably top out.
+  //   – 1–4 months: extension is a MOMENTUM signal — the stretched stocks keep winning.
+  //   – the extreme tail only (≈ 3σ ≈ 7.5–8× ATR above the 50-SMA, ~0.3% of days) is where
+  //     sharp mean reversion odds climb fast — and even then not instantly.
+  //   – MA "angle" matters as context: a flat / rolling 20-EMA makes a reversion-by-drop
+  //     likelier; a steeply rising one usually resolves the stretch sideways instead.
+  function stretchRead(o){
+    var c=o.c, h=o.h, l=o.l, n=c && c.length || 0; if(n<80) return null;
+    var e20=emaArr(c,20), e50=emaArr(c,50);
+    var price=c[n-1], m20=e20[n-1], m50=e50[n-1];
+    if(!(m20>0)) return null;
+    var atr=0,k=0,i;
+    for(i=Math.max(1,n-14);i<n;i++){ atr+=Math.max(h[i]-l[i], Math.abs(h[i]-c[i-1]), Math.abs(l[i]-c[i-1])); k++; }
+    atr = k ? atr/k : 0;
+    var disp=[], W=120;
+    for(i=Math.max(20,n-W); i<n; i++){ if(e20[i]>0) disp.push((c[i]-e20[i])/e20[i]*100); }
+    if(disp.length<40) return null;
+    var mean=0; for(i=0;i<disp.length;i++) mean+=disp[i]; mean/=disp.length;
+    var sd=0; for(i=0;i<disp.length;i++) sd+=(disp[i]-mean)*(disp[i]-mean); sd=Math.sqrt(sd/disp.length)||1;
+    var dNow=(price-m20)/m20*100, z=(dNow-mean)/sd;
+    var slope20 = (n>31 && e20[n-11]>0) ? (m20/e20[n-11]-1)*100/10 : 0;   // %/bar over last 10 bars
+    var band = z>=2 ? "ext-up" : z<=-2 ? "ext-dn" : z>=1.2 ? "warm-up" : z<=-1.2 ? "warm-dn" : "normal";
+    var kb = Math.min(0.6, 2*sd/100);   // ±2σ price envelope half-width around the 20-EMA
+    return { disp:dNow, mean:mean, sd:sd, z:z, atr:atr,
+             atrExt20: atr>0 ? (price-m20)/atr : 0,
+             atrExt50: atr>0 ? (price-m50)/atr : 0,
+             slope20:slope20, ema20:m20, ema50:m50, band:band, kb:kb };
+  }
+  // backtest THIS stock: at every past bar where the 20-EMA disparity z-score was ≥ +2
+  // (over-extended up) or ≤ −2 (over-extended down), what happened over the next 10 bars —
+  // did price tag the 20-EMA again, median forward return, and how deep was the pull the
+  // other way (the excursion you'd have sat through).
+  function stretchForward(h,l,c){
+    var n=c.length, H=10; if(n<200) return null;
+    var e20=emaArr(c,20);
+    var U={tag:0,fwd:[],adv:[]}, D={tag:0,fwd:[],adv:[]}, i, j;
+    for(i=140;i<=n-1-H;i++){
+      if(!(e20[i]>0)) continue;
+      var s0=Math.max(20,i-120), dv=[];
+      for(j=s0;j<i;j++){ if(e20[j]>0) dv.push((c[j]-e20[j])/e20[j]*100); }
+      if(dv.length<40) continue;
+      var mean=0; for(j=0;j<dv.length;j++) mean+=dv[j]; mean/=dv.length;
+      var sd=0; for(j=0;j<dv.length;j++) sd+=(dv[j]-mean)*(dv[j]-mean); sd=Math.sqrt(sd/dv.length)||1;
+      var z=((c[i]-e20[i])/e20[i]*100 - mean)/sd;
+      var rec = z>=2 ? U : z<=-2 ? D : null;
+      if(!rec) continue;
+      var tagged=false, adv=0;
+      for(j=i+1;j<=i+H;j++){
+        if(z>=2){ if(l[j]<=e20[j]) tagged=true; var dd=(c[i]-Math.min(c[j],l[j]))/c[i]*100; if(dd>adv) adv=dd; }
+        else    { if(h[j]>=e20[j]) tagged=true; var uu=(Math.max(c[j],h[j])-c[i])/c[i]*100; if(uu>adv) adv=uu; }
+      }
+      if(tagged) rec.tag++;
+      rec.fwd.push((c[i+H]/c[i]-1)*100); rec.adv.push(adv);
+      i += 3;   // decluster
+    }
+    function med(a){ if(!a.length) return 0; var s=a.slice().sort(function(x,y){return x-y;}); return Math.round(s[Math.floor(s.length/2)]*10)/10; }
+    var nu=U.fwd.length, nd=D.fwd.length;
+    if(nu<3 && nd<3) return null;
+    return { nu:nu, tagU: nu?Math.round(U.tag/nu*100):0, fwdU:med(U.fwd), advU:med(U.adv),
+             nd:nd, tagD: nd?Math.round(D.tag/nd*100):0, fwdD:med(D.fwd), advD:med(D.adv) };
+  }
+
   // ATR as a % of price, over the last n bars
   function atrPct(h,l,c,n){
     var len=c.length; if(len < n+2) return 0;
@@ -5825,6 +6038,13 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
     // this stock's own volume-shock → 20-day follow-through, up-bar vs down-bar
     var vf = vskForward(c, vol);
     var vfhStr = vf ? [vf.nu, vf.hu, vf.mu, vf.xu, vf.nd, vf.hd, vf.md].join("|") : "";
+    // stretch from the 20-EMA (disparity z-score + ATR extension) + this stock's own
+    // history of what happened after past over-extensions
+    var sx = stretchRead({h:h, l:l, c:c});
+    var sxf = stretchForward(h, l, c);
+    var sxStr = sx ? [r2(sx.z), r2(sx.atrExt20), r3(sx.slope20), sx.band,
+      (sxf?sxf.nu:0), (sxf?sxf.tagU:0), (sxf?r2(sxf.fwdU):0), (sxf?r2(sxf.advU):0),
+      (sxf?sxf.nd:0), (sxf?sxf.tagD:0), (sxf?r2(sxf.fwdD):0), (sxf?r2(sxf.advD):0)].join("|") : "";
     // last ~520 bars kept for charting the top-ranked names — enough for EMA200 and a
     // full weekly SMA10/50 view (≈104 weeks). Rounded to keep localStorage small.
     var TB = 520, ts = Math.max(0, c.length - TB), rnd = function(x){ return Math.round(x*100)/100; };
@@ -5860,7 +6080,7 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
       blueSky: (bsky.newHigh && bsky.above) ? 1 : 0,
       fibZone: fib ? fib.zone : "",
       fibRetr: fib ? Math.round(fib.retr*100)/100 : null,
-      coil: coilStr, mvt: mvtStr, gg: ggStr, sg: sgStr, dx: dxStr, hdf: hdfStr, cdl: cdlStr, mb: "", vm: vmStr, acc: accStr, vsk: vskStr, vfh: vfhStr, gxw: gxwStr,
+      coil: coilStr, mvt: mvtStr, gg: ggStr, sg: sgStr, dx: dxStr, hdf: hdfStr, cdl: cdlStr, mb: "", vm: vmStr, acc: accStr, vsk: vskStr, vfh: vfhStr, gxw: gxwStr, sx: sxStr,
       revYoY: null, profYoY: null, epsYoY: null, qDate: "", profYoYPrev: null, ttmYoY: null   // filled in later by applyFund()
     };
   }
@@ -5871,7 +6091,7 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
       r.basePct||0, r.baseBars||0, r.stage2||0, (r.rs==null?"":r.rs), (r.setup||""),
       (r.trig||""), (r.trigWR==null?"":r.trigWR), (r.athPct==null?"":r.athPct), (r.blueSky||0),
       (r.revYoY==null?"":r.revYoY), (r.profYoY==null?"":r.profYoY), (r.epsYoY==null?"":r.epsYoY), (r.qDate||""),
-      (r.profYoYPrev==null?"":r.profYoYPrev), (r.ttmYoY==null?"":r.ttmYoY), (r.coil||""), (r.mvt||""), (r.gg||""), (r.sg||""), (r.dx||""), (r.hdf||""), (r.cdl||""), (r.mb||""), (r.vm||""), (r.adr==null?"":r.adr), (r.nr||""), (r.gx||""), (r.acc||""), (r.vsk||""), (r.vfh||""), (r.gxw||"")].join(", ");
+      (r.profYoYPrev==null?"":r.profYoYPrev), (r.ttmYoY==null?"":r.ttmYoY), (r.coil||""), (r.mvt||""), (r.gg||""), (r.sg||""), (r.dx||""), (r.hdf||""), (r.cdl||""), (r.mb||""), (r.vm||""), (r.adr==null?"":r.adr), (r.nr||""), (r.gx||""), (r.acc||""), (r.vsk||""), (r.vfh||""), (r.gxw||""), (r.sx||"")].join(", ");
   }
 
   /* ---------- auto-screen: fetch adapters ---------- */
@@ -6999,11 +7219,11 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
     });
     $$("#bookOverlay button").forEach(function(b){
       var v=b.getAttribute("data-v");
-      b.setAttribute("aria-pressed", String(v==="sr" ? state.bookSR!==false : v==="vwap" ? state.bookVwap!==false : v==="trend" ? state.bookTrend!==false : state.bookPat!==false));
+      b.setAttribute("aria-pressed", String(v==="sr" ? state.bookSR!==false : v==="vwap" ? state.bookVwap!==false : v==="trend" ? state.bookTrend!==false : v==="stretch" ? state.bookStretchBand===true : state.bookPat!==false));
       b.addEventListener("click", function(){
         var on = b.getAttribute("aria-pressed")!=="true";
         b.setAttribute("aria-pressed", String(on));
-        if(v==="sr") state.bookSR=on; else if(v==="vwap") state.bookVwap=on; else if(v==="trend") state.bookTrend=on; else state.bookPat=on;
+        if(v==="sr") state.bookSR=on; else if(v==="vwap") state.bookVwap=on; else if(v==="trend") state.bookTrend=on; else if(v==="stretch") state.bookStretchBand=on; else state.bookPat=on;
         save();
         renderBook();
         var sym=($("#a_sym").value||"").toUpperCase(); if(sym) renderChart(sym);
