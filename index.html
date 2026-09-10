@@ -307,7 +307,8 @@ table.mb-scen td.num{font-family:"IBM Plex Mono",monospace;text-align:right;padd
 .cx-sigbuy{fill:#2f9e44;stroke:#2f9e44}
 .cx-sigbuy.weak{fill:none;stroke:#2f9e44;stroke-width:1.3}
 .cx-sigsell{fill:#e8912a;stroke:#e8912a}
-.cx-sighold{fill:none;stroke:#9aa0a6;stroke-width:1.3}
+.cx-sigsell.weak{fill:none;stroke:#e8912a;stroke-width:1.3}
+.cx-sigexit{fill:none;stroke:#d64545;stroke-width:1.5}
 .cx-legend .ksup{color:#12c98b} .cx-legend .ktl{color:#37a6ff} .cx-legend .kvwap{color:#d6489b} .cx-legend .ktrend{color:#4f7fa8} .cx-legend .ktrendm{color:#9a7fc0} .cx-legend .kstretch{color:#7a8cff}
 .cx-line.cx-ocput{stroke:var(--pos);stroke-dasharray:2 2;opacity:.75} .cx-flab.cx-ocput{fill:var(--pos);opacity:.8}
 .cx-line.cx-occall{stroke:var(--neg);stroke-dasharray:2 2;opacity:.75} .cx-flab.cx-occall{fill:var(--neg);opacity:.8}
@@ -408,7 +409,7 @@ table.sc-setup td.num{font-family:"IBM Plex Mono",monospace;text-align:right}
     <span class="mark" aria-hidden="true">₹</span>
     <div>
       <h1>The 10% Ledger</h1>
-      <p>Momentum + pullback screener · NSE swing setups <span style="opacity:.5;font-size:11px">· build 2026-09-10n</span></p>
+      <p>Momentum + pullback screener · NSE swing setups <span style="opacity:.5;font-size:11px">· build 2026-09-11a</span></p>
     </div>
   </div>
   <div class="controls">
@@ -1065,7 +1066,7 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
           <button data-v="trend" aria-pressed="true" title="Diagonal trendlines — the best-fit rising line under the swing lows and falling / flat line over the swing highs across the whole visible chart, PLUS a dashed purple line for the current leg (the trend inside the trend) when it has turned or steepened away from the big line">Trendlines</button>
           <button data-v="pat" aria-pressed="true" title="Named chart pattern over the recent structure — triangle / channel / wedge / range / double top-bottom — with its shorter trendlines and the label">Pattern</button>
           <button data-v="vwap" aria-pressed="true" title="Anchored VWAP from the start of the consolidation base — the volume-weighted average price paid while the base formed (a proxy for where accumulators are in)">Base VWAP</button>
-          <button data-v="stretch" aria-pressed="false" title="±2σ envelope of price's normal divergence from the 20-EMA (the Disparity Index band), plus buy / fade markers: ▲ = dipped into the lower band and closed back inside (buy the bounce), ▼ = poked above the upper band and closed back inside with a flat MA (fade / take profit), ○ = riding the upper band in an uptrend (don't chase). See the Stretch read below the plan.">Stretch band + signals</button>
+          <button data-v="stretch" aria-pressed="false" title="±2σ envelope around the 20-EMA (Disparity Index band) + entry/exit markers: ▲ = a pullback to the RISING 20-EMA with a reversal bar (buy), ▼ = price tagged the upper band (take profit / scale out), ✕ = closed back below the 20-EMA after a buy (exit). The Stretch read below the plan backtests the ▲ rule on this stock and shows its expectancy in R.">Stretch band + signals</button>
         </div>
         <button id="bookRefreshLive" class="ghost" title="Fetch fresh candles for this stock">↻ live</button>
         <button id="bookWatch" class="ghost" title="Add / remove this stock from your watchlist">☆ Watchlist</button>
@@ -1412,13 +1413,13 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
       </table>
       <p><b>The "angle" of the MA is the context filter.</b> The tool reports the 20-EMA slope in %/bar. A <i>flat or rolling-over</i> MA under a stretched price → reversion is more likely to come <i>by price dropping</i>. A <i>steeply rising</i> MA → the stretch usually resolves <b>sideways</b> (the MA catches up) while price consolidates. Degrees on a chart are meaningless (they change with zoom); slope-per-bar is the honest version.</p>
       <p><b>So the tradable signal is the oversold side.</b> Price stretched <b>≤ −2σ below</b> a <i>rising</i> 20-EMA = a pullback in an uptrend — the snap-back toward the mean is the higher-odds move, and the confidence read adds points for it. Stretched <b>above</b> is mostly a "<b>don't chase / expect a pause</b>" flag, not a short signal — the read spells out the reversion reference (the 20-EMA level) and, from <i>this stock's own history</i>, how often past over-extensions tagged the 20-EMA within 10 days and the median move + the dip you'd have sat through.</p>
-      <p>Turn on <b>Stretch band + signals</b> in the chart overlays to draw the ±2σ envelope around the 20-EMA <i>and</i> the action markers, which apply the four rules automatically:</p>
+      <p>Turn on <b>Stretch band + signals</b> in the chart overlays to draw the ±2σ envelope around the 20-EMA <i>and</i> the entry / exit markers. The full ±2σ band is rare in a clean uptrend, so the <b>buy</b> doesn't wait for it — it fires on the tradable version: a <b>pullback to the rising 20-EMA</b> with a reversal bar.</p>
       <ul>
-        <li><b>▲ green (buy the dip)</b> — a bar dipped into the <i>lower</i> band and <i>closed back inside</i> it on a firm up-bar. Solid triangle = the 20-EMA was rising (the strong setup); hollow triangle = the 20-EMA was flat (a range bounce — smaller size). Skipped entirely when the 20-EMA is falling.</li>
-        <li><b>▼ amber (fade / take profit)</b> — a bar poked above the <i>upper</i> band and closed back inside on a soft down-bar, <i>and</i> the 20-EMA was <b>not</b> rising. In an uptrend this marker never fires — the upper band there is not a sell.</li>
-        <li><b>○ grey (don't chase)</b> — price is riding the upper band while the 20-EMA rises. Not a signal to act on; a reminder to wait for the pullback to the 20-EMA.</li>
+        <li><b>▲ green — buy the pullback.</b> All of: price above the 50-EMA (uptrend), 20-EMA rising, price wicked down to the 20-EMA (or into the lower band) in the last ~3 bars, and this bar is a reversal bar — green, closes in the top half of its range, up on the day. Solid ▲ = a shallow pullback in a clean 50&gt;200 stack (full size); hollow ▲ = deeper or looser context (smaller size). The suggested stop is ~¼ ATR under the reversal bar's low.</li>
+        <li><b>▼ amber — take profit.</b> Price tags the upper band. Solid ▼ = the 20-EMA is flat / rolling (a real fade — close most of it); hollow ▼ = the 20-EMA is still rising (just scale out ⅓–½ into the strength and trail the rest — don't dump a winner).</li>
+        <li><b>✕ red — exit.</b> After a ▲ buy, the first bar to close back below the 20-EMA. The pullback trade is over; the trend lost its line.</li>
       </ul>
-      <p>A marker is the <i>touch bar closing back inside the band</i> — the tool's stand-in for "wait for a reversal candle." The Stretch read panel also names the most recent marker with the entry, stop and target. The <b>Over-extended from the 20-EMA</b> Chart Book deck lists the names furthest outside their band; the "Stretch from the 20-EMA" study aggregates the after-an-over-extension numbers across your whole scan. (CSV field <code>sx</code>.)</p>
+      <p>The Stretch read panel <b>backtests the ▲ rule on this stock's own history</b> — enter at the signal, stop at the marked level, exit on a close under the 20-EMA or +4 ATR — and reports win rate, median R, and <b>expectancy in R per trade</b>. If that number is negative, the signal has no edge on that name and you should ignore its markers. Use it to see which stocks the pullback-buy actually works on before you trade it. The <b>Over-extended from the 20-EMA</b> Chart Book deck lists the names furthest outside their band; the "Stretch from the 20-EMA" study aggregates the after-an-over-extension numbers across your whole scan. (CSV field <code>sx</code>.)</p>
 
       <h3>Volume thrust at the moving average — the ⚡ badge (the RATNAVEER pattern)</h3>
       <p>A tight, high-quality trigger for a stock right at the start of a run. All of these have to be true:</p>
@@ -3198,27 +3199,32 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
       else if(fb.nu>=3 || fb.nd>=3)
         fbLine='<div class="bc-acc" style="color:var(--muted)">Past extremes for this stock — up ('+fb.nu+'): median 10-day '+(fb.fwdU>=0?'+':'')+fb.fwdU+'%, back to MA '+fb.tagU+'%; down ('+fb.nd+'): '+(fb.fwdD>=0?'+':'')+fb.fwdD+'%, to MA '+fb.tagD+'%.</div>';
     }
-    var sigLine="";
-    var sigs = stretchSignals(o), lastS = sigs.length ? sigs[sigs.length-1] : null;
+    var sigLine="", bt = stretchBacktest(o);
+    var sigOK = !(bt && bt.n>=5 && bt.exp < -0.15);
+    var sigs = sigOK ? stretchSignals(o) : [], lastS = sigs.length ? sigs[sigs.length-1] : null;
     if(lastS && lastS.ago<=20){
       var when = lastS.ago===0 ? "on today's bar" : lastS.ago+" bar"+(lastS.ago===1?"":"s")+" ago";
-      var tgtTxt = function(above){ return (above ? r.ema20>lastS.px : r.ema20<lastS.px)
-        ? "first target the 20-EMA at "+inr(r.ema20)
-        : "the 20-EMA ("+inr(r.ema20)+") is already reclaimed — trail the rest"; };
-      if(lastS.type==="buy")
-        sigLine='<div class="bc-acc">Chart signal: <b class="pos">▲ BUY the bounce</b> '+when+' near <b>'+inr(lastS.px)+'</b>'+(lastS.strong?" (20-EMA rising — the strong version)":" (20-EMA flat — range bounce, smaller size)")+' — dipped into the lower band and closed back inside. Stop under that bar\'s low; '+tgtTxt(true)+'.</div>';
-      else if(lastS.type==="sell")
-        sigLine='<div class="bc-acc">Chart signal: <b class="warn">▼ FADE / take profit</b> '+when+' near <b>'+inr(lastS.px)+'</b> — poked above the upper band and closed back inside with a flat MA. '+tgtTxt(false)+'.</div>';
+      if(lastS.type==="buy"){
+        var rr2 = (lastS.stop && lastS.px>lastS.stop) ? ((lastS.px-lastS.stop)/lastS.px*100).toFixed(1) : null;
+        sigLine='<div class="bc-acc">Chart signal: <b class="pos">▲ BUY the pullback</b> '+when+' near <b>'+inr(lastS.px)+'</b>'+(lastS.strong?" (clean EMA stack — the full-size version)":" (looser context — smaller size)")+' — pulled back to the rising 20-EMA and printed a reversal bar. Stop <b>'+inr(lastS.stop)+'</b>'+(rr2?' (−'+rr2+'%)':'')+'. Scale out at the upper band ('+inr(r.ema20*(1+r.kb))+'); trail the rest with the 20-EMA.</div>';
+      } else if(lastS.type==="tp")
+        sigLine='<div class="bc-acc">Chart signal: <b class="warn">▼ TAKE PROFIT</b> '+when+' near <b>'+inr(lastS.px)+'</b> — price tagged the upper band. '+(lastS.soft?"20-EMA still rising: scale out ⅓–½ and trail the rest, don't dump it all.":"20-EMA flat / rolling: a real fade — close most of it, target the 20-EMA at "+inr(r.ema20)+".")+'</div>';
       else
-        sigLine='<div class="bc-acc" style="color:var(--muted)">Chart signal: ○ riding the upper band in an uptrend '+when+' — don\'t chase; buy the next pullback to the 20-EMA instead.</div>';
+        sigLine='<div class="bc-acc" style="color:var(--muted)">Chart signal: ✕ EXIT '+when+' near <b>'+inr(lastS.px)+'</b> — price closed back below the 20-EMA after a buy. The pullback trade is done; wait for the next setup.</div>';
+    }
+    var btLine="";
+    if(bt && bt.n>=4){
+      var edgeTxt = bt.exp>=0.35 ? '<b class="pos">edge worth trading</b>' : bt.exp>=0.05 ? '<b class="warn">marginal edge — size small</b>' : '<b class="neg">no edge here — markers hidden on the chart</b>';
+      btLine='<div class="bc-acc">▲ pullback-buy backtest (this stock, <b>'+bt.n+'</b> signals, exit = close under the 20-EMA or +4 ATR): won <b class="'+(bt.win>=55?'pos':bt.win>=45?'warn':'neg')+'">'+bt.win+'%</b> · median <b>'+(bt.medR>=0?'+':'')+bt.medR+'R</b> · expectancy <b class="'+(bt.exp>=0.05?'pos':'neg')+'">'+(bt.exp>=0?'+':'')+bt.exp+'R</b>/trade · hit +2R <b>'+bt.p2+'%</b> — '+edgeTxt+'.</div>';
     }
     host.hidden=false;
     host.innerHTML =
       '<div class="bc-head"><span class="bc-lean '+cls+'">'+esc(head)+'</span><span class="bc-conf">20-EMA slope: <b>'+(r.slope20>=0?"+":"")+r.slope20.toFixed(2)+'%/bar</b></span></div>'+
       '<div class="bc-odds">'+body+'</div>'+
       sigLine+
+      btLine+
       fbLine+
-      '<div class="bc-note">"Stretch" = the 20-EMA <b>Disparity Index</b> ('+r.disp.toFixed(1)+'% off the line) as a z-score over ~120 bars, plus the ATR-extension. Toggle <b>Stretch band + signals</b> above to draw the ±2σ envelope with <b class="pos">▲</b> buy-dip / <b class="warn">▼</b> fade-pop / ○ don\'t-chase markers (a band touch that <i>closes back inside</i>, filtered by the 20-EMA\'s direction). Sources: Nison (Disparity Index); QuantifiedStrategies; the 25-yr Nasdaq-100 &amp; 2,700-ticker ATR-extension studies; Avramov, Kaplanski &amp; Subrahmanyam, <i>Moving-average distance as a predictor of equity returns</i> (2021). Short horizon → pause; multi-week → momentum; only ~3σ extremes reliably snap back.</div>';
+      '<div class="bc-note">Toggle <b>Stretch band + signals</b> above to draw the ±2σ envelope and the markers: <b class="pos">▲</b> buy the pullback to the rising 20-EMA (reversal bar), <b class="warn">▼</b> take profit at the upper band, <b style="color:#d64545">✕</b> exit on a close back below the 20-EMA. The backtest above runs that exact rule on this stock\'s own history — if the expectancy is negative, don\'t trade its signals. "Stretch" itself = the 20-EMA <b>Disparity Index</b> ('+r.disp.toFixed(1)+'% off the line) as a z-score over ~120 bars. Sources: Nison; the 25-yr Nasdaq-100 &amp; 2,700-ticker ATR-extension studies; Avramov-Kaplanski-Subrahmanyam (2021). Short horizon → pause; multi-week → momentum.</div>';
   }
   function renderBook(){
     var host = $("#bookChart"); if(!host) return;
@@ -4147,7 +4153,7 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
       (state.bookTrend!==false?'<span class="ktrend"><i></i>trendline</span><span class="ktrendm"><i></i>current leg</span>':'')+
       (state.bookPat!==false?'<span class="ktl"><i></i>pattern</span>':'')+
       (state.bookVwap!==false?'<span class="kvwap"><i></i>base VWAP</span>':'')+
-      (state.bookStretchBand===true?'<span class="kstretch"><i></i>±2σ stretch</span><span style="color:#2f9e44">&#9650; buy dip</span><span style="color:#e8912a">&#9660; fade pop</span>':'')+
+      (state.bookStretchBand===true?'<span class="kstretch"><i></i>±2σ stretch</span><span style="color:#2f9e44">&#9650; buy</span><span style="color:#e8912a">&#9660; take profit</span><span style="color:#d64545">&#10005; exit</span>':'')+
       '<span class="kent"><i></i>entry</span><span class="kstp"><i></i>stop</span><span class="ktgt"><i></i>+10%</span>'+
     '</div>';
   }
@@ -4242,18 +4248,23 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
           g.push('<polyline points="'+db.join(" ")+'" class="cx-stretch"/>');
           g.push('<text x="'+(W-PR-2)+'" y="'+f1(Y(e20f[full-1]*(1+_sr.kb))-3)+'" class="cx-flab cx-stretchlab" text-anchor="end">+2σ</text>');
         }
-        // buy / fade / don't-chase markers off the band (the 4-box logic)
-        (stretchSignals(o)||[]).forEach(function(sg){
+        // entry / exit markers (pullback-buy, take-profit at the upper band, trend-over exit).
+        // Suppressed when this stock's own backtest of the ▲ rule has a clearly negative
+        // expectancy — the tool won't show a signal it can't stand behind.
+        var _bt = stretchBacktest(o);
+        var _sigOK = !(_bt && _bt.n>=5 && _bt.exp < -0.15);
+        (_sigOK ? (stretchSignals(o)||[]) : []).forEach(function(sg){
           var bi=sg.i-s; if(bi<1 || bi>=n) return;
           var sx2=X(bi);
           if(sg.type==="buy"){
             var by=Y(L[bi])+7;
             g.push('<path d="M'+f1(sx2-4.5)+' '+f1(by+9)+' L'+f1(sx2+4.5)+' '+f1(by+9)+' L'+f1(sx2)+' '+f1(by)+' Z" class="cx-sig cx-sigbuy'+(sg.strong?'':' weak')+'"/>');
-          } else if(sg.type==="sell"){
-            var sy2=Y(H[bi])-7;
-            g.push('<path d="M'+f1(sx2-4.5)+' '+f1(sy2-9)+' L'+f1(sx2+4.5)+' '+f1(sy2-9)+' L'+f1(sx2)+' '+f1(sy2)+' Z" class="cx-sig cx-sigsell"/>');
+          } else if(sg.type==="tp"){
+            var ty2=Y(H[bi])-7;
+            g.push('<path d="M'+f1(sx2-4.5)+' '+f1(ty2-9)+' L'+f1(sx2+4.5)+' '+f1(ty2-9)+' L'+f1(sx2)+' '+f1(ty2)+' Z" class="cx-sig cx-sigsell'+(sg.soft?' weak':'')+'"/>');
           } else {
-            g.push('<circle cx="'+f1(sx2)+'" cy="'+f1(Y(H[bi])-10)+'" r="2.6" class="cx-sig cx-sighold"/>');
+            var ex=Y(H[bi])-9;
+            g.push('<path d="M'+f1(sx2-3.6)+' '+f1(ex-3.6)+' L'+f1(sx2+3.6)+' '+f1(ex+3.6)+' M'+f1(sx2-3.6)+' '+f1(ex+3.6)+' L'+f1(sx2+3.6)+' '+f1(ex-3.6)+'" class="cx-sig cx-sigexit"/>');
           }
         });
       }
@@ -5490,47 +5501,102 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
     return { nu:nu, tagU: nu?Math.round(U.tag/nu*100):0, fwdU:med(U.fwd), advU:med(U.adv),
              nd:nd, tagD: nd?Math.round(D.tag/nd*100):0, fwdD:med(D.fwd), advD:med(D.adv) };
   }
-  // buy / sell markers off the ±2σ stretch band, using the 4-box logic:
-  //   • dipped into the LOWER band and closed back inside on a firm bar → BUY (the dip bounce);
-  //     stronger when the 20-EMA is rising, "weak" (hollow) when it's flat; skipped when falling.
-  //   • poked above the UPPER band and closed back inside on a soft bar → FADE / take profit —
-  //     only when the 20-EMA is NOT rising (in an uptrend the upper band is not a sell).
-  //   • riding the upper band while the 20-EMA rises → a muted "don't chase" dot.
-  // A "reversal bar" here = the touch bar itself closing back inside the band the right way;
-  // signals are declustered so only the first of a run shows.
+  // entry / exit markers. The tradable version of the 4-box logic: don't wait for a full
+  // ±2σ event (too rare in a clean uptrend) — the buy is the PULLBACK TO THE RISING 20-EMA
+  // with a reversal bar; the exits are a tag of the upper band (scale out into strength) and
+  // a decisive close back below the 20-EMA (trend over).
+  //   ▲ buy   — in an uptrend (price > 50-EMA, 20-EMA rising), price wicked down to the 20-EMA
+  //             (or into the lower stretch band) within the last ~3 bars AND this bar is a
+  //             reversal bar (green, closes in the top half of its range, up from yesterday).
+  //             solid = a shallow pullback in a clean stack; hollow = deeper / looser context.
+  //   ▼ take profit — price tags the upper stretch band (scale out); solid ▼ if the 20-EMA is
+  //             flat / falling (a real fade), hollow ▼ if it's still rising (just trim & trail).
+  //   ✕ exit  — after a buy, the first bar to close below the 20-EMA by more than ~0.15 ATR.
   function stretchSignals(o){
     var c=o.c, h=o.h, l=o.l, op=(o.o&&o.o.length===c.length)?o.o:c, n=c.length;
     if(n<60) return [];
-    var e20=emaArr(c,20), _sr=stretchRead(o);
+    var e20=emaArr(c,20), e50=emaArr(c,50), e200=emaArr(c,200), _sr=stretchRead(o);
     if(!_sr || !(_sr.kb>0)) return [];
-    var kb=_sr.kb, out=[], last={buy:-9,sell:-9,hold:-9}, i;
-    var loZoneAgo=99, hiZoneAgo=99, outHi=99;   // bars since price was in each zone / away from the far-upper band
-    for(i=25;i<n;i++){
-      var m=e20[i]; if(!(m>0) || !(e20[i-10]>0)) continue;
-      var loEdge=m*(1-kb*0.60), hiEdge=m*(1+kb*0.72), farHi=m*(1+kb*0.95);
-      var slp=(m/e20[i-10]-1)*100/10, rising=slp>0.045, falling=slp<-0.045;
-      if(l[i]<=loEdge || c[i]<=loEdge) loZoneAgo=0; else loZoneAgo++;
-      if(h[i]>=hiEdge || c[i]>=hiEdge) hiZoneAgo=0; else hiZoneAgo++;
-      if(h[i]>=farHi) outHi=0; else outHi++;
-      var op0=(o.o&&o.o[i]!=null)?o.o[i]:c[i-1];
-      var turnUp=c[i]>c[i-1] && c[i-1]<=c[i-2], turnDn=c[i]<c[i-1] && c[i-1]>=c[i-2];
-      // BUY — price was in the lower stretch zone within the last ~2 bars and has just turned
-      // up. Skipped when the 20-EMA is falling (the falling-knife filter).
-      if(loZoneAgo<=2 && turnUp && c[i]>loEdge && !falling && i-last.buy>=5){
-        out.push({ i:i, type:"buy", strong:rising, px:c[i], ago:n-1-i }); last.buy=i; loZoneAgo=99;
-      }
-      // FADE — price was in the upper stretch zone within the last ~2 bars, has just turned
-      // down, and the 20-EMA is NOT rising (in an uptrend the upper band is never a sell).
-      else if(hiZoneAgo<=2 && turnDn && c[i]<hiEdge && !rising && i-last.sell>=5){
-        out.push({ i:i, type:"sell", px:c[i], ago:n-1-i }); last.sell=i; hiZoneAgo=99;
-      }
-      // DON'T-CHASE — a FRESH push to the far upper band while the 20-EMA is clearly rising,
-      // after ≥ 12 bars nowhere near it. One dot per excursion (≥ 20 bars apart), not per bar.
-      else if(outHi===0 && i-last.hold>=20 && rising && i>=13 && Math.max.apply(null,h.slice(i-12,i)) < farHi*0.99){
-        out.push({ i:i, type:"hold", px:c[i], ago:n-1-i }); last.hold=i;
+    var kb=_sr.kb, atr=[], i, tr;
+    for(i=0;i<n;i++){
+      tr = i ? Math.max(h[i]-l[i], Math.abs(h[i]-c[i-1]), Math.abs(l[i]-c[i-1])) : h[i]-l[i];
+      atr.push(i<14 ? tr : (atr[i-1]*13 + tr)/14);
+    }
+    // one position at a time — a buy, then (optionally) a take-profit, then an exit
+    var out=[], pos=null, i2, cooldown=0;
+    for(i=30;i<n;i++){
+      var m=e20[i]; if(!(m>0) || !(e20[i-10]>0)){ if(cooldown>0) cooldown--; continue; }
+      var a=atr[i] || m*0.02;
+      var slp=(m/e20[i-10]-1)*100/10, rising=slp>0.03, falling=slp<-0.03;
+      var slp20 = e20[i-20]>0 ? (m/e20[i-20]-1) : 0;   // net drift over 20 bars — flat in a range
+      var trending = rising && slp20 >= 0;
+      var stack = c[i]>e50[i]*1.003 && (!(e200[i]>0) || e50[i]>=e200[i]*0.985);
+      var upBand=m*(1+kb);
+      var rng=Math.max(1e-9, h[i]-l[i]);
+      if(cooldown>0) cooldown--;
+
+      if(!pos){
+        // a real pullback: within the last ~6 bars price dipped to / below the 20-EMA, and
+        // 1–4 weeks earlier it was ≥ 3% extended above the line; now it's reclaiming the line
+        // on a firm green bar.
+        var dipped=false, wasExtended=false;
+        for(i2=Math.max(1,i-6); i2<i; i2++){ if(l[i2] <= e20[i2] + 0.10*(atr[i2]||a)) dipped=true; }
+        for(i2=Math.max(1,i-24); i2<i-3; i2++){ if(h[i2] >= e20[i2]*1.03) wasExtended=true; }
+        var reclaim = c[i] > m && c[i] > c[i-1] && c[i] >= op[i] && (c[i]-l[i])/rng >= 0.55;
+        if(cooldown===0 && trending && stack && dipped && wasExtended && reclaim){
+          var lo3=l[i]; for(i2=Math.max(0,i-4); i2<i; i2++) if(l[i2]<lo3) lo3=l[i2];
+          var recHi=h[i]; for(i2=Math.max(0,i-20); i2<i; i2++) if(h[i2]>recHi) recHi=h[i2];
+          var clean = (recHi-lo3)/recHi <= 0.13 && (!(e200[i]>0) || e50[i]>e200[i]);
+          pos = { i:i, entry:c[i], stop:lo3 - 0.25*a, hi:h[i], tp:false };
+          out.push({ i:i, type:"buy", strong:clean, px:c[i], stop:pos.stop, ago:n-1-i });
+        }
+      } else {
+        if(h[i] > pos.hi) pos.hi = h[i];
+        // TAKE PROFIT — first tag of the upper band (or ≥ 3 ATR extended) while holding
+        if(!pos.tp && (h[i] >= upBand || (c[i]-m)/a >= 3)){
+          out.push({ i:i, type:"tp", soft:rising, px:c[i], ago:n-1-i });
+          pos.tp = true;
+        }
+        // EXIT — stopped out, or a close back below the 20-EMA
+        if(l[i] <= pos.stop || c[i] < m - 0.15*a){
+          out.push({ i:i, type:"exit", px:c[i], ago:n-1-i });
+          pos = null; cooldown = 3;
+        }
       }
     }
     return out;
+  }
+  // backtest the ▲ pullback-buy on THIS stock's history: enter at the signal close, stop at
+  // the signal's stop, exit at the first of — close below the 20-EMA, +4 ATR reached, or 40
+  // bars — and report the R distribution so you can see whether the signal has an edge here.
+  function stretchBacktest(o){
+    var c=o.c, h=o.h, l=o.l, n=c.length; if(n<220) return null;
+    var sigs = stretchSignals(o).filter(function(s){ return s.type==="buy"; });
+    if(sigs.length<4) return null;
+    var e20=emaArr(c,20), atr=[], i, tr, Rs=[];
+    for(i=0;i<n;i++){ tr=i?Math.max(h[i]-l[i],Math.abs(h[i]-c[i-1]),Math.abs(l[i]-c[i-1])):h[i]-l[i]; atr.push(i<14?tr:(atr[i-1]*13+tr)/14); }
+    sigs.forEach(function(s){
+      var e=s.i, entry=c[e], stop=s.stop, risk=entry-stop;
+      if(!(risk>0)) return;
+      var tgt=entry + 4*(atr[e]||entry*0.02), exit=null, j;
+      for(j=e+1; j<Math.min(n, e+41); j++){
+        if(l[j]<=stop){ exit=stop; break; }
+        if(h[j]>=tgt){ exit=tgt; break; }
+        if(c[j] < e20[j] - 0.15*(atr[j]||0)){ exit=c[j]; break; }
+      }
+      if(exit==null) exit=c[Math.min(n-1, e+40)];
+      Rs.push((exit-entry)/risk);
+    });
+    if(Rs.length<4) return null;
+    var srt=Rs.slice().sort(function(x,y){return x-y;});
+    var sum=0; Rs.forEach(function(x){ sum+=x; });
+    return {
+      n:Rs.length,
+      win: Math.round(Rs.filter(function(x){return x>0;}).length/Rs.length*100),
+      medR: Math.round(srt[Math.floor(srt.length/2)]*100)/100,
+      exp: Math.round(sum/Rs.length*100)/100,
+      p2: Math.round(Rs.filter(function(x){return x>=2;}).length/Rs.length*100)
+    };
   }
 
   // ATR as a % of price, over the last n bars
