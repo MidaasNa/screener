@@ -367,6 +367,18 @@ table.sc-setup td.num{font-family:"IBM Plex Mono",monospace;text-align:right}
 .tc-why{margin-top:9px;padding-top:8px;border-top:1px dashed var(--line);font-size:12px;color:var(--muted)}
 .tc-why::before{content:"why ";color:var(--muted);font-weight:600}
 
+/* news */
+#newsTracked .chip-ck{cursor:default}
+#newsTracked .nx{margin-left:5px;cursor:pointer;color:var(--neg);font-weight:700}
+.news-item{padding:11px 0;border-bottom:1px solid var(--line)}
+.news-item:last-child{border-bottom:0}
+.news-head{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 8px}
+.news-item .sym{font-family:"IBM Plex Mono",monospace;font-weight:600;font-size:12px;background:var(--surface-2);border:1px solid var(--line);border-radius:5px;padding:1px 7px;cursor:pointer}
+.news-item a.h{font-size:13.5px;font-weight:500;color:var(--ink);text-decoration:none;line-height:1.4}
+.news-item a.h:hover{color:var(--accent);text-decoration:underline}
+.news-meta{font-size:11px;color:var(--muted);margin-top:3px}
+.news-snip{font-size:12px;color:var(--ink-soft);margin-top:3px;line-height:1.5}
+
 /* watchlist */
 .wl-item{display:flex;flex-wrap:wrap;gap:6px 14px;align-items:center;padding:10px 0;border-bottom:1px solid var(--line);font-size:12.5px}
 .wl-item:last-child{border-bottom:0}
@@ -400,7 +412,7 @@ table.sc-setup td.num{font-family:"IBM Plex Mono",monospace;text-align:right}
     <span class="mark" aria-hidden="true">₹</span>
     <div>
       <h1>The 10% Ledger</h1>
-      <p>Momentum + pullback screener · NSE swing setups <span style="opacity:.5;font-size:11px">· build 2026-09-10e</span></p>
+      <p>Momentum + pullback screener · NSE swing setups <span style="opacity:.5;font-size:11px">· build 2026-09-10f</span></p>
     </div>
   </div>
   <div class="controls">
@@ -433,6 +445,7 @@ table.sc-setup td.num{font-family:"IBM Plex Mono",monospace;text-align:right}
 
 <nav class="tabs" id="tabs">
   <button data-tab="today" class="active">Today</button>
+  <button data-tab="news">News</button>
   <button data-tab="screener">Screener</button>
   <button data-tab="golden">Golden Guru</button>
   <button data-tab="silver">Silver Guru</button>
@@ -471,6 +484,27 @@ table.sc-setup td.num{font-family:"IBM Plex Mono",monospace;text-align:right}
       <p class="hint" style="margin-top:14px;border-top:1px solid var(--line);padding-top:11px">
         <b>The rules —</b> set a price alert at the <b>Buy-stop</b> in your broker app. When it triggers, buy the <b>Size</b> shown; no deliberation. Place a stop-loss order at the <b>Stop</b> price (the tool does <i>not</i> place orders for you). <b>"0.25% risk" is not the stop distance</b> — it's how much of your account you lose <i>if</i> the Stop is hit; the Stop itself sits ~2–4% below entry, far enough that normal noise won't trigger it. Keep the starter risk until 20 trades are logged and the Execution Scorecard shows your edge. Never chase a gap-up open. If this screen is empty, there is no trade today — sitting out is the job.
       </p>
+    </div>
+  </section>
+
+  <!-- NEWS -->
+  <section id="tab-news" hidden>
+    <div class="panel">
+      <div class="scan-head"><h2>News</h2><span class="scan-meta" id="newsMeta"></span></div>
+      <p class="hint">Recent headlines for the stocks you track — your <b>watchlist</b>, the <b>top names from the last scan</b>, plus any symbols you add. Fetched on demand (press <b>Refresh</b>) through your Worker proxy; coverage is whatever Google News / Yahoo carry for that NSE ticker. <b>News is a catalyst check, not a signal</b> — an order win or a result is <i>why</i> a stock moved, not a reason to chase it. Enter on the base that forms <i>after</i>, never on the gap.</p>
+      <div class="scan-head" style="margin-top:2px;flex-wrap:wrap;gap:10px">
+        <label class="chk" style="margin-left:0">Track
+          <input id="newsAdd" type="text" placeholder="RELIANCE, TATAPOWER…" autocomplete="off" spellcheck="false" style="margin-left:6px;width:220px;padding:6px 8px;background:var(--bg);border:1px solid var(--line-strong);border-radius:6px;font-size:13px;text-transform:uppercase">
+        </label>
+        <button id="newsAddBtn" class="ghost">+ add</button>
+        <label class="chk" style="margin-left:0"><input type="checkbox" id="newsWL" checked> + watchlist</label>
+        <label class="chk" style="margin-left:0"><input type="checkbox" id="newsTop" checked> + top 12 from last scan</label>
+        <button id="newsRefresh" class="primary">Refresh</button>
+      </div>
+      <div id="newsTracked" class="chips" style="margin:8px 0 4px"></div>
+      <div class="progress" id="newsProgress" hidden><i></i></div>
+      <p class="scan-errline" id="newsErr"></p>
+      <div id="newsFeed"><p class="empty">Press <b>Refresh</b> to pull headlines for the tracked stocks.</p></div>
     </div>
   </section>
 
@@ -1578,6 +1612,7 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
     oc: {}, journal: [], journalUrl: "", bookIdx: 0, bookScope: "all",
     bookSR: true, bookPat: true, bookVwap: true, bookTrend: true,
     todaySetup: "golden", todayLead: false, todayRisk: "0.25",
+    newsSyms: [], newsWL: true, newsTop: true, newsCache: null,
     mbMinScore: 55, mbNoFlags: false, mbOpen: {}
   };
 
@@ -4511,6 +4546,159 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
     }); });
   }
 
+  /* ---------- News ---------- */
+  function agoTxt(ts){
+    if(!ts) return "";
+    var s = (Date.now()-ts)/1000;
+    if(s < 90) return "just now";
+    if(s < 3600) return Math.round(s/60)+"m ago";
+    if(s < 86400) return Math.round(s/3600)+"h ago";
+    return Math.round(s/86400)+"d ago";
+  }
+  function newsSymList(){
+    var set = {}, out = [];
+    (state.newsSyms||[]).forEach(function(s){ s=(s||"").toUpperCase().trim(); if(s && !set[s]){ set[s]=1; out.push(s); } });
+    if($("#newsWL") ? $("#newsWL").checked : state.newsWL!==false)
+      (state.watchlist||[]).forEach(function(w){ if(w.symbol && !set[w.symbol]){ set[w.symbol]=1; out.push(w.symbol); } });
+    if($("#newsTop") ? $("#newsTop").checked : state.newsTop!==false){
+      parseBatch($("#batchInput").value)
+        .map(function(d){ return {s:d.symbol, t:scoreStock(d).total}; })
+        .sort(function(a,b){ return b.t-a.t; }).slice(0,12)
+        .forEach(function(x){ if(!set[x.s]){ set[x.s]=1; out.push(x.s); } });
+    }
+    return out.slice(0,20);
+  }
+  function newsGoogleUrl(sym){
+    return "https://news.google.com/rss/search?q="+encodeURIComponent('"'+sym+'" (share OR stock OR NSE) when:6d')+"&hl=en-IN&gl=IN&ceid=IN:en";
+  }
+  function newsYahooUrl(sym){
+    return "https://query2.finance.yahoo.com/v1/finance/search?q="+encodeURIComponent(sym+".NS")+"&quotesCount=0&newsCount=8&enableFuzzyQuery=false";
+  }
+  function parseGoogleNews(txt, sym){
+    var items = [];
+    try{
+      var doc = new DOMParser().parseFromString(txt, "text/xml");
+      [].forEach.call(doc.querySelectorAll("item"), function(it){
+        var rawT = (it.querySelector("title")||{}).textContent || "";
+        var m = rawT.match(/^(.*)\s[-–]\s([^-–]+)$/);
+        var title = m ? m[1].trim() : rawT.trim();
+        var src   = m ? m[2].trim() : ((it.querySelector("source")||{}).textContent || "Google News");
+        var link  = (it.querySelector("link")||{}).textContent || "";
+        var pd    = (it.querySelector("pubDate")||{}).textContent || "";
+        var ts    = pd ? Date.parse(pd) : 0;
+        if(title && link) items.push({ sym:sym, title:title, link:link, source:src, ts:ts, snippet:"" });
+      });
+    }catch(e){}
+    return items;
+  }
+  function parseYahooNews(txt, sym){
+    var out = [];
+    try{
+      var j = JSON.parse(txt);
+      (j.news||[]).forEach(function(n){
+        if(!n.title || !n.link) return;
+        out.push({ sym:sym, title:n.title, link:n.link, source:n.publisher||"Yahoo",
+                   ts:(n.providerPublishTime||0)*1000, snippet:(n.summary||"") });
+      });
+    }catch(e){}
+    return out;
+  }
+  function fetchNewsFor(sym, cfg, signal){
+    return fetchTimeout(wrapProxy(cfg.proxy, newsGoogleUrl(sym)), 12000, signal)
+      .then(function(r){ return r.ok ? r.text() : ""; })
+      .then(function(t){ var g = parseGoogleNews(t, sym); return g.length ? g : Promise.reject(0); })
+      .catch(function(){
+        return fetchTimeout(wrapProxy(cfg.proxy, newsYahooUrl(sym)), 12000, signal)
+          .then(function(r){ return r.ok ? r.text() : ""; })
+          .then(function(t){ return parseYahooNews(t, sym); })
+          .catch(function(){ return []; });
+      });
+  }
+  var newsAbort = null;
+  function refreshNews(){
+    var host = $("#newsFeed"); if(!host) return;
+    if(isHosted && !state.hostOverride){ host.innerHTML = '<p class="empty">This hosted preview can’t fetch. Use your downloaded / self-hosted copy.</p>'; return; }
+    var cfg = currentCfg();
+    if(!cfg.proxy){ $("#newsErr").textContent = "Set your Worker / proxy URL on the Screener tab first."; return; }
+    var syms = newsSymList();
+    if(!syms.length){ host.innerHTML = '<p class="empty">Nothing to track. Add a symbol, or turn on watchlist / last-scan.</p>'; return; }
+    if(newsAbort) newsAbort.abort();
+    newsAbort = new AbortController();
+    var sig = newsAbort.signal, done = 0, all = [];
+    $("#newsErr").textContent = "";
+    $("#newsProgress").hidden = false; $("#newsProgress").querySelector("i").style.width = "0%";
+    $("#newsRefresh").disabled = true;
+    $("#newsMeta").textContent = "fetching "+syms.length+" stocks…";
+    var queue = syms.slice(), CONC = 3, live = 0;
+    function pump(){
+      while(live < CONC && queue.length){
+        var sym = queue.shift(); live++;
+        fetchNewsFor(sym, cfg, sig).then(function(items){
+          all = all.concat(items);
+        }).catch(function(){}).then(function(){
+          live--; done++;
+          $("#newsProgress").querySelector("i").style.width = Math.round(done/syms.length*100)+"%";
+          if(done === syms.length) finishNews(all); else pump();
+        });
+      }
+    }
+    pump();
+  }
+  function finishNews(items){
+    $("#newsProgress").hidden = true;
+    $("#newsRefresh").disabled = false;
+    var seen = {}, cutoff = Date.now() - 8*86400000;
+    var clean = items.filter(function(x){
+      var key = (x.link||"").split("?")[0];
+      if(seen[key]) return false; seen[key] = 1;
+      return !x.ts || x.ts >= cutoff;
+    }).sort(function(a,b){ return (b.ts||0) - (a.ts||0); });
+    state.newsCache = { at: Date.now(), items: clean.slice(0, 120) };
+    save();
+    renderNews();
+  }
+  function renderNews(){
+    var host = $("#newsFeed"); if(!host) return;
+    if($("#newsWL")) $("#newsWL").checked = state.newsWL !== false;
+    if($("#newsTop")) $("#newsTop").checked = state.newsTop !== false;
+    var tracked = newsSymList();
+    if($("#newsTracked")) $("#newsTracked").innerHTML = tracked.length
+      ? tracked.map(function(s){
+          var manual = (state.newsSyms||[]).indexOf(s) >= 0;
+          return '<span class="chip-ck on">'+esc(s)+(manual?'<span class="nx" data-sym="'+esc(s)+'">×</span>':'')+'</span>';
+        }).join("")
+      : '<span class="hint">no stocks tracked</span>';
+    $$("#newsTracked .nx").forEach(function(x){ x.addEventListener("click", function(){
+      var s = x.getAttribute("data-sym");
+      state.newsSyms = (state.newsSyms||[]).filter(function(y){ return y!==s; });
+      save(); renderNews();
+    }); });
+
+    var c = state.newsCache;
+    if(!c || !c.items || !c.items.length){
+      if($("#newsMeta")) $("#newsMeta").textContent = c ? "no headlines found" : "";
+      host.innerHTML = '<p class="empty">'+(c ? "No recent headlines for the tracked stocks. Google/Yahoo may not carry news for these NSE tickers." : "Press <b>Refresh</b> to pull headlines.")+'</p>';
+      return;
+    }
+    if($("#newsMeta")) $("#newsMeta").textContent = c.items.length+" headlines · as of "+new Date(c.at).toLocaleTimeString([], {hour:"2-digit", minute:"2-digit"});
+    host.innerHTML = c.items.map(function(n){
+      return '<div class="news-item">'+
+        '<div class="news-head">'+
+          '<span class="sym" data-sym="'+esc(n.sym)+'" title="open '+esc(n.sym)+' in the Analyzer">'+esc(n.sym)+'</span> '+
+          '<a class="h" href="'+esc(n.link)+'" target="_blank" rel="noopener">'+esc(n.title)+'</a>'+
+        '</div>'+
+        '<div class="news-meta">'+esc(n.source||"")+(n.ts?' · '+agoTxt(n.ts):"")+'</div>'+
+        (n.snippet ? '<div class="news-snip">'+esc(n.snippet.slice(0,220))+(n.snippet.length>220?'…':'')+'</div>' : '')+
+      '</div>';
+    }).join("");
+    $$("#newsFeed .sym").forEach(function(el){ el.addEventListener("click", function(){
+      var s = el.getAttribute("data-sym");
+      var row = parseBatch($("#batchInput").value).filter(function(r){ return r.symbol===s; })[0];
+      if(row){ loadIntoAnalyzer(row); } else { $("#a_sym").value = s; }
+      switchTab("analyzer");
+    }); });
+  }
+
   /* ---------- auto-screen: universe ---------- */
   var SECTORS = ["IT","Bank","Financials","Auto","Pharma","FMCG","Consumer","Metal","OilGas","Power","Infra","CapGoods","Chemicals","Telecom","Realty"];
 
@@ -6797,8 +6985,9 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
   /* ---------- tabs / theme / controls ---------- */
   function switchTab(name){
     $$("#tabs button").forEach(function(b){ b.classList.toggle("active", b.getAttribute("data-tab")===name); });
-    ["today","screener","golden","silver","darvas","hdf","coil","candles","mb","journal","book","analyzer","playbook"].forEach(function(t){ $("#tab-"+t).hidden = (t!==name); });
+    ["today","news","screener","golden","silver","darvas","hdf","coil","candles","mb","journal","book","analyzer","playbook"].forEach(function(t){ $("#tab-"+t).hidden = (t!==name); });
     if(name==="today") renderToday();
+    if(name==="news") renderNews();
     if(name==="candles") renderCandles();
     if(name==="mb") renderMultibagger();
     if(name==="book") renderBook();
@@ -6858,6 +7047,17 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
     if($("#todaySetup")) $("#todaySetup").addEventListener("change", function(){ state.todaySetup = this.value; save(); renderToday(); });
     if($("#todayLead")) $("#todayLead").addEventListener("change", function(){ state.todayLead = this.checked; save(); renderToday(); });
     if($("#todayRisk")) $("#todayRisk").addEventListener("input", function(){ state.todayRisk = this.value; save(); renderToday(); });
+
+    function newsAddFromInput(){
+      var v = ($("#newsAdd").value||"").toUpperCase();
+      v.split(/[,\s]+/).forEach(function(s){ s=s.trim(); if(s && (state.newsSyms||[]).indexOf(s)<0){ state.newsSyms = state.newsSyms||[]; state.newsSyms.push(s); } });
+      $("#newsAdd").value = ""; save(); renderNews();
+    }
+    if($("#newsAddBtn")) $("#newsAddBtn").addEventListener("click", newsAddFromInput);
+    if($("#newsAdd")) $("#newsAdd").addEventListener("keydown", function(e){ if(e.key==="Enter"){ e.preventDefault(); newsAddFromInput(); } });
+    if($("#newsWL")) $("#newsWL").addEventListener("change", function(){ state.newsWL = this.checked; save(); renderNews(); });
+    if($("#newsTop")) $("#newsTop").addEventListener("change", function(){ state.newsTop = this.checked; save(); renderNews(); });
+    if($("#newsRefresh")) $("#newsRefresh").addEventListener("click", refreshNews);
 
     $("#tabs").addEventListener("click", function(e){
       var b = e.target.closest("button"); if(b) switchTab(b.getAttribute("data-tab"));
