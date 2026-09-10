@@ -399,7 +399,7 @@ table.sc-setup td.num{font-family:"IBM Plex Mono",monospace;text-align:right}
     <span class="mark" aria-hidden="true">₹</span>
     <div>
       <h1>The 10% Ledger</h1>
-      <p>Momentum + pullback screener · NSE swing setups <span style="opacity:.5;font-size:11px">· build 2026-09-10b</span></p>
+      <p>Momentum + pullback screener · NSE swing setups <span style="opacity:.5;font-size:11px">· build 2026-09-10d</span></p>
     </div>
   </div>
   <div class="controls">
@@ -468,7 +468,7 @@ table.sc-setup td.num{font-family:"IBM Plex Mono",monospace;text-align:right}
       </div>
       <div id="todayList"><p class="empty">Run a scan (Screener → Scan now), then come back here.</p></div>
       <p class="hint" style="margin-top:14px;border-top:1px solid var(--line);padding-top:11px">
-        <b>The rules —</b> set a price alert at the <b>Buy-stop</b> in your broker app. When it triggers, buy; no deliberation. Stop where shown. Size at the starter risk until 20 trades are logged and the Execution Scorecard shows your edge. Never chase a gap-up open. If this screen is empty, there is no trade today — sitting out is the job.
+        <b>The rules —</b> set a price alert at the <b>Buy-stop</b> in your broker app. When it triggers, buy the <b>Size</b> shown; no deliberation. Place a stop-loss order at the <b>Stop</b> price (the tool does <i>not</i> place orders for you). <b>"0.25% risk" is not the stop distance</b> — it's how much of your account you lose <i>if</i> the Stop is hit; the Stop itself sits ~2–4% below entry, far enough that normal noise won't trigger it. Keep the starter risk until 20 trades are logged and the Execution Scorecard shows your edge. Never chase a gap-up open. If this screen is empty, there is no trade today — sitting out is the job.
       </p>
     </div>
   </section>
@@ -948,6 +948,8 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
         <label>Initial stop ₹ <input id="j_stop" type="text" inputmode="decimal"></label>
         <label>Quantity <input id="j_qty" type="text" inputmode="numeric"></label>
         <label>Setup <input id="j_setup" type="text" placeholder="e.g. BOB breakout / HDF" autocomplete="off"></label>
+        <label title="Leave blank for an open position. Fill it in to log an already-closed / past trade — it goes straight to the Closed table and counts in the Execution Scorecard.">Exit price ₹ <span class="hint">(only if already closed)</span> <input id="j_exit" type="text" inputmode="decimal"></label>
+        <label>Exit date <input id="j_exitdate" type="date"></label>
         <label class="full">Notes <textarea id="j_notes" rows="2" placeholder="why you took it, market regime, anything to check later"></textarea></label>
       </div>
       <div class="field-actions"><button class="primary" id="jAddBtn">Add position</button> <button id="jFillFromAnalyzer" class="ghost" title="Use the symbol / entry / stop currently in the Analyzer">◀ from Analyzer</button></div>
@@ -3302,6 +3304,8 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
   function journalAdd(){
     var sym = ($("#j_sym").value||"").trim().toUpperCase();
     if(!sym){ $("#j_sym").focus(); return; }
+    var exitPx = parseFloat($("#j_exit") && $("#j_exit").value) || 0;
+    var closed = exitPx > 0;
     var e = {
       id: jId(), symbol: sym,
       entryDate: $("#j_date").value || new Date().toISOString().slice(0,10),
@@ -3309,12 +3313,14 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
       stop: parseFloat($("#j_stop").value) || 0,
       qty: parseFloat($("#j_qty").value) || 0,
       setup: ($("#j_setup").value||"").trim(),
-      status: "open", exitDate: "", exitPrice: 0,
+      status: closed ? "closed" : "open",
+      exitDate: closed ? (($("#j_exitdate") && $("#j_exitdate").value) || new Date().toISOString().slice(0,10)) : "",
+      exitPrice: closed ? exitPx : 0,
       notes: ($("#j_notes").value||"").trim()
     };
     jList().unshift(e); jSave();
     jPush({ action:"add", row: e });
-    ["j_sym","j_entry","j_stop","j_qty","j_setup","j_notes"].forEach(function(id){ if($("#"+id)) $("#"+id).value=""; });
+    ["j_sym","j_entry","j_stop","j_qty","j_setup","j_notes","j_exit","j_exitdate"].forEach(function(id){ if($("#"+id)) $("#"+id).value=""; });
     renderJournal();
   }
   function journalUpdate(id, patch){
@@ -3501,7 +3507,11 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
       var pnlTxt = (hr.pnl!=null) ? pctSpan(hr.pnl) : '<span class="dim">–</span>';
       var rTxt = (hr.R!=null) ? '<b class="'+(hr.R>=1?"pos":hr.R>=0?"":"neg")+'">'+hr.R.toFixed(1)+'R</b>' : '<span class="dim">–</span>';
       return '<tr>'+
-        '<td><button class="x" data-id="'+pos.id+'" data-act="close" title="mark closed at the current price">✓ close</button></td>'+
+        '<td style="white-space:nowrap">'+
+          '<input class="j-exitpx" data-id="'+pos.id+'" type="text" inputmode="decimal" placeholder="exit ₹" value="'+(now!=null?nfmt(now,2):'')+'" '+
+            'title="Type your actual fill price, then click ✓ close" style="width:66px;padding:4px 6px;background:var(--bg);border:1px solid var(--line-strong);border-radius:5px;font-size:12px">'+
+          ' <button class="x" data-id="'+pos.id+'" data-act="close" title="close at the exit price on the left (defaults to the latest price)">✓ close</button>'+
+        '</td>'+
         '<td class="sym">'+esc(pos.symbol)+'<div class="dim" style="font-size:10px">'+esc(pos.entryDate)+(pos.setup?' · '+esc(pos.setup):'')+'</div></td>'+
         '<td class="num">'+(pos.entryPrice?nfmt(pos.entryPrice):'–')+'<div class="dim" style="font-size:10px">stop '+(pos.stop?nfmt(pos.stop):'–')+'</div></td>'+
         '<td class="num">'+(now!=null?nfmt(now):'<span class="dim">not in scan</span>')+'</td>'+
@@ -3518,14 +3528,18 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
       var ret = (pos.entryPrice>0 && pos.exitPrice>0) ? (pos.exitPrice-pos.entryPrice)/pos.entryPrice : null;
       var R = (pos.entryPrice>0 && pos.stop>0 && pos.exitPrice>0 && pos.entryPrice>pos.stop) ? (pos.exitPrice-pos.entryPrice)/(pos.entryPrice-pos.stop) : null;
       var held = (pos.entryDate && pos.exitDate) ? Math.max(0,Math.round((new Date(pos.exitDate)-new Date(pos.entryDate))/86400000))+'d' : '–';
+      var iStyle='padding:3px 5px;background:var(--bg);border:1px solid var(--line-strong);border-radius:5px;font-size:12px';
       return '<tr>'+
         '<td class="sym">'+esc(pos.symbol)+'</td>'+
         '<td class="num">'+held+'</td>'+
-        '<td class="num">'+(pos.entryPrice?nfmt(pos.entryPrice):'–')+' → '+(pos.exitPrice?nfmt(pos.exitPrice):'–')+'</td>'+
+        '<td class="num" style="white-space:nowrap">'+(pos.entryPrice?nfmt(pos.entryPrice):'–')+' → '+
+          '<input class="j-editexit" data-id="'+pos.id+'" type="text" inputmode="decimal" value="'+(pos.exitPrice||"")+'" title="Edit the exit price" style="width:62px;'+iStyle+'">'+
+          '<input class="j-editexitd" data-id="'+pos.id+'" type="date" value="'+esc(pos.exitDate||"")+'" title="Edit the exit date" style="width:120px;margin-left:4px;'+iStyle+'">'+
+        '</td>'+
         '<td class="num">'+(ret!=null?pctSpan(ret):'–')+'</td>'+
         '<td class="num">'+(R!=null?'<b class="'+(R>=0?"pos":"neg")+'">'+R.toFixed(1)+'R</b>':'–')+'</td>'+
         '<td class="dim" style="max-width:280px;white-space:normal;font-size:11px">'+esc(pos.setup||"")+(pos.notes?' — '+esc(pos.notes):'')+'</td>'+
-        '<td><button class="x" data-id="'+pos.id+'" data-act="del">remove</button></td>'+
+        '<td><button class="x" data-id="'+pos.id+'" data-act="reopen" title="move back to Open positions">↩ reopen</button> <button class="x" data-id="'+pos.id+'" data-act="del">remove</button></td>'+
       '</tr>';
     }).join("") : '<tr><td colspan="7" class="empty">Nothing closed yet.</td></tr>';
 
@@ -3544,14 +3558,22 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
       btn.addEventListener("click", function(){
         var id=btn.getAttribute("data-id"), act=btn.getAttribute("data-act");
         if(act==="del"){ if(confirm("Remove this position from the journal?")) journalRemove(id); return; }
+        if(act==="reopen"){ journalUpdate(id, { status:"open", exitPrice:0, exitDate:"" }); return; }
         if(act==="close"){
           var pos = jList().filter(function(x){return x.id===id;})[0]; if(!pos) return;
+          var inp = $$("#jOpenBody .j-exitpx").filter(function(x){ return x.getAttribute("data-id")===id; })[0];
           var d = bySym[pos.symbol];
-          var px = prompt("Exit price for "+pos.symbol+":", d && d.price>0 ? d.price : (pos.entryPrice||""));
-          if(px==null) return;
-          journalUpdate(id, { status:"closed", exitPrice: parseFloat(px)||0, exitDate: new Date().toISOString().slice(0,10) });
+          var px = (inp && parseFloat(inp.value)) || (d && d.price>0 ? d.price : 0);
+          if(!(px>0)){ if(inp){ inp.focus(); inp.style.borderColor="var(--neg)"; } return; }
+          journalUpdate(id, { status:"closed", exitPrice: px, exitDate: new Date().toISOString().slice(0,10) });
         }
       });
+    });
+    $$("#jClosedBody .j-editexit").forEach(function(inp){
+      inp.addEventListener("change", function(){ var v=parseFloat(inp.value); if(v>0) journalUpdate(inp.getAttribute("data-id"), { exitPrice:v }); });
+    });
+    $$("#jClosedBody .j-editexitd").forEach(function(inp){
+      inp.addEventListener("change", function(){ if(inp.value) journalUpdate(inp.getAttribute("data-id"), { exitDate:inp.value }); });
     });
     $$("#jOpenBody .openbtn").forEach(function(btn){
       btn.addEventListener("click", function(){
@@ -4417,7 +4439,14 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
       if(!(d.rs!=null && d.rs>=80)) return false;
       if(lead && d.sectorLbl!=="leading") return false;
       if(!setupOk(d)) return false;
-      return entryLiveToday(d);
+      if(!entryLiveToday(d)) return false;
+      // must be tradeable on this account: ≥1 share within the starter-risk budget,
+      // and one share not more than ~12% of capital
+      var tr0 = computeTrade(d), per0 = tr0.entry - tr0.stop;
+      if(!(per0 > 0)) return false;
+      if(Math.floor((state.capital*risk/100)/per0) < 1) return false;
+      if(state.capital>0 && tr0.entry > state.capital*0.12) return false;
+      return true;
     }).map(function(d){ return {d:d, e:evaluateRow(d)}; })
       .sort(function(a,b){ return (b.d.rs-a.d.rs) || ((b.d.probT1||0)-(a.d.probT1||0)); })
       .slice(0,8);
