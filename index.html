@@ -297,6 +297,8 @@ table.mb-scen td.num{font-family:"IBM Plex Mono",monospace;text-align:right;padd
 .cx-tl.neck{stroke:#e8912a;stroke-width:1.4;stroke-dasharray:2 3}
 .cx-patlab{fill:#37a6ff;font-size:10px;font-weight:600;font-family:"IBM Plex Mono",monospace}
 .cx-trend{stroke:#4f7fa8;stroke-width:1.7;fill:none;opacity:.92}
+.cx-trend.minor{stroke-width:1.3;stroke-dasharray:4 3;opacity:.78}
+.cx-trend.mid{stroke:#9a7fc0}
 .cx-avwap{fill:none;stroke:#d6489b;stroke-width:1.7;stroke-dasharray:5 2;opacity:.95}
 .cx-flab.cx-avwaplab{fill:#d6489b;font-weight:600}
 .cx-volshock{fill:#8b5cf6;stroke:#8b5cf6}
@@ -400,7 +402,7 @@ table.sc-setup td.num{font-family:"IBM Plex Mono",monospace;text-align:right}
     <span class="mark" aria-hidden="true">₹</span>
     <div>
       <h1>The 10% Ledger</h1>
-      <p>Momentum + pullback screener · NSE swing setups <span style="opacity:.5;font-size:11px">· build 2026-09-10i</span></p>
+      <p>Momentum + pullback screener · NSE swing setups <span style="opacity:.5;font-size:11px">· build 2026-09-10k</span></p>
     </div>
   </div>
   <div class="controls">
@@ -1025,7 +1027,7 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
             <option value="gxw">Fresh weekly 10/50 SMA cross (≤ 8 weeks)</option>
             <option value="gxboth">Fresh 10/50 cross — daily AND weekly</option>
             <option value="volshock">Volume shockers — highest volume in 6 months+</option>
-            <option value="accbo">Accumulated base — breaking out now (tight base · RS ≥ 55 · at the line)</option>
+            <option value="accbo">Accumulated base — breaking out now (tight base near the highs · RS ≥ 55)</option>
             <option value="accstrong">Accumulation — strong (in a base or not)</option>
             <option value="mbtop">Multibagger Radar — all, ranked by score</option>
             <option value="mb">Multibagger Radar — class A / B</option>
@@ -2809,9 +2811,10 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
       case "gxw":          return !!d.gxw;
       case "gxboth":       return !!d.gx && !!d.gxw;
       case "volshock":     return d.vsk && d.vsk.span>=124;
-      case "accbo":      { // strong accumulation in a genuinely TIGHT base, price right at / just clearing the base high, in an uptrend, not a laggard
+      case "accbo":      { // strong accumulation in a TIGHT base NEAR THE HIGHS, price right at / just clearing it, in an uptrend, not a laggard
         if(!(d.acc && d.acc.bo && d.acc.label==="strong")) return false;
-        if(!(d.basePct>0 && d.basePct<=0.14 && d.baseBars>=8)) return false;   // tight, real consolidation
+        if(!(d.basePct>0 && d.basePct<=0.12 && d.baseBars>=8)) return false;   // tight, real consolidation
+        if(!(d.athPct!=null && d.athPct<=0.10)) return false;                  // based AT the highs, not recovering from a deep correction
         if(!(d.rs!=null && d.rs>=55)) return false;                            // not drifting/lagging
         if(!(d.ema50>0 && d.price>d.ema50)) return false;                      // above the 50-day
         var ext = d.breakout>0 ? (d.price-d.breakout)/d.breakout : 0;
@@ -4884,30 +4887,53 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
       if(isHi) hi.push({x:i,y:H[i]});
     }
     var rng = Math.max.apply(null,H)-Math.min.apply(null,L), tol = Math.max(price*0.015, rng*0.03);
-    function best(pts, side){                 // side +1 = support (pivots sit above), −1 = resistance
+    function best(pts, side, minSpan){       // side +1 = support (pivots sit above), −1 = resistance
       if(pts.length<2) return null;
-      var win=null, winScore=1.5, a, b;
+      if(minSpan==null) minSpan = n*0.22;
+      var win=null, winScore=1.2, a, b;
       for(a=0;a<pts.length-1;a++) for(b=a+1;b<pts.length;b++){
         var p1=pts[a], p2=pts[b];
-        if(p2.x-p1.x < n*0.22) continue;      // must span a decent stretch
+        if(p2.x-p1.x < minSpan) continue;
         var m=(p2.y-p1.y)/(p2.x-p1.x), c0=p1.y-m*p1.x;
         var lastY=m*(n-1)+c0;
         if(side>0 && lastY > price*1.03) continue;   // support drawn above price → already broken
         if(side<0 && lastY < price*0.97) continue;
         var touch=0, viol=0, j;
         for(j=0;j<pts.length;j++){
+          if(pts[j].x < p1.x) continue;             // judge the line only over the span it represents + forward
           var dy=(pts[j].y-(m*pts[j].x+c0))*side;
           if(Math.abs(pts[j].y-(m*pts[j].x+c0)) <= tol) touch++;
           else if(dy < -tol) viol++;
         }
         var score = touch - viol*1.5;
-        if(score > winScore){ winScore=score; win={m:m,c:c0,x1:p1.x}; }
+        if(score > winScore){ winScore=score; win={m:m,c:c0,x1:p1.x,touch:touch}; }
       }
       return win;
     }
-    var out=[], s=best(lo,1), r=best(hi,-1);
-    if(s) out.push({x1:s.x1, y1:s.m*s.x1+s.c, x2:n-1, y2:s.m*(n-1)+s.c, cls:"sup"});
-    if(r) out.push({x1:r.x1, y1:r.m*r.x1+r.c, x2:n-1, y2:r.m*(n-1)+r.c, cls:"res"});
+    var out=[];
+    function add(fit, side, minor){
+      if(!fit) return;
+      out.push({ x1:fit.x1, y1:fit.m*fit.x1+fit.c, x2:n-1, y2:fit.m*(n-1)+fit.c,
+                 cls:(side>0?"sup":"res")+(minor?" minor":"") });
+    }
+    var sMain=best(lo,1), rMain=best(hi,-1);
+    add(sMain,1,false); add(rMain,-1,false);
+    // "trend inside the trend": a regression line through the closes of the most recent ~45%
+    // of the chart, drawn only when its direction clearly diverges from the big trendline
+    var pct=function(m){ return m/(price||1)*100; };
+    var mainSlope = sMain ? pct(sMain.m) : (rMain ? pct(rMain.m) : 0);
+    var rc = C.slice(Math.round(n*0.55));
+    if(rc.length >= 15){
+      var mm=rc.length, sx=0,sy=0,sxx=0,sxy=0;
+      rc.forEach(function(y,x){ sx+=x; sy+=y; sxx+=x*x; sxy+=x*y; });
+      var den2 = mm*sxx-sx*sx;
+      if(den2){
+        var sl=(mm*sxy-sx*sy)/den2, ic=(sy-sl*sx)/mm, slPct=pct(sl), r0=n-rc.length;
+        // only when the recent leg diverges sharply from the big trend (a real acceleration or a rollover)
+        if(Math.abs(slPct-mainSlope) > 0.13 || (Math.abs(mainSlope)>0.04 && Math.abs(slPct)>0.04 && (slPct>0)!==(mainSlope>0)))
+          out.push({ x1:r0, y1:ic, x2:n-1, y2:sl*(rc.length-1)+ic, cls:"mid minor" });
+      }
+    }
     return out.length ? out : null;
   }
   // recent-structure chart pattern: works on the last ~40% of the visible window only
