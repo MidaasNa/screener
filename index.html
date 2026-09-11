@@ -418,7 +418,7 @@ table.sc-setup td.num{font-family:"IBM Plex Mono",monospace;text-align:right}
     <span class="mark" aria-hidden="true">₹</span>
     <div>
       <h1>The 10% Ledger</h1>
-      <p>Momentum + pullback screener · NSE swing setups <span style="opacity:.5;font-size:11px">· build 2026-09-12b</span></p>
+      <p>Momentum + pullback screener · NSE swing setups <span style="opacity:.5;font-size:11px">· build 2026-09-12c</span></p>
     </div>
   </div>
   <div class="controls">
@@ -3367,6 +3367,43 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
     var pad = function(x){ return x<10 ? "0"+x : ""+x; };
     return year+"-"+pad(qEndMonth)+"-"+pad(lastDay);
   }
+  // Was the volume inside the FII/DII footprint window concentrated in a handful of outsized
+  // days (looks like block/bulk deals) or spread across the ordinary days too (looks like
+  // steady accumulation)? A volume-shape proxy only — quarterly disclosures are a single
+  // aggregate number, not a day-by-day ledger; NSE/BSE bulk & block deal reports are the only
+  // source that actually names buyers on a given day.
+  function footprintConcentration(o, q0label, q1label){
+    var fStartS = quarterEndDate(q0label), fEndS = quarterEndDate(q1label);
+    if(!fStartS || !fEndS || fEndS<=fStartS) return null;
+    var c=o.c, h=o.h, l=o.l, op=o.o, v=o.v, dt=o.d, n=c && c.length || 0, i;
+    var idx=[];
+    for(i=1;i<n;i++){ if(dt[i]!=null && dt[i]>fStartS && dt[i]<=fEndS) idx.push(i); }
+    if(idx.length<8) return { tooFew:true, days:idx.length };
+    var rows = idx.map(function(k){ return { i:k, v:v[k]||0, up:c[k]>=op[k] }; });
+    var totVol=0, totUpVol=0; rows.forEach(function(r){ totVol+=r.v; if(r.up) totUpVol+=r.v; });
+    var avgVol = totVol/rows.length;
+    var sorted = rows.slice().sort(function(a,b){ return b.v-a.v; });
+    var bigN = Math.max(1, Math.round(rows.length*0.2));
+    var big = sorted.slice(0,bigN), rest = sorted.slice(bigN);
+    var bigVol=0, bigUpVol=0; big.forEach(function(r){ bigVol+=r.v; if(r.up) bigUpVol+=r.v; });
+    var restVol=0, restUpVol=0; rest.forEach(function(r){ restVol+=r.v; if(r.up) restUpVol+=r.v; });
+    var pockets=0;
+    for(i=1;i<idx.length;i++){
+      var ii=idx[i]; if(c[ii]<=c[ii-1]) continue;
+      var maxDn=0, k;
+      for(k=Math.max(1,ii-10); k<ii; k++){ if(c[k]<c[k-1] && (v[k]||0)>maxDn) maxDn=v[k]; }
+      if(maxDn>0 && (v[ii]||0)>maxDn) pockets++;
+    }
+    var topUp = rows.filter(function(r){ return r.up; }).sort(function(a,b){ return b.v-a.v; }).slice(0,3)
+      .map(function(r){ return { date:dt[r.i], mult: avgVol>0 ? Math.round(r.v/avgVol*10)/10 : 0 }; });
+    return {
+      days: rows.length, bigDays: bigN,
+      bigVolPct: totVol? Math.round(bigVol/totVol*100):0,
+      bigUpShare: bigVol? Math.round(bigUpVol/bigVol*100):0,
+      restUpShare: restVol>0? Math.round(restUpVol/restVol*100):0,
+      pockets: pockets, topUp: topUp
+    };
+  }
   function shareholdingGet(sym){ return (state.shareholding && state.shareholding[sym]) || null; }
   function shareholdingSave(sym, q0, q1){
     state.shareholding = state.shareholding || {};
@@ -3406,8 +3443,9 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
         '</div>'+
         '<div class="bc-head" style="margin-top:2px"><span class="bc-lean '+v.cls+'">'+esc(v.label)+'</span></div>';
     }
+    var footPlaceholder = rec ? '<div id="shFootDetail" class="bc-acc" style="color:var(--muted)">Checking how that volume was spread across the window…</div>' : '';
     host.hidden = false;
-    host.innerHTML = form + verdictHtml +
+    host.innerHTML = form + verdictHtml + footPlaceholder +
       '<div class="bc-note">Manual entry — the tool has no automated feed for Indian shareholding-pattern data. If promoter holding dropped by roughly as much as FII holding rose, it\'s very likely a QIP / preferential placement (check for one before trusting "FII accumulation" claims on social media) — that\'s a one-time private deal, not buying pressure visible on the chart. Only an FII rise <i>not</i> matched by a promoter drop is real open-market accumulation. Once both quarters are saved, toggle <b>FII/DII footprint</b> in the chart overlays to shade that calendar quarter on the price and volume panels — genuine accumulation should show up as elevated volume in that window; a placement usually won\'t.</div>';
     var sv = $("#shSaveBtn");
     if(sv) sv.addEventListener("click", function(){
@@ -3420,6 +3458,36 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
     });
     var cl = $("#shClearBtn");
     if(cl) cl.addEventListener("click", function(){ shareholdingClear(sym); renderBook(); });
+  }
+  // fills in the "#shFootDetail" placeholder once the chart's OHLCV has loaded — answers
+  // "did FII/DII buying show up on the big-volume days, or spread across small ones too?"
+  function renderFootprintDetail(o, d){
+    var box = $("#shFootDetail"); if(!box) return;
+    var rec = shareholdingGet(d.symbol);
+    if(!rec){ box.remove(); return; }
+    var fc = footprintConcentration(o, rec.q0.label, rec.q1.label);
+    if(!fc){
+      box.textContent = "Couldn't line this up with a calendar window — use quarter labels like \"Jun 2026\" so the date can be parsed.";
+      return;
+    }
+    if(fc.tooFew){
+      box.textContent = "Only "+fc.days+" trading day(s) of that quarter are in the loaded chart — switch to Weekly, or press ↻ live, to cover the whole window.";
+      return;
+    }
+    var concentrated = fc.bigVolPct>=38 && fc.bigUpShare>=58;
+    var spreadToo = fc.restUpShare>=55;
+    var read = concentrated
+      ? (spreadToo
+          ? "Buying looks concentrated in a handful of outsized days, but the ordinary days leaned up too — a mix of big prints (block/bulk-deal shaped) and steady accumulation."
+          : "Buying looks concentrated in a handful of outsized-volume days — shaped like block/bulk deals rather than gradual accumulation. Worth checking NSE's bulk/block deal reports for this stock in that window.")
+      : (spreadToo
+          ? "Spread fairly evenly across the window, including the ordinary/small days — the shape you'd expect from steady, unhurried accumulation, not a one-off deal."
+          : "No strong concentration either way — volume during this window doesn't clearly point to institutional footprints on specific days.");
+    box.className = "bc-acc";
+    box.innerHTML =
+      'Inside that window (<b>'+fc.days+'</b> trading days in the loaded chart): the biggest 20% by volume (<b>'+fc.bigDays+'</b> day'+(fc.bigDays===1?'':'s')+') carried <b>'+fc.bigVolPct+'%</b> of all the volume traded and were <b>'+fc.bigUpShare+'%</b> up-days; the other, ordinary days were <b>'+fc.restUpShare+'%</b> up-days.'+
+      (fc.pockets ? ' <b>'+fc.pockets+'</b> pocket-pivot day'+(fc.pockets===1?'':'s')+' (an up-day\'s volume beating the biggest down-day volume of the prior 10) — the closest thing here to a visible "someone stepped in today" footprint'+(fc.topUp.length?': '+fc.topUp.map(function(t){ return esc(t.date)+' ('+t.mult+'× avg vol)'; }).join(', '):'')+'.' : ' No pocket-pivot days in this window.')+
+      '<br><span style="color:var(--muted)">'+esc(read)+' This is a volume-<i>shape</i> proxy, not confirmed bulk/block-deal data — cross-check the actual dates on NSE\'s bulk/block deal reports if you need certainty on who traded.</span>';
   }
   function renderBook(){
     var host = $("#bookChart"); if(!host) return;
@@ -3602,6 +3670,7 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
       var series = tf==="weekly" ? toWeekly(o) : o;
       if(series.c.length<20){ host.innerHTML='<p class="empty">not enough history for a weekly chart</p>'; return; }
       renderStretch(o);   // the mean-reversion read always uses the daily series
+      renderFootprintDetail(o, d);   // fills in the shareholding-window volume breakdown, if any
       var age=chartAge(o), last=o.d[o.d.length-1];
       opts.liveLast = !!o.liveLast;
       opts.livePrice = o.liveLast ? o.c[o.c.length-1] : 0;
