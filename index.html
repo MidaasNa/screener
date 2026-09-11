@@ -315,6 +315,9 @@ table.mb-scen td.num{font-family:"IBM Plex Mono",monospace;text-align:right;padd
 .cx-sigsell{fill:#e8912a;stroke:#e8912a}
 .cx-sigsell.weak{fill:none;stroke:#e8912a;stroke-width:1.3}
 .cx-sigexit{fill:none;stroke:#d64545;stroke-width:1.5}
+.cx-fiiwin{fill:#22b8cf;fill-opacity:.07;stroke:#22b8cf;stroke-opacity:.5;stroke-width:1;stroke-dasharray:3 2}
+.cx-fiiwinvol{fill:#22b8cf;fill-opacity:.14;stroke:none}
+.cx-flab.cx-fiiwinlab{fill:#0e8fa8;font-weight:600}
 .cx-legend .ksup{color:#12c98b} .cx-legend .ktl{color:#37a6ff} .cx-legend .kvwap{color:#d6489b} .cx-legend .ktrend{color:#4f7fa8} .cx-legend .ktrendm{color:#9a7fc0} .cx-legend .kstretch{color:#7a8cff}
 .cx-line.cx-ocput{stroke:var(--pos);stroke-dasharray:2 2;opacity:.75} .cx-flab.cx-ocput{fill:var(--pos);opacity:.8}
 .cx-line.cx-occall{stroke:var(--neg);stroke-dasharray:2 2;opacity:.75} .cx-flab.cx-occall{fill:var(--neg);opacity:.8}
@@ -415,7 +418,7 @@ table.sc-setup td.num{font-family:"IBM Plex Mono",monospace;text-align:right}
     <span class="mark" aria-hidden="true">₹</span>
     <div>
       <h1>The 10% Ledger</h1>
-      <p>Momentum + pullback screener · NSE swing setups <span style="opacity:.5;font-size:11px">· build 2026-09-12a</span></p>
+      <p>Momentum + pullback screener · NSE swing setups <span style="opacity:.5;font-size:11px">· build 2026-09-12b</span></p>
     </div>
   </div>
   <div class="controls">
@@ -1081,6 +1084,7 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
           <button data-v="pat" aria-pressed="true" title="Named chart pattern over the recent structure — triangle / channel / wedge / range / double top-bottom — with its shorter trendlines and the label">Pattern</button>
           <button data-v="vwap" aria-pressed="true" title="Anchored VWAP from the start of the consolidation base — the volume-weighted average price paid while the base formed (a proxy for where accumulators are in)">Base VWAP</button>
           <button data-v="stretch" aria-pressed="false" title="±2σ envelope around the 20-EMA (Disparity Index band) + entry/exit markers: ▲ = a pullback to the RISING 20-EMA with a reversal bar (buy), ▼ = price tagged the upper band (take profit / scale out), ✕ = closed back below the 20-EMA after a buy (exit). The Stretch read below the plan backtests the ▲ rule on this stock and shows its expectancy in R.">Stretch band + signals</button>
+          <button data-v="fii" aria-pressed="true" title="Shades the calendar quarter between the two dates entered in the Shareholding check panel, on both the price chart and the volume panel — so you can see what price and volume actually did while FII/DII accumulated (or didn't). Needs a saved Shareholding check for this symbol.">FII/DII footprint</button>
         </div>
         <button id="bookRefreshLive" class="ghost" title="Fetch fresh candles for this stock">↻ live</button>
         <button id="bookWatch" class="ghost" title="Add / remove this stock from your watchlist">☆ Watchlist</button>
@@ -1451,6 +1455,7 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
         <li><b>Flat / reduced</b> — no signal either way.</li>
       </ul>
       <p>It's saved per symbol (persists in your browser), feeds a chip in the Chart Book membership list, and nudges the <b>Confidence read</b> score — up for genuine accumulation, down for a likely placement.</p>
+      <p><b>FII/DII footprint</b> (chart overlay, on by default): once a symbol has a saved Shareholding check, it turns the two quarter labels into calendar dates and shades that quarter on the chart — a light teal band on the price panel and volume panel, with the FII/DII Δpp printed at the top. It's the literal "footprint" a social-media claim points at: if the shading sits over a quiet, low-volume stretch, whatever moved the shareholding number almost certainly wasn't market buying (a placement, a merger, a block deal); if it sits over a genuine volume surge, that's the real thing. Needs month-named quarter labels ("Jun 2026", not "Q1FY27") to parse; falls back to drawing nothing if it can't.</p>
 
       <h3>Volume thrust at the moving average — the ⚡ badge (the RATNAVEER pattern)</h3>
       <p>A tight, high-quality trigger for a stock right at the start of a run. All of these have to be true:</p>
@@ -1648,7 +1653,7 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
     universeSize: "200", customUniverse: "", leadingSectors: [],
     dropForming: true, fetchEvents: false, fetchResults: true, fetchDeep: true, scanCache: null, hostOverride: false,
     oc: {}, journal: [], journalUrl: "", bookIdx: 0, bookScope: "all",
-    bookSR: true, bookPat: true, bookVwap: true, bookTrend: true, bookStretchBand: false,
+    bookSR: true, bookPat: true, bookVwap: true, bookTrend: true, bookStretchBand: false, bookFiiWindow: true,
     todaySetup: "golden", todayLead: false, todayRisk: "0.25",
     mbMinScore: 55, mbNoFlags: false, mbOpen: {}
   };
@@ -3343,6 +3348,25 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
     return { code:"mixed", cls:"warn",
       label:"FII rose, but partly explained by promoter (or other) selling — mixed, verify further" };
   }
+  // parse a loosely-typed quarter label ("Jun 2026", "March 2026") into that quarter's END
+  // date — the disclosure date the shareholding % is AS OF — as a plain "YYYY-MM-DD" string
+  // (no Date object / no timezone round-trip, so it compares cleanly against chart dates that
+  // are also plain ISO strings). Returns null if it can't find a month name + a 4-digit year.
+  function quarterEndDate(label){
+    if(!label) return null;
+    var s = String(label).toLowerCase();
+    var yM = s.match(/(20\d{2})/); if(!yM) return null;
+    var year = +yM[1];
+    var MON = {jan:1,feb:2,mar:3,apr:4,may:5,jun:6,jul:7,aug:8,sep:9,oct:10,nov:11,dec:12};
+    var mo = null, mM = s.match(/jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec/);
+    if(mM) mo = MON[mM[0]];
+    if(!mo) return null;
+    var qEndMonth = mo<=3 ? 3 : mo<=6 ? 6 : mo<=9 ? 9 : 12;
+    var leap = (year%4===0 && (year%100!==0 || year%400===0));
+    var lastDay = [31, leap?29:28, 31,30,31,30,31,31,30,31,30,31][qEndMonth-1];
+    var pad = function(x){ return x<10 ? "0"+x : ""+x; };
+    return year+"-"+pad(qEndMonth)+"-"+pad(lastDay);
+  }
   function shareholdingGet(sym){ return (state.shareholding && state.shareholding[sym]) || null; }
   function shareholdingSave(sym, q0, q1){
     state.shareholding = state.shareholding || {};
@@ -3384,7 +3408,7 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
     }
     host.hidden = false;
     host.innerHTML = form + verdictHtml +
-      '<div class="bc-note">Manual entry — the tool has no automated feed for Indian shareholding-pattern data. If promoter holding dropped by roughly as much as FII holding rose, it\'s very likely a QIP / preferential placement (check for one before trusting "FII accumulation" claims on social media) — that\'s a one-time private deal, not buying pressure visible on the chart. Only an FII rise <i>not</i> matched by a promoter drop is real open-market accumulation.</div>';
+      '<div class="bc-note">Manual entry — the tool has no automated feed for Indian shareholding-pattern data. If promoter holding dropped by roughly as much as FII holding rose, it\'s very likely a QIP / preferential placement (check for one before trusting "FII accumulation" claims on social media) — that\'s a one-time private deal, not buying pressure visible on the chart. Only an FII rise <i>not</i> matched by a promoter drop is real open-market accumulation. Once both quarters are saved, toggle <b>FII/DII footprint</b> in the chart overlays to shade that calendar quarter on the price and volume panels — genuine accumulation should show up as elevated volume in that window; a placement usually won\'t.</div>';
     var sv = $("#shSaveBtn");
     if(sv) sv.addEventListener("click", function(){
       var num = function(id){ var v=parseFloat((($("#"+id)&&$("#"+id).value)||"").replace(/[^0-9.\-]/g,"")); return isFinite(v) ? v : null; };
@@ -3404,7 +3428,7 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
     if($("#bookScope") && $("#bookScope").value!==scope) $("#bookScope").value = scope;
     $$("#bookTF button").forEach(function(x){ x.setAttribute("aria-pressed", String(x.getAttribute("data-v")===(state.chartTF||"daily"))); });
     $$("#bookMA button").forEach(function(x){ x.setAttribute("aria-pressed", String(x.getAttribute("data-v")===(state.chartMA||"ema"))); });
-    $$("#bookOverlay button").forEach(function(x){ var v=x.getAttribute("data-v"); x.setAttribute("aria-pressed", String(v==="sr" ? state.bookSR!==false : v==="vwap" ? state.bookVwap!==false : v==="trend" ? state.bookTrend!==false : v==="stretch" ? state.bookStretchBand===true : state.bookPat!==false)); });
+    $$("#bookOverlay button").forEach(function(x){ var v=x.getAttribute("data-v"); x.setAttribute("aria-pressed", String(v==="sr" ? state.bookSR!==false : v==="vwap" ? state.bookVwap!==false : v==="trend" ? state.bookTrend!==false : v==="stretch" ? state.bookStretchBand===true : v==="fii" ? state.bookFiiWindow!==false : state.bookPat!==false)); });
     var rows = parseBatch($("#batchInput").value);
     renderVsStudy(rows);
     renderSxStudy(rows);
@@ -3560,7 +3584,7 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
     var e = evaluateRow(d), tpx = trigParts(d);
     var opts = {symbol:sym, entry:e.tr.entry, stop:e.tr.stop, t10:e.tr.t10,
                 support:d.support, resistance:d.resistance, weekly: tf==="weekly", trigAgo: tpx?tpx.ago:-1,
-                stretchBand: state.bookStretchBand===true};
+                stretchBand: state.bookStretchBand===true, fiiWindow: state.bookFiiWindow!==false};
     var _oc = readOC();
     if(sym===(($("#a_sym").value||"").toUpperCase()) && ocHasSignal(_oc)){
       opts.ocCall=_oc.call; opts.ocPut=_oc.put; opts.ocMaxpain=_oc.maxpain;
@@ -4331,6 +4355,7 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
       (state.bookPat!==false?'<span class="ktl"><i></i>pattern</span>':'')+
       (state.bookVwap!==false?'<span class="kvwap"><i></i>base VWAP</span>':'')+
       (state.bookStretchBand===true?'<span class="kstretch"><i></i>±2σ stretch</span><span style="color:#2f9e44">&#9650; buy</span><span style="color:#e8912a">&#9660; take profit</span><span style="color:#d64545">&#10005; exit</span>':'')+
+      (state.bookFiiWindow!==false?'<span style="color:#0e8fa8">🏦 FII/DII window</span>':'')+
       '<span class="kent"><i></i>entry</span><span class="kstp"><i></i>stop</span><span class="ktgt"><i></i>+10%</span>'+
     '</div>';
   }
@@ -4390,6 +4415,26 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
       if(be>=1 && bstart<n-1){
         var bx1=X(Math.max(0,bstart)), bx2=X(Math.min(n-1,be)), by1=Y(bs.hi), by2=Y(bs.lo);
         g.push('<rect x="'+f1(bx1)+'" y="'+f1(by1)+'" width="'+f1(Math.max(1,bx2-bx1))+'" height="'+f1(Math.max(1,by2-by1))+'" class="cx-base"/>');
+      }
+    }
+    // FII / DII footprint — shade the calendar quarter between the two dates saved in the
+    // Shareholding check, on both the price panel and the volume panel, so you can see what
+    // price/volume actually did while institutions accumulated (or a placement landed).
+    if(opts.fiiWindow!==false){
+      var shRec = shareholdingGet(opts.symbol);
+      if(shRec && shRec.q0 && shRec.q1){
+        var fEndS = quarterEndDate(shRec.q1.label), fStartS = quarterEndDate(shRec.q0.label);
+        if(fEndS && fStartS && fEndS>fStartS){
+          var ffi=-1, ffj=-1, fk;
+          for(fk=0; fk<n; fk++){ if(D[fk]!=null && D[fk]>fStartS && ffi<0) ffi=fk; if(D[fk]!=null && D[fk]<=fEndS) ffj=fk; }
+          if(ffi>=0 && ffj>=ffi){
+            var ffx1=X(ffi), ffx2=X(Math.max(ffi,ffj));
+            g.push('<rect x="'+f1(ffx1)+'" y="'+f1(T)+'" width="'+f1(Math.max(1,ffx2-ffx1))+'" height="'+f1(PB-T)+'" class="cx-fiiwin"/>');
+            g.push('<rect x="'+f1(ffx1)+'" y="'+f1(VT)+'" width="'+f1(Math.max(1,ffx2-ffx1))+'" height="'+f1(VB-VT)+'" class="cx-fiiwinvol"/>');
+            var ffiiD = shRec.q1.fii-shRec.q0.fii, fdiiD = (shRec.q1.dii!=null&&shRec.q0.dii!=null) ? (shRec.q1.dii-shRec.q0.dii) : null;
+            g.push('<text x="'+f1((ffx1+ffx2)/2)+'" y="'+f1(T+11)+'" text-anchor="middle" class="cx-flab cx-fiiwinlab">🏦 FII '+(ffiiD>=0?'+':'')+ffiiD.toFixed(1)+'pp'+(fdiiD!=null?' · DII '+(fdiiD>=0?'+':'')+fdiiD.toFixed(1)+'pp':'')+'</text>');
+          }
+        }
       }
     }
     for(var i=0;i<n;i++){
@@ -7709,11 +7754,11 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
     });
     $$("#bookOverlay button").forEach(function(b){
       var v=b.getAttribute("data-v");
-      b.setAttribute("aria-pressed", String(v==="sr" ? state.bookSR!==false : v==="vwap" ? state.bookVwap!==false : v==="trend" ? state.bookTrend!==false : v==="stretch" ? state.bookStretchBand===true : state.bookPat!==false));
+      b.setAttribute("aria-pressed", String(v==="sr" ? state.bookSR!==false : v==="vwap" ? state.bookVwap!==false : v==="trend" ? state.bookTrend!==false : v==="stretch" ? state.bookStretchBand===true : v==="fii" ? state.bookFiiWindow!==false : state.bookPat!==false));
       b.addEventListener("click", function(){
         var on = b.getAttribute("aria-pressed")!=="true";
         b.setAttribute("aria-pressed", String(on));
-        if(v==="sr") state.bookSR=on; else if(v==="vwap") state.bookVwap=on; else if(v==="trend") state.bookTrend=on; else if(v==="stretch") state.bookStretchBand=on; else state.bookPat=on;
+        if(v==="sr") state.bookSR=on; else if(v==="vwap") state.bookVwap=on; else if(v==="trend") state.bookTrend=on; else if(v==="stretch") state.bookStretchBand=on; else if(v==="fii") state.bookFiiWindow=on; else state.bookPat=on;
         save();
         renderBook();
         var sym=($("#a_sym").value||"").toUpperCase(); if(sym) renderChart(sym);
