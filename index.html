@@ -277,8 +277,7 @@ table.mb-scen td.num{font-family:"IBM Plex Mono",monospace;text-align:right;padd
 .cx-svg{width:100%;min-width:560px;height:auto;display:block}
 .cx-grid{stroke:var(--line);stroke-width:1}
 .cx-ylab,.cx-xlab{fill:var(--muted);font-size:9px;font-family:"IBM Plex Mono",monospace}
-.cx-volgrid{stroke:var(--muted);stroke-width:.5;stroke-dasharray:2 3;opacity:.55}
-.cx-vollab{fill:var(--muted);font-size:8px;font-family:"IBM Plex Mono",monospace;opacity:.8}
+.cx-vollab{fill:var(--muted);font-size:8px;font-family:"IBM Plex Mono",monospace;font-weight:600;opacity:.9}
 .cx-up{fill:#17c964;stroke:#17c964}
 .cx-dn{fill:#f43f3f;stroke:#f43f3f}
 .cx-wick{stroke-width:1}
@@ -317,6 +316,10 @@ table.mb-scen td.num{font-family:"IBM Plex Mono",monospace;text-align:right;padd
 .cx-sigsell{fill:#e8912a;stroke:#e8912a}
 .cx-sigsell.weak{fill:none;stroke:#e8912a;stroke-width:1.3}
 .cx-sigexit{fill:none;stroke:#d64545;stroke-width:1.5}
+.cx-mtrend{stroke:#e8b93a;stroke-width:1.6;fill:none}
+.cx-mtrend-pt{fill:#e8b93a;stroke:var(--surface);stroke-width:1}
+.cx-mtrend-pending{fill:#e8b93a;stroke:var(--surface);stroke-width:1;opacity:.85}
+.cx-svg.cx-drawing{cursor:crosshair}
 .cx-fiiwin{fill:#22b8cf;fill-opacity:.07;stroke:#22b8cf;stroke-opacity:.5;stroke-width:1;stroke-dasharray:3 2}
 .cx-fiiwinvol{fill:#22b8cf;fill-opacity:.14;stroke:none}
 .cx-flab.cx-fiiwinlab{fill:#0e8fa8;font-weight:600}
@@ -420,7 +423,7 @@ table.sc-setup td.num{font-family:"IBM Plex Mono",monospace;text-align:right}
     <span class="mark" aria-hidden="true">₹</span>
     <div>
       <h1>The 10% Ledger</h1>
-      <p>Momentum + pullback screener · NSE swing setups <span style="opacity:.5;font-size:11px">· build 2026-09-12d</span></p>
+      <p>Momentum + pullback screener · NSE swing setups <span style="opacity:.5;font-size:11px">· build 2026-09-12i</span></p>
     </div>
   </div>
   <div class="controls">
@@ -466,6 +469,7 @@ table.sc-setup td.num{font-family:"IBM Plex Mono",monospace;text-align:right}
   <button data-tab="journal">Trading Journal</button>
   <button data-tab="book">Chart Book</button>
   <button data-tab="analyzer">Analyzer</button>
+  <button data-tab="announce">Announcements</button>
   <button data-tab="playbook">Playbook</button>
 </nav>
 
@@ -1089,7 +1093,10 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
           <button data-v="fii" aria-pressed="true" title="Shades the calendar quarter between the two dates entered in the Shareholding check panel, on both the price chart and the volume panel — so you can see what price and volume actually did while FII/DII accumulated (or didn't). Needs a saved Shareholding check for this symbol.">FII/DII footprint</button>
         </div>
         <button id="bookRefreshLive" class="ghost" title="Fetch fresh candles for this stock">↻ live</button>
+        <button id="bookDrawTrend" class="ghost" aria-pressed="false" title="Click two points on the chart to draw your own trendline — it's anchored to the actual dates/prices you click, so it stays in place as the chart updates and works on daily or weekly.">✏️ Draw trendline</button>
+        <button id="bookClearTrend" class="ghost" hidden title="Remove every manually-drawn trendline on this stock">🗑 clear my lines</button>
         <button id="bookWatch" class="ghost" title="Add / remove this stock from your watchlist">☆ Watchlist</button>
+        <button id="bookAnnounce" class="ghost" title="Open this stock's NSE announcements in a new tab">📢 Announcements</button>
         <button id="bookOpen" class="ghost" title="Open this stock in the Analyzer">Full analysis →</button>
         <span class="book-prob" id="bookProb" title="Estimated chance of +10% before the stop — from this stock's own history where available (‘e’ = a score-based estimate)"></span>
       </div>
@@ -1257,6 +1264,21 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
     <div class="panel">
       <h2>Watchlist</h2>
       <div id="watchlist"><p class="empty">No saved setups yet.</p></div>
+    </div>
+  </section>
+
+  <!-- ANNOUNCEMENTS -->
+  <section id="tab-announce" hidden>
+    <div class="panel">
+      <h2>Announcements</h2>
+      <p class="hint">NSE's own corporate-announcements page can't be shown inside this tool — it blocks other sites from framing it (a security setting on NSE's end, "frame-ancestors 'self'", not something this tool can work around). This is a one-click deep link instead.</p>
+      <div class="form-grid" style="grid-template-columns:1fr auto;align-items:end;gap:12px;max-width:420px">
+        <label>Symbol
+          <input id="annSym" type="text" placeholder="e.g. RELIANCE" autocomplete="off" spellcheck="false" style="text-transform:uppercase">
+        </label>
+        <button class="primary" id="annOpenBtn">Open on NSE →</button>
+      </div>
+      <p class="hint" style="margin-top:14px">Filters to that stock's own filings — results, credit ratings, board meetings, corporate actions, everything NSE has for it. <a id="annAllLink" href="https://www.nseindia.com/companies-listing/corporate-filings-announcements" target="_blank" rel="noopener">Browse all announcements, unfiltered →</a></p>
     </div>
   </section>
 
@@ -1570,6 +1592,10 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
         <li><b>D / W</b> toggles daily / weekly candles (shared with the Analyzer). <b>↻ live</b> forces a fresh candle pull for the stock on screen. <b>☆ Watchlist</b> adds (or removes) the stock on screen to your watchlist — the star fills ★ when it's saved; use it to build a shortlist as you flip through. <b>Full analysis →</b> loads it into the Analyzer for the scorecard, notes, hold-vs-exit and option-chain panels. The <b>+10% odds</b> bar next to it is this stock's estimated chance of hitting +10% before the stop — from its own history where available, <i>e</i> = a score-based estimate.</li>
       </ul>
       <p>Charts for the <b>top ~30 scored names</b> are kept from the scan and open instantly; paging to anything past that fetches on demand (needs a working data source, same as the Analyzer chart). It's the fastest way to eyeball a whole scan and throw out the ones that look wrong — the score is the filter, the chart is the veto.</p>
+
+      <h3>Draw your own trendline</h3>
+      <p>The auto-trendlines (the <b>Trendlines</b> overlay) are a best fit — sometimes you can see a line the algorithm missed, or want to mark your own. Click <b>✏️ Draw trendline</b> above the chart, then click two points on the candles: the first click places the start, the second finishes the line and extends it to the right edge of the chart, same as the auto ones. The button shows which click it's waiting for. Click <b>✏️ Draw trendline</b> again to cancel a half-drawn line.</p>
+      <p>The line is saved against the actual <b>date and price</b> you clicked, not a pixel position — so it stays correctly anchored as you flip <b>D / W</b>, page to a new candle arriving live, or come back to the stock another day. It's saved per symbol and persists in your browser (no CSV, no re-scan). <b>🗑 clear my lines</b> (appears once you've drawn one) removes every manual line on the stock currently on screen.</p>
 
       <h3>Option chain</h3>
       <p>The open-interest picture does move stocks — but as a <b>range and a sentiment tool, not a direction predictor</b>. Two honest limits up front:</p>
@@ -2848,6 +2874,7 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
   /* ---------- chart book: page through every scanned chart with its plan ---------- */
   var bookPool = [];
   var bookToken = 0;
+  var manualDrawMode = false, manualPending = null;   // manual-trendline draw state (transient, not persisted)
 
   function bookWL(){ var m={}; (state.watchlist||[]).forEach(function(w){ m[w.symbol]=1; }); return m; }
 
@@ -2965,11 +2992,19 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
                  c: d.acc.label==="strong"?"pos" : d.acc.label==="distribution"?"neg" : "warn"});
     (function(){
       var shRec = shareholdingGet(d.symbol);
-      if(!shRec || shRec.q0.prom==null || shRec.q1.prom==null || shRec.q0.fii==null || shRec.q1.fii==null) return;
-      var shv = shareholdingVerdict(shRec.q0.prom, shRec.q1.prom, shRec.q0.fii, shRec.q1.fii);
+      if(!shRec) return;
+      if(shRec.history && shRec.history.length>=3){
+        var str = shareholdingTrend(shRec.history);
+        if(str) tags.push({t:"🏦 FII "+(str.netFii>=0?"+":"")+str.netFii.toFixed(1)+"pp over "+str.n+"q · "+
+          (str.verdict.code==="sustained"?"sustained accum" : str.verdict.code==="placement_series"?"likely placement(s)" : "mixed"),
+          c: str.verdict.cls==="pos"?"pos":str.verdict.cls==="neg"?"neg":"warn"});
+        return;
+      }
+      if(shRec.q0.prom==null || shRec.q1.prom==null || shRec.q0.fii==null || shRec.q1.fii==null) return;
+      var shv = shareholdingVerdict(shRec.q0.prom, shRec.q1.prom, shRec.q0.fii, shRec.q1.fii, shRec.q0.dii, shRec.q1.dii);
       var d2 = (shRec.q1.fii - shRec.q0.fii);
-      tags.push({t:"🏦 FII "+(d2>=0?"+":"")+d2.toFixed(1)+"pp · "+
-        (shv.code==="strong"?"genuine accum" : shv.code==="placement"?"likely placement" : shv.code==="mixed"?"mixed" : "flat/reduced"),
+      var codeTxt = shv.code==="strong"?"genuine accum" : shv.code==="placement"?"likely placement" : shv.code==="mixed"?"mixed" : shv.code==="dii_accum"?"DII accum, FII flat" : "flat/reduced";
+      tags.push({t:"🏦 FII "+(d2>=0?"+":"")+d2.toFixed(1)+"pp · "+codeTxt,
         c: shv.cls==="pos"?"pos":shv.cls==="neg"?"neg":"warn"});
     })();
     if(d.sx && (d.sx.band==="ext-up" || d.sx.band==="ext-dn"))
@@ -3124,11 +3159,18 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
     }
 
     var shRec = shareholdingGet(d.symbol);
-    if(shRec && shRec.q0.prom!=null && shRec.q1.prom!=null && shRec.q0.fii!=null && shRec.q1.fii!=null){
-      var shv = shareholdingVerdict(shRec.q0.prom, shRec.q1.prom, shRec.q0.fii, shRec.q1.fii);
+    if(shRec && shRec.history && shRec.history.length>=3){
+      var shTr = shareholdingTrend(shRec.history);
+      if(shTr){
+        if(shTr.verdict.code==="sustained"){ score+=13; pos.push("FII rose in "+shTr.upCount+"/"+shTr.total+" quarters ("+shTr.first.label+"→"+shTr.last.label+") — sustained accumulation, not a one-off"); }
+        else if(shTr.verdict.code==="placement_series"){ score-=6; neg.push("cumulative FII rise across quarters mostly tracks promoter dilution — likely placement(s) along the way"); }
+      }
+    } else if(shRec && shRec.q0.prom!=null && shRec.q1.prom!=null && shRec.q0.fii!=null && shRec.q1.fii!=null){
+      var shv = shareholdingVerdict(shRec.q0.prom, shRec.q1.prom, shRec.q0.fii, shRec.q1.fii, shRec.q0.dii, shRec.q1.dii);
       var shFiiD = shRec.q1.fii - shRec.q0.fii;
       if(shv.code==="strong"){ score+=10; pos.push("FII stake +"+shFiiD.toFixed(1)+"pp ("+shRec.q0.label+"→"+shRec.q1.label+") without promoter dilution — real accumulation"); }
       else if(shv.code==="placement"){ score-=6; neg.push("FII stake rose but looks like a QIP/placement, not open-market buying ("+shRec.q0.label+"→"+shRec.q1.label+")"); }
+      else if(shv.code==="dii_accum"){ score+=6; pos.push("DII stake rose while FII stayed flat — domestic funds/insurers may be accumulating"); }
       else if(shv.code==="mixed"){ pos.push("FII stake +"+shFiiD.toFixed(1)+"pp, but partly explained by promoter selling — verify"); }
       else if(shv.code==="flat" && shv.cls==="neg"){ neg.push("FII trimmed its stake last quarter"); }
     }
@@ -3338,10 +3380,20 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
   // from a QIP / preferential allotment (a private placement), not open-market buying — there's no
   // "footprint" in the chart to look for. Only a rise in FII holding that ISN'T matched by a
   // promoter drop indicates real accumulation from other sellers in the market.
-  function shareholdingVerdict(prom0, prom1, fii0, fii1){
+  function shareholdingVerdict(prom0, prom1, fii0, fii1, dii0, dii1){
     var fiiD = fii1 - fii0, promD = prom1 - prom0;
-    if(fiiD <= 0.1) return { code:"flat", cls:(fiiD<-0.1?"neg":"warn"),
-      label: fiiD < -0.1 ? "FII reduced its stake — no accumulation signal" : "FII stake roughly flat — no signal" };
+    var diiD = (dii0!=null && dii1!=null) ? (dii1-dii0) : null;
+    if(fiiD <= 0.1){
+      // FII didn't move — but did DII do the buying instead? Domestic mutual funds / insurers
+      // are a separate category from FII and often move independently of it.
+      if(diiD!=null && diiD>=1){
+        var diiExplained = promD<0 ? Math.min(1,(-promD)/diiD) : 0;
+        if(diiExplained < 0.4) return { code:"dii_accum", cls:"pos",
+          label:"FII flat, but DII rose +"+diiD.toFixed(1)+"pp without much promoter dilution — domestic funds/insurers look like the real buyers here, not FIIs" };
+      }
+      return { code:"flat", cls:(fiiD<-0.1?"neg":"warn"),
+        label: fiiD < -0.1 ? "FII reduced its stake — no accumulation signal" : "FII stake roughly flat — no signal from FIIs"+(diiD!=null&&diiD>=1?" (though DII rose — mostly explained by promoter dilution)":"") };
+    }
     var explained = promD < 0 ? Math.min(1, (-promD) / fiiD) : 0;
     if(explained >= 0.55) return { code:"placement", cls:"warn",
       label:"Likely a placement / QIP — not open-market buying (promoter drop explains most of the FII rise)" };
@@ -3350,10 +3402,71 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
     return { code:"mixed", cls:"warn",
       label:"FII rose, but partly explained by promoter (or other) selling — mixed, verify further" };
   }
-  // parse a loosely-typed quarter label ("Jun 2026", "March 2026") into that quarter's END
-  // date — the disclosure date the shareholding % is AS OF — as a plain "YYYY-MM-DD" string
-  // (no Date object / no timezone round-trip, so it compares cleanly against chart dates that
-  // are also plain ISO strings). Returns null if it can't find a month name + a 4-digit year.
+  // parse a multi-quarter shareholding history pasted as one line per quarter:
+  // "Label, Promoter%, FII%[, DII%]" — sorts chronologically via quarterEndDate, drops any
+  // line it can't date. Lets the trend check span years, not just the last two disclosures.
+  function parseShareholdingHistory(text){
+    var lines = String(text||"").split(/\r?\n/).map(function(l){ return l.trim(); }).filter(Boolean);
+    var out = [];
+    lines.forEach(function(line){
+      var parts = line.split(",").map(function(p){ return p.trim(); });
+      if(parts.length<3) return;
+      var num = function(x){ var v=parseFloat((x||"").replace(/[^0-9.\-]/g,"")); return isFinite(v)?v:null; };
+      var label=parts[0], prom=num(parts[1]), fii=num(parts[2]), dii=parts.length>3?num(parts[3]):null;
+      if(!label || prom==null || fii==null) return;
+      var qd = quarterEndDate(label); if(!qd) return;
+      out.push({ label:label, prom:prom, fii:fii, dii:dii, _d:qd });
+    });
+    out.sort(function(a,b){ return a._d<b._d?-1:a._d>b._d?1:0; });
+    return out;
+  }
+  // does FII holding climb steadily over many quarters (real, sustained accumulation) or is
+  // it noisy / a one-off jump that promoter dilution mostly explains?
+  function shareholdingTrend(series){
+    if(!series || series.length<3) return null;
+    var i, upCount=0, total=series.length-1, streak=0, maxStreak=0, sumExplained=0, explainedN=0, worst=null;
+    for(i=1;i<series.length;i++){
+      var fiiD=series[i].fii-series[i-1].fii, promD=series[i].prom-series[i-1].prom;
+      if(fiiD>0.02){ upCount++; streak++; if(streak>maxStreak) maxStreak=streak;
+        var expl = promD<0 ? Math.min(1,(-promD)/fiiD) : 0; sumExplained+=expl; explainedN++;
+        if(!worst || expl>worst.expl) worst = { from:series[i-1].label, to:series[i].label, fiiD:fiiD, promD:promD, expl:expl };
+      } else streak=0;
+    }
+    var first=series[0], last=series[series.length-1];
+    var netFii=last.fii-first.fii, netProm=last.prom-first.prom;
+    var pctUp = Math.round(upCount/total*100), avgExplained = explainedN? sumExplained/explainedN : 0;
+    // consistency (rose in most quarters, meaningfully, over several quarters) is the primary
+    // signal — averaging a per-step "explained by promoter" ratio gets noisy over many small
+    // steps (a tiny promoter dip can swing one step's ratio to 100% while the FII climb as a
+    // whole vastly outruns total promoter dilution), so it's used as a caveat, not a hard gate,
+    // unless it's overwhelming (almost every uptick tracks a promoter sale). Separately, flag
+    // the single worst (most placement-shaped) quarter by name — a series can be genuinely
+    // "sustained" on average while still containing one specific placement-driven jump.
+    var worstFlag = (worst && worst.expl>=0.7)
+      ? " Note: "+worst.from+" → "+worst.to+" alone looks like a placement — promoter fell "+Math.abs(worst.promD).toFixed(1)+"pp that one quarter."
+      : "";
+    var verdict;
+    if(pctUp>=60 && netFii>=1){
+      if(avgExplained>=0.75) verdict = { code:"placement_series", cls:"warn",
+        label:"FII climbed almost every quarter, but nearly every uptick tracks a matching promoter sale — reads like a series of small placements/OFS, not organic demand" };
+      else verdict = { code:"sustained", cls:"pos",
+        label:"Sustained multi-quarter accumulation — FII rose in "+upCount+" of "+total+" quarters ("+first.label+" → "+last.label+")"+
+          (avgExplained>=0.45 && !worstFlag ? " — though roughly half the individual upticks coincide with some promoter selling; check for periodic OFS/QIPs along the way" : ", mostly not explained by promoter dilution")+worstFlag };
+    } else if(avgExplained>=0.6) verdict = { code:"placement_series", cls:"warn",
+      label:"The cumulative FII rise across these quarters mostly tracks promoter dilution — check for one or more placements along the way" };
+    else verdict = { code:"mixed_series", cls:"warn",
+      label:"No clean pattern across these quarters — rises and falls mixed together" };
+    return { n:series.length, upCount:upCount, total:total, maxStreak:maxStreak, pctUp:pctUp,
+             netFii:netFii, netProm:netProm, first:first, last:last, worst:worst, verdict:verdict };
+  }
+  // parse a loosely-typed label ("Jun 2026", "March 2026", "Aug 2026") into the LAST DAY of
+  // that literal month, as a plain "YYYY-MM-DD" string (no Date object / no timezone
+  // round-trip, so it compares cleanly against chart dates that are also plain ISO strings).
+  // Deliberately does NOT snap to the nearest calendar quarter — screener.in sometimes shows
+  // an off-cycle column (a SEBI threshold-crossing disclosure, e.g. "Aug 2026") that is a real,
+  // distinct data point and not the same as the following Sep-quarter-end; snapping it forward
+  // would silently merge two different disclosures into one date. Returns null if it can't
+  // find a month name + a 4-digit year.
   function quarterEndDate(label){
     if(!label) return null;
     var s = String(label).toLowerCase();
@@ -3363,7 +3476,7 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
     var mo = null, mM = s.match(/jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec/);
     if(mM) mo = MON[mM[0]];
     if(!mo) return null;
-    var qEndMonth = mo<=3 ? 3 : mo<=6 ? 6 : mo<=9 ? 9 : 12;
+    var qEndMonth = mo;
     var leap = (year%4===0 && (year%100!==0 || year%400===0));
     var lastDay = [31, leap?29:28, 31,30,31,30,31,31,30,31,30,31][qEndMonth-1];
     var pad = function(x){ return x<10 ? "0"+x : ""+x; };
@@ -3406,15 +3519,49 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
       pockets: pockets, topUp: topUp
     };
   }
+  // the index in a chart's date array closest to a given "YYYY-MM-DD" string — used to re-anchor
+  // a manually-drawn trendline's saved (date, price) points onto whatever bars are on screen now
+  // (the visible window shifts as new bars arrive, and daily vs weekly have different bars).
+  function nearestBarIndex(D, dateStr){
+    if(!dateStr) return -1;
+    var target = Date.parse(dateStr), best=-1, bestDiff=Infinity, i;
+    if(!isFinite(target)) return -1;
+    for(i=0;i<D.length;i++){
+      if(!D[i]) continue;
+      var diff = Math.abs(Date.parse(D[i]) - target);
+      if(diff<bestDiff){ bestDiff=diff; best=i; }
+    }
+    return best;
+  }
   function shareholdingGet(sym){ return (state.shareholding && state.shareholding[sym]) || null; }
   function shareholdingSave(sym, q0, q1){
     state.shareholding = state.shareholding || {};
-    state.shareholding[sym] = { q0:q0, q1:q1, at:new Date().toISOString() };
+    var prev = state.shareholding[sym];
+    state.shareholding[sym] = { q0:q0, q1:q1, history:(prev&&prev.history)||null, at:new Date().toISOString() };
+    save();
+  }
+  function shareholdingSaveHistory(sym, history){
+    state.shareholding = state.shareholding || {};
+    var prev = state.shareholding[sym] || { q0:{label:"",prom:null,fii:null,dii:null}, q1:{label:"",prom:null,fii:null,dii:null} };
+    prev.history = history; prev.at = new Date().toISOString();
+    state.shareholding[sym] = prev;
+    save();
+  }
+  function shareholdingClearHistory(sym){
+    if(state.shareholding && state.shareholding[sym]) state.shareholding[sym].history = null;
     save();
   }
   function shareholdingClear(sym){
     if(state.shareholding) delete state.shareholding[sym];
     save();
+  }
+  // the window to shade / analyze on the chart: the full saved history's first→last quarter
+  // when one exists (even if it spans years), else the plain two-quarter check.
+  function shareholdingWindow(rec){
+    if(!rec) return null;
+    if(rec.history && rec.history.length>=2) return { q0label: rec.history[0].label, q1label: rec.history[rec.history.length-1].label };
+    if(rec.q0 && rec.q1 && rec.q0.label && rec.q1.label) return { q0label: rec.q0.label, q1label: rec.q1.label };
+    return null;
   }
   function renderShareholding(d){
     var host = $("#bookShare"); if(!host) return;
@@ -3437,7 +3584,7 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
       '<div class="row-actions" style="margin-top:8px"><button class="ghost" id="shSaveBtn">Save</button>'+(rec?'<button class="ghost" id="shClearBtn">Clear</button>':'')+'</div>';
     var verdictHtml = "";
     if(rec && q0.prom!=null && q1.prom!=null && q0.fii!=null && q1.fii!=null){
-      var v = shareholdingVerdict(q0.prom, q1.prom, q0.fii, q1.fii);
+      var v = shareholdingVerdict(q0.prom, q1.prom, q0.fii, q1.fii, q0.dii, q1.dii);
       var fiiD = q1.fii-q0.fii, promD = q1.prom-q0.prom;
       verdictHtml =
         '<div class="bc-odds">FII <b>'+(fiiD>=0?'+':'')+fiiD.toFixed(2)+'pp</b> ('+q0.fii+'% → '+q1.fii+'%) · Promoter <b>'+(promD>=0?'+':'')+promD.toFixed(2)+'pp</b> ('+q0.prom+'% → '+q1.prom+'%)'+
@@ -3445,10 +3592,30 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
         '</div>'+
         '<div class="bc-head" style="margin-top:2px"><span class="bc-lean '+v.cls+'">'+esc(v.label)+'</span></div>';
     }
-    var footPlaceholder = rec ? '<div id="shFootDetail" class="bc-acc" style="color:var(--muted)">Checking how that volume was spread across the window…</div>' : '';
+    // multi-quarter history — a stronger check than any single 2-point comparison: is FII
+    // climbing steadily over many quarters, or was the 2-point rise a one-off jump?
+    var hist = rec && rec.history;
+    var histRows = hist ? hist.map(function(p){ return p.label+", "+p.prom+", "+p.fii+(p.dii!=null?", "+p.dii:""); }).join("\n") : "";
+    var trendHtml = "";
+    if(hist && hist.length>=2){
+      var tr = shareholdingTrend(hist);
+      trendHtml = '<div class="bc-acc">History: '+hist.map(function(p){ return esc(p.label)+' <b>'+p.fii+'%</b>'; }).join(' → ')+'</div>';
+      if(tr) trendHtml += '<div class="bc-head" style="margin-top:2px"><span class="bc-lean '+tr.verdict.cls+'">'+esc(tr.verdict.label)+'</span></div>'+
+        '<div class="bc-odds">FII rose in <b>'+tr.upCount+'</b> of <b>'+tr.total+'</b> quarter-steps ('+tr.pctUp+'%), longest streak <b>'+tr.maxStreak+'</b> · net FII '+(tr.netFii>=0?'+':'')+tr.netFii.toFixed(2)+'pp · net Promoter '+(tr.netProm>=0?'+':'')+tr.netProm.toFixed(2)+'pp over the whole span.</div>';
+      else trendHtml += '<div class="hint">Need at least 3 quarters to read a trend.</div>';
+    }
+    var histForm =
+      '<details class="sub" style="margin-top:8px"'+(hist?' open':'')+'>'+
+        '<summary>Or paste the full multi-quarter history (stronger than a 2-point check)</summary>'+
+        '<p class="hint" style="margin:6px 0">One quarter per line: <code>Label, Promoter%, FII%, DII%</code> (DII optional), oldest or newest first — it sorts itself. Copy straight down screener.in\'s Promoter / FII / DII rows.</p>'+
+        '<textarea id="shHistInput" spellcheck="false" style="min-height:90px" placeholder="Dec 2023, 74.89, 0.01, 0.05\nMar 2024, 74.89, 0.02, 0.06\n...\nAug 2026, 71.40, 3.31, 2.40">'+esc(histRows)+'</textarea>'+
+        '<div class="row-actions" style="margin-top:6px"><button class="ghost" id="shHistSaveBtn">Save history</button>'+(hist?'<button class="ghost" id="shHistClearBtn">Clear history</button>':'')+'</div>'+
+        trendHtml+
+      '</details>';
+    var footPlaceholder = shareholdingWindow(rec) ? '<div id="shFootDetail" class="bc-acc" style="color:var(--muted)">Checking how that volume was spread across the window…</div>' : '';
     host.hidden = false;
-    host.innerHTML = form + verdictHtml + footPlaceholder +
-      '<div class="bc-note">Manual entry — the tool has no automated feed for Indian shareholding-pattern data. If promoter holding dropped by roughly as much as FII holding rose, it\'s very likely a QIP / preferential placement (check for one before trusting "FII accumulation" claims on social media) — that\'s a one-time private deal, not buying pressure visible on the chart. Only an FII rise <i>not</i> matched by a promoter drop is real open-market accumulation. Once both quarters are saved, toggle <b>FII/DII footprint</b> in the chart overlays to shade that calendar quarter on the price and volume panels — genuine accumulation should show up as elevated volume in that window; a placement usually won\'t.</div>';
+    host.innerHTML = form + verdictHtml + histForm + footPlaceholder +
+      '<div class="bc-note">Manual entry — the tool has no automated feed for Indian shareholding-pattern data. If promoter holding dropped by roughly as much as FII holding rose, it\'s very likely a QIP / preferential placement (check for one before trusting "FII accumulation" claims on social media) — that\'s a one-time private deal, not buying pressure visible on the chart. Only an FII rise <i>not</i> matched by a promoter drop is real open-market accumulation. Shareholding disclosures aren\'t always strict quarter-ends — screener.in sometimes shows an off-cycle column (a threshold-crossing disclosure) — use whatever label it shows. Once quarters are saved, toggle <b>FII/DII footprint</b> in the chart overlays to shade that calendar window on the price and volume panels — genuine accumulation should show up as elevated volume there; a placement usually won\'t.</div>';
     var sv = $("#shSaveBtn");
     if(sv) sv.addEventListener("click", function(){
       var num = function(id){ var v=parseFloat((($("#"+id)&&$("#"+id).value)||"").replace(/[^0-9.\-]/g,"")); return isFinite(v) ? v : null; };
@@ -3460,14 +3627,24 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
     });
     var cl = $("#shClearBtn");
     if(cl) cl.addEventListener("click", function(){ shareholdingClear(sym); renderBook(); });
+    var hsv = $("#shHistSaveBtn");
+    if(hsv) hsv.addEventListener("click", function(){
+      var parsed = parseShareholdingHistory(($("#shHistInput")&&$("#shHistInput").value)||"");
+      if(parsed.length<2){ alert("Need at least 2 parseable lines: \"Label, Promoter%, FII%\" with a month + year in the label."); return; }
+      shareholdingSaveHistory(sym, parsed);
+      renderBook();
+    });
+    var hcl = $("#shHistClearBtn");
+    if(hcl) hcl.addEventListener("click", function(){ shareholdingClearHistory(sym); renderBook(); });
   }
   // fills in the "#shFootDetail" placeholder once the chart's OHLCV has loaded — answers
   // "did FII/DII buying show up on the big-volume days, or spread across small ones too?"
   function renderFootprintDetail(o, d){
     var box = $("#shFootDetail"); if(!box) return;
     var rec = shareholdingGet(d.symbol);
-    if(!rec){ box.remove(); return; }
-    var fc = footprintConcentration(o, rec.q0.label, rec.q1.label);
+    var win = shareholdingWindow(rec);
+    if(!rec || !win){ box.remove(); return; }
+    var fc = footprintConcentration(o, win.q0label, win.q1label);
     if(!fc){
       box.textContent = "Couldn't line this up with a calendar window — use quarter labels like \"Jun 2026\" so the date can be parsed.";
       return;
@@ -3646,15 +3823,29 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
     bookDrawChart(d);
   }
 
+  var lastBookSym = null;
+  function refreshDrawTrendUI(){
+    var btn=$("#bookDrawTrend");
+    if(btn){
+      btn.classList.toggle("pos", manualDrawMode);
+      btn.textContent = !manualDrawMode ? "✏️ Draw trendline" : (manualPending ? "✏️ click the 2nd point…" : "✏️ click the 1st point…");
+    }
+    var cl=$("#bookClearTrend");
+    if(cl) cl.hidden = !(state.manualTrend && state.manualTrend[lastBookSym] && state.manualTrend[lastBookSym].length);
+  }
   function bookDrawChart(d){
     var host = $("#bookChart"); if(!host) return;
     var myTok = ++bookToken;
     var sym = d.symbol;
+    if(sym!==lastBookSym){ manualPending=null; manualDrawMode=false; }   // don't carry a half-drawn line across stocks
+    lastBookSym = sym;
+    refreshDrawTrendUI();
     var tf = state.chartTF==="weekly" ? "weekly" : "daily";
     var e = evaluateRow(d), tpx = trigParts(d);
     var opts = {symbol:sym, entry:e.tr.entry, stop:e.tr.stop, t10:e.tr.t10,
                 support:d.support, resistance:d.resistance, weekly: tf==="weekly", trigAgo: tpx?tpx.ago:-1,
-                stretchBand: state.bookStretchBand===true, fiiWindow: state.bookFiiWindow!==false};
+                stretchBand: state.bookStretchBand===true, fiiWindow: state.bookFiiWindow!==false,
+                drawing: manualDrawMode, pendingPoint: manualPending};
     var _oc = readOC();
     if(sym===(($("#a_sym").value||"").toUpperCase()) && ocHasSignal(_oc)){
       opts.ocCall=_oc.call; opts.ocPut=_oc.put; opts.ocMaxpain=_oc.maxpain;
@@ -3688,6 +3879,25 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
           meta += '<div class="cx-asof warn">Since this was scored, price moved '+(drift>0?'+':'')+(drift*100).toFixed(1)+'% ('+nfmt(d.price)+' → '+nfmt(latest)+') — re-scan before acting.</div>';
       }
       host.innerHTML = chartLegend(tf) + meta + buildChartSVG(series, opts);
+      var svgEl = host.querySelector("svg");
+      if(svgEl) svgEl.addEventListener("click", function(ev){
+        if(!manualDrawMode || !opts._map) return;
+        var rect = svgEl.getBoundingClientRect(); if(!rect.width || !rect.height) return;
+        var vb = svgEl.viewBox.baseVal, map = opts._map;
+        var sx = (ev.clientX-rect.left) * (vb.width/rect.width), sy = (ev.clientY-rect.top) * (vb.height/rect.height);
+        var xw = map.W - map.PL - map.PR;
+        var bi = Math.max(0, Math.min(map.n-1, Math.round((sx-map.PL) * (map.n-1) / xw)));
+        var price = map.hi - (sy-map.T) / (map.PB-map.T) * (map.hi-map.lo);
+        var date = map.D[bi]; if(!date) return;
+        if(!manualPending){ manualPending = {date:date, price:price}; }
+        else {
+          state.manualTrend = state.manualTrend || {};
+          (state.manualTrend[sym] = state.manualTrend[sym] || []).push({ d1:manualPending.date, p1:manualPending.price, d2:date, p2:price });
+          manualPending = null; manualDrawMode = false; save();
+        }
+        refreshDrawTrendUI();
+        bookDrawChart(d);   // redraw from the cache — no re-fetch
+      });
     }
     var cached = chartCache[sym];
     if(!cached){ var ex=getExtra(sym); if(ex && ex.chart && ex.chart.c && ex.chart.c.length>=30) cached = ex.chart; }
@@ -4469,26 +4679,20 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
     var maxV=Math.max.apply(null,V)||1;
     var VY=function(v){ return VB-(v/maxV)*(VB-VT); };
     var cw=Math.max(1.3, xw/n*0.6), f1=function(x){return x.toFixed(1);};
+    // stash the pixel/price mapping on opts (passed by reference) so the caller can invert a
+    // click's (x,y) back into (bar index / date, price) for manually-drawn trendlines.
+    opts._map = { lo:lo, hi:hi, n:n, PL:PL, PR:PR, T:T, PB:PB, W:W, D:D };
     var g=[];
     for(var t=0;t<=4;t++){
       var pv=hi-(hi-lo)*t/4, yy=Y(pv);
       g.push('<line x1="'+PL+'" y1="'+f1(yy)+'" x2="'+(W-PR)+'" y2="'+f1(yy)+'" class="cx-grid"/>');
       g.push('<text x="'+(W-PR+4)+'" y="'+f1(yy+3)+'" class="cx-ylab">'+nfmt(pv,0)+'</text>');
     }
-    // average-volume reference lines on the volume panel — line 1 = this chart's own average
-    // volume, line 2 = 2× that average, line 3 = 3×, and so on, so a spike bar's multiple is
-    // readable at a glance instead of guessed from bar height alone.
+    // this chart's own average volume — used below to label individual spike bars with their
+    // own multiple (2×, 3×, 4×…) instead of a fixed grid (a single huge outlier bar squashes a
+    // linear grid's lines together and makes them useless — labeling the bar itself doesn't).
     var avgVisVol=0, _vi; for(_vi=0;_vi<V.length;_vi++) avgVisVol += V[_vi]||0;
     avgVisVol = V.length ? avgVisVol/V.length : 0;
-    if(avgVisVol>0){
-      var volLineCap = Math.min(6, Math.max(1, Math.floor(maxV/avgVisVol)));
-      for(var _vm=1; _vm<=volLineCap; _vm++){
-        var vgy = VY(_vm*avgVisVol);
-        if(vgy < VT-0.5) break;
-        g.push('<line x1="'+PL+'" y1="'+f1(vgy)+'" x2="'+(W-PR)+'" y2="'+f1(vgy)+'" class="cx-volgrid"/>');
-        g.push('<text x="'+(W-PR+4)+'" y="'+f1(vgy+3)+'" class="cx-vollab">'+_vm+'×</text>');
-      }
-    }
     var MON=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
     [0,Math.floor(n/2),n-1].forEach(function(i){
       if(!D[i]) return;
@@ -4507,8 +4711,9 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
     // price/volume actually did while institutions accumulated (or a placement landed).
     if(opts.fiiWindow!==false){
       var shRec = shareholdingGet(opts.symbol);
-      if(shRec && shRec.q0 && shRec.q1){
-        var fEndS = quarterEndDate(shRec.q1.label), fStartS = quarterEndDate(shRec.q0.label);
+      var shWin = shareholdingWindow(shRec);
+      if(shWin){
+        var fEndS = quarterEndDate(shWin.q1label), fStartS = quarterEndDate(shWin.q0label);
         if(fEndS && fStartS && fEndS>fStartS){
           var ffi=-1, ffj=-1, fk;
           for(fk=0; fk<n; fk++){ if(D[fk]!=null && D[fk]>fStartS && ffi<0) ffi=fk; if(D[fk]!=null && D[fk]<=fEndS) ffj=fk; }
@@ -4516,7 +4721,9 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
             var ffx1=X(ffi), ffx2=X(Math.max(ffi,ffj));
             g.push('<rect x="'+f1(ffx1)+'" y="'+f1(T)+'" width="'+f1(Math.max(1,ffx2-ffx1))+'" height="'+f1(PB-T)+'" class="cx-fiiwin"/>');
             g.push('<rect x="'+f1(ffx1)+'" y="'+f1(VT)+'" width="'+f1(Math.max(1,ffx2-ffx1))+'" height="'+f1(VB-VT)+'" class="cx-fiiwinvol"/>');
-            var ffiiD = shRec.q1.fii-shRec.q0.fii, fdiiD = (shRec.q1.dii!=null&&shRec.q0.dii!=null) ? (shRec.q1.dii-shRec.q0.dii) : null;
+            var fq0 = (shRec.history && shRec.history.length>=2) ? shRec.history[0] : shRec.q0;
+            var fq1 = (shRec.history && shRec.history.length>=2) ? shRec.history[shRec.history.length-1] : shRec.q1;
+            var ffiiD = fq1.fii-fq0.fii, fdiiD = (fq1.dii!=null&&fq0.dii!=null) ? (fq1.dii-fq0.dii) : null;
             g.push('<text x="'+f1((ffx1+ffx2)/2)+'" y="'+f1(T+11)+'" text-anchor="middle" class="cx-flab cx-fiiwinlab">🏦 FII '+(ffiiD>=0?'+':'')+ffiiD.toFixed(1)+'pp'+(fdiiD!=null?' · DII '+(fdiiD>=0?'+':'')+fdiiD.toFixed(1)+'pp':'')+'</text>');
           }
         }
@@ -4529,6 +4736,21 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
       var yo=Y(O[i]), yc=Y(C[i]);
       g.push('<rect x="'+f1(xc-cw/2)+'" y="'+f1(Math.min(yo,yc))+'" width="'+f1(cw)+'" height="'+f1(Math.max(1,Math.abs(yo-yc)))+'" class="'+cls+(liveBar?' cx-live':'')+'"/>');
       g.push('<rect x="'+f1(xc-cw/2)+'" y="'+f1(VY(V[i]))+'" width="'+f1(cw)+'" height="'+f1(Math.max(0,VB-VY(V[i])))+'" class="'+cls+' cx-vol"/>');
+    }
+    // label individual spike bars with their own multiple of this chart's average volume —
+    // 2×, 3×, 4×… right above the bar itself, so it reads "this day" rather than a fixed grid
+    // (which a single huge outlier bar squashes into a useless cluster near the baseline).
+    if(avgVisVol>0){
+      var lastVolLabelX=-999;
+      for(var _vl=0; _vl<n; _vl++){
+        var vmult = V[_vl]/avgVisVol;
+        if(vmult < 2) continue;
+        var vlx = X(_vl);
+        if(vlx - lastVolLabelX < 16) continue;   // don't crowd adjacent spike days
+        var vly = Math.max(VT-4, VY(V[_vl])-4);
+        g.push('<text x="'+f1(vlx)+'" y="'+f1(vly)+'" text-anchor="middle" class="cx-vollab">'+Math.round(vmult)+'×</text>');
+        lastVolLabelX=vlx;
+      }
     }
     // mark the "biggest volume in months" bar in the volume sub-panel
     var _vsk = volShock(o.c, o.v);
@@ -4668,7 +4890,25 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
       var ey1=Y(Math.min(hi,opts.ocEMhi)), ey2=Y(Math.max(lo,opts.ocEMlo));
       g.push('<rect x="'+PL+'" y="'+f1(ey1)+'" width="'+(W-PR-PL)+'" height="'+f1(Math.max(0,ey2-ey1))+'" class="cx-ocem"/>');
     }
-    return '<svg viewBox="0 0 '+W+' '+HH+'" class="cx-svg" preserveAspectRatio="xMidYMid meet" role="img" aria-label="daily price chart for '+esc(opts.symbol||"")+'">'+g.join("")+'</svg>';
+    // manually-drawn trendlines — anchored to the (date, price) the user actually clicked, so
+    // they re-anchor correctly on daily vs weekly and as the visible window moves forward.
+    var manualLines = (state.manualTrend && state.manualTrend[opts.symbol]) || [];
+    manualLines.forEach(function(ln){
+      var i1=nearestBarIndex(D, ln.d1), i2=nearestBarIndex(D, ln.d2);
+      if(i1<0 || i2<0 || i1===i2) return;
+      if(i1>i2){ var ti=i1;i1=i2;i2=ti; var tp=ln.p1;ln={d1:ln.d2,p1:ln.p2,d2:ln.d1,p2:tp}; }
+      var slope=(ln.p2-ln.p1)/(i2-i1);
+      var endP = ln.p1 + slope*(n-1-i1);
+      g.push('<line x1="'+f1(X(i1))+'" y1="'+f1(Y(ln.p1))+'" x2="'+f1(X(n-1))+'" y2="'+f1(Y(endP))+'" class="cx-mtrend"/>');
+      g.push('<circle cx="'+f1(X(i1))+'" cy="'+f1(Y(ln.p1))+'" r="3" class="cx-mtrend-pt"/>');
+      g.push('<circle cx="'+f1(X(i2))+'" cy="'+f1(Y(ln.p2))+'" r="3" class="cx-mtrend-pt"/>');
+    });
+    // the first click of a not-yet-finished manual trendline
+    if(opts.pendingPoint){
+      var pi=nearestBarIndex(D, opts.pendingPoint.date);
+      if(pi>=0) g.push('<circle cx="'+f1(X(pi))+'" cy="'+f1(Y(opts.pendingPoint.price))+'" r="4" class="cx-mtrend-pending"/>');
+    }
+    return '<svg viewBox="0 0 '+W+' '+HH+'" class="cx-svg'+(opts.drawing?' cx-drawing':'')+'" preserveAspectRatio="xMidYMid meet" role="img" aria-label="daily price chart for '+esc(opts.symbol||"")+'">'+g.join("")+'</svg>';
   }
   function renderChart(sym){
     var host=$("#chart"); if(!host || !sym) return;
@@ -7699,7 +7939,7 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
   /* ---------- tabs / theme / controls ---------- */
   function switchTab(name){
     $$("#tabs button").forEach(function(b){ b.classList.toggle("active", b.getAttribute("data-tab")===name); });
-    ["today","screener","golden","silver","darvas","hdf","coil","candles","mb","journal","book","analyzer","playbook"].forEach(function(t){ $("#tab-"+t).hidden = (t!==name); });
+    ["today","screener","golden","silver","darvas","hdf","coil","candles","mb","journal","book","analyzer","announce","playbook"].forEach(function(t){ $("#tab-"+t).hidden = (t!==name); });
     if(name==="today") renderToday();
     if(name==="candles") renderCandles();
     if(name==="mb") renderMultibagger();
@@ -7710,6 +7950,18 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
     if(name==="hdf") renderHDF();
     if(name==="coil") renderCoil();
     if(name==="journal"){ if($("#j_date") && !$("#j_date").value) $("#j_date").value = new Date().toISOString().slice(0,10); renderJournal(); }
+    if(name==="announce" && $("#annSym") && !$("#annSym").value){
+      var curSym = ($("#a_sym") && $("#a_sym").value) || (bookPool[state.bookIdx] && bookPool[state.bookIdx].symbol) || "";
+      $("#annSym").value = curSym.toUpperCase();
+    }
+  }
+
+  function announceUrl(sym){
+    sym = (sym||"").trim().toUpperCase();
+    return "https://www.nseindia.com/companies-listing/corporate-filings-announcements" + (sym ? ("?symbol="+encodeURIComponent(sym)) : "");
+  }
+  function announceOpen(){
+    window.open(announceUrl($("#annSym").value), "_blank", "noopener");
   }
 
   function applyTheme(){
@@ -7808,7 +8060,13 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
     if($("#bookPrev")) $("#bookPrev").addEventListener("click", function(){ bookGo(-1); });
     if($("#bookNext")) $("#bookNext").addEventListener("click", function(){ bookGo(1); });
     if($("#bookOpen")) $("#bookOpen").addEventListener("click", function(){ var d=bookPool[state.bookIdx]; if(d){ loadIntoAnalyzer(d); switchTab("analyzer"); } });
+    if($("#annOpenBtn")) $("#annOpenBtn").addEventListener("click", announceOpen);
+    if($("#annSym")){
+      $("#annSym").addEventListener("keydown", function(e){ if(e.key==="Enter"){ e.preventDefault(); announceOpen(); } });
+      $("#annSym").addEventListener("input", function(){ this.value = this.value.toUpperCase(); });
+    }
     if($("#bookWatch")) $("#bookWatch").addEventListener("click", bookToggleWatch);
+    if($("#bookAnnounce")) $("#bookAnnounce").addEventListener("click", function(){ var d=bookPool[state.bookIdx]; if(d) window.open(announceUrl(d.symbol), "_blank", "noopener"); });
     if($("#bookSearch")){
       $("#bookSearch").addEventListener("change", bookSearchJump);
       $("#bookSearch").addEventListener("keydown", function(e){ if(e.key==="Enter"){ e.preventDefault(); bookSearchJump(); } });
@@ -7818,6 +8076,16 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
       delete chartCache[d.symbol]; var ex=getExtra(d.symbol); if(ex) delete ex.chart;
       $("#bookChart").innerHTML='<p class="empty">fetching fresh candles…</p>';
       bookDrawChart(d);
+    });
+    if($("#bookDrawTrend")) $("#bookDrawTrend").addEventListener("click", function(){
+      manualDrawMode = !manualDrawMode; manualPending = null;
+      refreshDrawTrendUI();
+      var d=bookPool[state.bookIdx]; if(d) bookDrawChart(d);
+    });
+    if($("#bookClearTrend")) $("#bookClearTrend").addEventListener("click", function(){
+      if(state.manualTrend) delete state.manualTrend[lastBookSym];
+      save(); refreshDrawTrendUI();
+      var d=bookPool[state.bookIdx]; if(d) bookDrawChart(d);
     });
     $$("#bookTF button").forEach(function(b){
       b.addEventListener("click", function(){
