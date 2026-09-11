@@ -239,6 +239,10 @@ details.sub textarea{width:100%;min-height:116px;margin-top:8px;background:var(-
 .book-prob .pbar i.pos{background:var(--pos)} .book-prob .pbar i.warn{background:var(--warn)} .book-prob .pbar i.neg{background:var(--neg)}
 .book-prob b{font-family:"IBM Plex Mono",monospace;font-variant-numeric:tabular-nums;color:var(--ink)}
 .book-conf{background:var(--surface-2);border:1px solid var(--line);border-radius:8px;padding:10px 12px;margin:14px 0 0;font-size:12px}
+.sh-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:6px}
+.sh-grid label{display:flex;flex-direction:column;gap:3px;font-size:10px;text-transform:uppercase;letter-spacing:.4px;color:var(--muted)}
+.sh-grid input{padding:6px 8px;background:var(--bg);border:1px solid var(--line-strong);border-radius:6px;font-size:13px;text-transform:none;letter-spacing:normal;color:var(--ink);font-family:"IBM Plex Mono",monospace}
+@media (max-width:560px){.sh-grid{grid-template-columns:repeat(2,1fr)}}
 .bc-head{display:flex;flex-wrap:wrap;gap:8px 14px;align-items:baseline;margin-bottom:3px}
 .bc-lean{font-size:14px;font-weight:600}
 .bc-lean.pos{color:var(--pos)} .bc-lean.warn{color:var(--warn)} .bc-lean.neg{color:var(--neg)}
@@ -411,7 +415,7 @@ table.sc-setup td.num{font-family:"IBM Plex Mono",monospace;text-align:right}
     <span class="mark" aria-hidden="true">₹</span>
     <div>
       <h1>The 10% Ledger</h1>
-      <p>Momentum + pullback screener · NSE swing setups <span style="opacity:.5;font-size:11px">· build 2026-09-11d</span></p>
+      <p>Momentum + pullback screener · NSE swing setups <span style="opacity:.5;font-size:11px">· build 2026-09-12a</span></p>
     </div>
   </div>
   <div class="controls">
@@ -1095,6 +1099,7 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
       <div id="bookPlan"></div>
       <div id="bookConf" class="book-conf" aria-live="polite" hidden></div>
       <div id="bookStretch" class="book-conf" aria-live="polite" hidden></div>
+      <div id="bookShare" class="book-conf" aria-live="polite" hidden></div>
       <p class="hint" style="margin-top:10px">Entry / stop / targets are the tool's standard plan: entry at the breakout level (or your override in the Analyzer), stop under support or a fixed % if none, exit scaled at +5% / +7.5% / +10%, size fixed at 1% of capital at risk. For <b>Darvas Box</b> and <b>High Dry Fry</b> names the note above swaps in Darvas's own rule — a buy-stop above the prior day's high, stop 1% under entry or below the base low.</p>
     </div>
   </section>
@@ -1435,6 +1440,17 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
       <p>A common claim: when a <b>hammer</b> or <b>morning-star</b> candle forms touching the 10-day SMA, a big move follows. The <b>Chart Book → "Hammer / morning star at the 10-SMA"</b> study tests it on <i>your</i> scanned universe. For every bar in each stock's ~2-year history where one of those patterns completed and the bar's low tagged the 10-SMA (within ~⅓ ATR above to ~1.4 ATR below the line), it measures the next 10 sessions, and splits the results by whether the 10-SMA was <b>above</b> the 50-SMA (a pullback to support in an uptrend — the real setup) or below it (a countertrend knife-catch).</p>
       <p>It reports, per context: % of events that closed higher 10 days later, % that made a <b>≥ +5%</b> peak, % that made <b>≥ +8%</b>, and the median peak. Compare against the base rate — any NSE stock over 10 sessions is up ~52% of the time and makes a ≥ 5% peak ~30–35% of the time — so the pattern earns its keep only if the <b>uptrend row clears that by a wide margin</b>. This matches the literature: Bulkowski rates a lone hammer a weak ~59% reversal but the morning star ~78%, and both jump when they print at support in an uptrend.</p>
       <p>When a stock has this setup <b>live now</b> (pattern in the last ≤ 2 bars, low at the 10-SMA), it gets a <code>🔨 Hammer at 10-SMA</code> chip in the Chart Book — with that stock's own historical ≥ 5% hit-rate — and the <b>Hammer / morning star at the 10-SMA (live)</b> deck lists them all. (CSV field <code>cm</code>.)</p>
+
+      <h3>Shareholding check — is "FII bought this" real, or a placement?</h3>
+      <p>Social-media threads love posting "FII holding jumped from X% to Y%" as proof institutions are quietly accumulating a stock. The catch: that number alone can't tell you <i>how</i> the FII got the shares. If a company did a <b>QIP or preferential allotment</b> to raise money, new shares go straight to institutions in a private deal — promoter holding drops by roughly the same amount FII holding rises, and none of it shows up as buying pressure on the exchange. There's no "footprint in the chart" to find, because there wasn't a market transaction. Only an FII rise that <i>isn't</i> matched by a promoter drop means the shares came from other sellers in the open market — the real accumulation signal.</p>
+      <p>Yahoo Finance carries no Indian shareholding-pattern data, so this can't be automated through the scan. Instead, the Chart Book has a <b>Shareholding check</b> panel (below the Stretch read) — paste the <b>promoter %</b>, <b>FII/FPI %</b>, and optionally <b>DII %</b> for the last two disclosed quarters from <a href="https://www.screener.in" target="_blank" rel="noopener">screener.in</a> or Trendlyne, and it computes the verdict:</p>
+      <ul>
+        <li><b>Genuine accumulation</b> (green) — FII rose ≥1 percentage point and promoter holding didn't drop meaningfully. Real buying.</li>
+        <li><b>Likely a placement / QIP</b> (amber) — the promoter drop explains ≥55% of the FII rise. Go check for a QIP announcement before trusting the number; treat it as neutral-to-noise, not a bullish tell.</li>
+        <li><b>Mixed</b> (amber) — some promoter selling, but not enough to fully explain the FII rise. Worth a closer look.</li>
+        <li><b>Flat / reduced</b> — no signal either way.</li>
+      </ul>
+      <p>It's saved per symbol (persists in your browser), feeds a chip in the Chart Book membership list, and nudges the <b>Confidence read</b> score — up for genuine accumulation, down for a likely placement.</p>
 
       <h3>Volume thrust at the moving average — the ⚡ badge (the RATNAVEER pattern)</h3>
       <p>A tight, high-quality trigger for a stock right at the start of a run. All of these have to be true:</p>
@@ -2940,6 +2956,15 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
     if(d.acc && d.acc.score)
       tags.push({t:"Accum "+d.acc.label+(d.acc.bo?" · breaking out":"")+" · aVWAP "+nfmt(d.acc.vwap,0),
                  c: d.acc.label==="strong"?"pos" : d.acc.label==="distribution"?"neg" : "warn"});
+    (function(){
+      var shRec = shareholdingGet(d.symbol);
+      if(!shRec || shRec.q0.prom==null || shRec.q1.prom==null || shRec.q0.fii==null || shRec.q1.fii==null) return;
+      var shv = shareholdingVerdict(shRec.q0.prom, shRec.q1.prom, shRec.q0.fii, shRec.q1.fii);
+      var d2 = (shRec.q1.fii - shRec.q0.fii);
+      tags.push({t:"🏦 FII "+(d2>=0?"+":"")+d2.toFixed(1)+"pp · "+
+        (shv.code==="strong"?"genuine accum" : shv.code==="placement"?"likely placement" : shv.code==="mixed"?"mixed" : "flat/reduced"),
+        c: shv.cls==="pos"?"pos":shv.cls==="neg"?"neg":"warn"});
+    })();
     if(d.sx && (d.sx.band==="ext-up" || d.sx.band==="ext-dn"))
       tags.push({t:"↕ Stretched "+(d.sx.z>=0?"+":"")+d.sx.z.toFixed(1)+"σ "+(d.sx.band==="ext-up"?"above":"below")+" 20-EMA",
                  c: d.sx.band==="ext-dn" ? "warn" : "warn"});
@@ -3089,6 +3114,16 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
         if(vd>=-0.005 && vd<=0.06) pos.push("holding just above the base VWAP — base buyers in the money");
         else if(vd<-0.02) neg.push("below the base VWAP — trapped supply from base buyers overhead");
       }
+    }
+
+    var shRec = shareholdingGet(d.symbol);
+    if(shRec && shRec.q0.prom!=null && shRec.q1.prom!=null && shRec.q0.fii!=null && shRec.q1.fii!=null){
+      var shv = shareholdingVerdict(shRec.q0.prom, shRec.q1.prom, shRec.q0.fii, shRec.q1.fii);
+      var shFiiD = shRec.q1.fii - shRec.q0.fii;
+      if(shv.code==="strong"){ score+=10; pos.push("FII stake +"+shFiiD.toFixed(1)+"pp ("+shRec.q0.label+"→"+shRec.q1.label+") without promoter dilution — real accumulation"); }
+      else if(shv.code==="placement"){ score-=6; neg.push("FII stake rose but looks like a QIP/placement, not open-market buying ("+shRec.q0.label+"→"+shRec.q1.label+")"); }
+      else if(shv.code==="mixed"){ pos.push("FII stake +"+shFiiD.toFixed(1)+"pp, but partly explained by promoter selling — verify"); }
+      else if(shv.code==="flat" && shv.cls==="neg"){ neg.push("FII trimmed its stake last quarter"); }
     }
 
     var rg=resultGrade(d);
@@ -3288,6 +3323,80 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
       fbLine+
       '<div class="bc-note">Toggle <b>Stretch band + signals</b> above to draw the ±2σ envelope and the markers: <b class="pos">▲</b> buy the pullback to the rising 20-EMA (reversal bar), <b class="warn">▼</b> take profit at the upper band, <b style="color:#d64545">✕</b> exit on a close back below the 20-EMA. The backtest above runs that exact rule on this stock\'s own history — if the expectancy is negative, don\'t trade its signals. "Stretch" itself = the 20-EMA <b>Disparity Index</b> ('+r.disp.toFixed(1)+'% off the line) as a z-score over ~120 bars. Sources: Nison; the 25-yr Nasdaq-100 &amp; 2,700-ticker ATR-extension studies; Avramov-Kaplanski-Subrahmanyam (2021). Short horizon → pause; multi-week → momentum.</div>';
   }
+
+  // ── Shareholding check (manual) — is a rising FII stake real accumulation or a placement? ──
+  // Yahoo carries no Indian shareholding-pattern data, so this is hand-entered from screener.in /
+  // Trendlyne: promoter / FII / DII % for the last two disclosed quarters. The tell: if promoter
+  // holding fell by roughly as much as FII holding rose, the new FII shares almost certainly came
+  // from a QIP / preferential allotment (a private placement), not open-market buying — there's no
+  // "footprint" in the chart to look for. Only a rise in FII holding that ISN'T matched by a
+  // promoter drop indicates real accumulation from other sellers in the market.
+  function shareholdingVerdict(prom0, prom1, fii0, fii1){
+    var fiiD = fii1 - fii0, promD = prom1 - prom0;
+    if(fiiD <= 0.1) return { code:"flat", cls:(fiiD<-0.1?"neg":"warn"),
+      label: fiiD < -0.1 ? "FII reduced its stake — no accumulation signal" : "FII stake roughly flat — no signal" };
+    var explained = promD < 0 ? Math.min(1, (-promD) / fiiD) : 0;
+    if(explained >= 0.55) return { code:"placement", cls:"warn",
+      label:"Likely a placement / QIP — not open-market buying (promoter drop explains most of the FII rise)" };
+    if(fiiD >= 1 && explained < 0.25) return { code:"strong", cls:"pos",
+      label:"Genuine accumulation — FII rose without meaningful promoter dilution" };
+    return { code:"mixed", cls:"warn",
+      label:"FII rose, but partly explained by promoter (or other) selling — mixed, verify further" };
+  }
+  function shareholdingGet(sym){ return (state.shareholding && state.shareholding[sym]) || null; }
+  function shareholdingSave(sym, q0, q1){
+    state.shareholding = state.shareholding || {};
+    state.shareholding[sym] = { q0:q0, q1:q1, at:new Date().toISOString() };
+    save();
+  }
+  function shareholdingClear(sym){
+    if(state.shareholding) delete state.shareholding[sym];
+    save();
+  }
+  function renderShareholding(d){
+    var host = $("#bookShare"); if(!host) return;
+    var sym = d.symbol, rec = shareholdingGet(sym);
+    var q0 = rec ? rec.q0 : {label:"",prom:null,fii:null,dii:null};
+    var q1 = rec ? rec.q1 : {label:"",prom:null,fii:null,dii:null};
+    var val = function(x){ return x==null ? "" : x; };
+    var form =
+      '<div class="bc-head"><span class="bc-lean">Shareholding check</span><span class="bc-conf">paste from screener.in / Trendlyne</span></div>'+
+      '<div class="sh-grid">'+
+        '<label>Prior qtr<input id="shQ0L" type="text" placeholder="e.g. Jun 2026" value="'+esc(q0.label)+'"></label>'+
+        '<label>Promoter %<input id="shQ0P" type="text" inputmode="decimal" value="'+val(q0.prom)+'"></label>'+
+        '<label>FII/FPI %<input id="shQ0F" type="text" inputmode="decimal" value="'+val(q0.fii)+'"></label>'+
+        '<label>DII % <span class="dim">(opt)</span><input id="shQ0D" type="text" inputmode="decimal" value="'+val(q0.dii)+'"></label>'+
+        '<label>Current qtr<input id="shQ1L" type="text" placeholder="e.g. Sep 2026" value="'+esc(q1.label)+'"></label>'+
+        '<label>Promoter %<input id="shQ1P" type="text" inputmode="decimal" value="'+val(q1.prom)+'"></label>'+
+        '<label>FII/FPI %<input id="shQ1F" type="text" inputmode="decimal" value="'+val(q1.fii)+'"></label>'+
+        '<label>DII % <span class="dim">(opt)</span><input id="shQ1D" type="text" inputmode="decimal" value="'+val(q1.dii)+'"></label>'+
+      '</div>'+
+      '<div class="row-actions" style="margin-top:8px"><button class="ghost" id="shSaveBtn">Save</button>'+(rec?'<button class="ghost" id="shClearBtn">Clear</button>':'')+'</div>';
+    var verdictHtml = "";
+    if(rec && q0.prom!=null && q1.prom!=null && q0.fii!=null && q1.fii!=null){
+      var v = shareholdingVerdict(q0.prom, q1.prom, q0.fii, q1.fii);
+      var fiiD = q1.fii-q0.fii, promD = q1.prom-q0.prom;
+      verdictHtml =
+        '<div class="bc-odds">FII <b>'+(fiiD>=0?'+':'')+fiiD.toFixed(2)+'pp</b> ('+q0.fii+'% → '+q1.fii+'%) · Promoter <b>'+(promD>=0?'+':'')+promD.toFixed(2)+'pp</b> ('+q0.prom+'% → '+q1.prom+'%)'+
+        (q0.dii!=null && q1.dii!=null ? ' · DII '+((q1.dii-q0.dii)>=0?'+':'')+(q1.dii-q0.dii).toFixed(2)+'pp' : '')+
+        '</div>'+
+        '<div class="bc-head" style="margin-top:2px"><span class="bc-lean '+v.cls+'">'+esc(v.label)+'</span></div>';
+    }
+    host.hidden = false;
+    host.innerHTML = form + verdictHtml +
+      '<div class="bc-note">Manual entry — the tool has no automated feed for Indian shareholding-pattern data. If promoter holding dropped by roughly as much as FII holding rose, it\'s very likely a QIP / preferential placement (check for one before trusting "FII accumulation" claims on social media) — that\'s a one-time private deal, not buying pressure visible on the chart. Only an FII rise <i>not</i> matched by a promoter drop is real open-market accumulation.</div>';
+    var sv = $("#shSaveBtn");
+    if(sv) sv.addEventListener("click", function(){
+      var num = function(id){ var v=parseFloat((($("#"+id)&&$("#"+id).value)||"").replace(/[^0-9.\-]/g,"")); return isFinite(v) ? v : null; };
+      var nq0 = { label:(($("#shQ0L")&&$("#shQ0L").value)||"").trim(), prom:num("shQ0P"), fii:num("shQ0F"), dii:num("shQ0D") };
+      var nq1 = { label:(($("#shQ1L")&&$("#shQ1L").value)||"").trim(), prom:num("shQ1P"), fii:num("shQ1F"), dii:num("shQ1D") };
+      if(nq0.prom==null || nq0.fii==null || nq1.prom==null || nq1.fii==null){ alert("Enter Promoter % and FII/FPI % for both quarters at least."); return; }
+      shareholdingSave(sym, nq0, nq1);
+      renderBook();
+    });
+    var cl = $("#shClearBtn");
+    if(cl) cl.addEventListener("click", function(){ shareholdingClear(sym); renderBook(); });
+  }
   function renderBook(){
     var host = $("#bookChart"); if(!host) return;
     if($("#tab-book") && $("#tab-book").hidden) return;   // don't fetch charts for a hidden tab
@@ -3345,6 +3454,7 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
       if($("#bookProb")) $("#bookProb").innerHTML = "";
       if($("#bookConf")){ $("#bookConf").innerHTML = ""; $("#bookConf").hidden = true; }
       if($("#bookStretch")){ $("#bookStretch").innerHTML = ""; $("#bookStretch").hidden = true; }
+      if($("#bookShare")){ $("#bookShare").innerHTML = ""; $("#bookShare").hidden = true; }
       $("#bookHead").innerHTML = "";
       $("#bookPlan").innerHTML = "";
       host.innerHTML = '<p class="empty">'+(rows.length ? "No stock in your scan matches this filter — change the <b>Show</b> dropdown." : "Run a scan (Screener → Scan now), then come back here.")+'</p>';
@@ -3438,6 +3548,7 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
       (rrBad ? '<p class="note neg">Reward:risk is below the 2:1 gate — skip this one, or wait for a tighter entry / lower stop.</p>' : '')+
       ((d.setup==="HDF"||d.dx) ? '<p class="note warn">Darvas / High Dry Fry entry: a <b>buy-stop just above the prior day’s high</b> once price is clearing the base; initial stop <b>1% under entry</b> or below the base low, whichever is tighter. Add on strength, never average down.</p>' : '');
 
+    renderShareholding(d);
     bookDrawChart(d);
   }
 
