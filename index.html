@@ -438,7 +438,7 @@ table.sc-setup td.num{font-family:"IBM Plex Mono",monospace;text-align:right}
     <span class="mark" aria-hidden="true">₹</span>
     <div>
       <h1>The 10% Ledger</h1>
-      <p>Momentum + pullback screener · NSE swing setups <span style="opacity:.5;font-size:11px">· build 2026-09-12l</span></p>
+      <p>Momentum + pullback screener · NSE swing setups <span style="opacity:.5;font-size:11px">· build 2026-09-12m</span></p>
     </div>
   </div>
   <div class="controls">
@@ -630,7 +630,7 @@ table.sc-setup td.num{font-family:"IBM Plex Mono",monospace;text-align:right}
       <details class="sub" id="rawBox">
         <summary>Raw data — paste your own or edit the scan output</summary>
         <p class="hint">One stock per line, comma or tab separated. First 6 fields required. Edit any row and press “Score all”.</p>
-        <code class="cols">SYM, price, EMA20, EMA50, EMA200, RSI, volR, breakout, support, sector, macd, hhhl, resist, probT1, probT10, basePct, baseBars, stage2, RS, setup, trigger, trigWR, athPct, blueSky(1/0), revYoY, profYoY, epsYoY, qDate, profYoYPrev, ttmYoY, coil(...), mvt(...), gg(...), sg(...), dx(...), hdf(thrust|correction|babyRange|volSurge|bars|hi|lo), cdl(code~ago~stat | …), mb(fund|infl|total|cls|arch|…), vm(mult|ago|up|rising), adr(%), nr(4or7|ago|inside|rangePct|bull), gx(crossAgo|from50), acc(...), vsk(...), vfh(...), gxw(...), sx(z|atrExt|slope|band|nu|tagU|fwdU|advU|nd|tagD|fwdD|advD), cm(n|up%|big5%|big8%|medFwd|medMfe|nDn|upDn%|medFwdDn|live), pb(n|hitRate%|medFwd%|medMin%|riding(1/0)|brokeAgo)</code>
+        <code class="cols">SYM, price, EMA20, EMA50, EMA200, RSI, volR, breakout, support, sector, macd, hhhl, resist, probT1, probT10, basePct, baseBars, stage2, RS, setup, trigger, trigWR, athPct, blueSky(1/0), revYoY, profYoY, epsYoY, qDate, profYoYPrev, ttmYoY, coil(...), mvt(...), gg(...), sg(...), dx(...), hdf(thrust|correction|babyRange|volSurge|bars|hi|lo), cdl(code~ago~stat | …), mb(fund|infl|total|cls|arch|…), vm(mult|ago|up|rising), adr(%), nr(4or7|ago|inside|rangePct|bull), gx(crossAgo|from50), acc(...), vsk(...), vfh(...), gxw(...), sx(z|atrExt|slope|band|nu|tagU|fwdU|advU|nd|tagD|fwdD|advD), cm(n|up%|big5%|big8%|medFwd|medMfe|nDn|upDn%|medFwdDn|live), pb(n|hitRate%|medFwd%|medMin%|riding(1/0)|brokeAgo), rdy(n|up%|big5%|big8%|medFwd|readyCount|flagBits(tight/dryVol/nearHigh/trend/notExt))</code>
         <textarea id="batchInput" spellcheck="false" aria-label="Stock data input"></textarea>
         <div class="row-actions">
           <button class="primary" id="scoreBtn">Score all</button>
@@ -1080,6 +1080,7 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
             <option value="stretchext">Over-extended from the 20-EMA — mean-reversion watch</option>
             <option value="cdlma">Hammer / morning star at the 10-SMA (live)</option>
             <option value="parab">Parabolic run — accelerating or just broke</option>
+            <option value="prebreak">Pre-breakout — 4+/5 conditions aligned</option>
             <option value="mbtop">Multibagger Radar — all, ranked by score</option>
             <option value="mb">Multibagger Radar — class A / B</option>
             <option value="mba">Multibagger Radar — class A only</option>
@@ -1705,11 +1706,11 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
   };
 
   var SAMPLE = [
-    "# cols: SYM,price,EMA20,EMA50,EMA200,RSI,volR,breakout,support,sector,macd,hhhl,resist,probT1,probT10,basePct,baseBars,stage2,RS,setup,trigger,trigWR,athPct,blueSky,revYoY,profYoY,epsYoY,qDate,profYoYPrev,ttmYoY,coil,mvt,gg,sg,dx,hdf,cdl,mb,vm,adr,nr,gx,acc,vsk,vfh,gxw,sx,cm,pb",
+    "# cols: SYM,price,EMA20,EMA50,EMA200,RSI,volR,breakout,support,sector,macd,hhhl,resist,probT1,probT10,basePct,baseBars,stage2,RS,setup,trigger,trigWR,athPct,blueSky,revYoY,profYoY,epsYoY,qDate,profYoYPrev,ttmYoY,coil,mvt,gg,sg,dx,hdf,cdl,mb,vm,adr,nr,gx,acc,vsk,vfh,gxw,sx,cm,pb,rdy",
     "HINDZINC, 627, 598, 560, 505, 69, 2.3, 620, 606, L, 1, 1, 0, 0.58, 0.33, 0.06, 22, 6, 88, HDF, inside-bar@0, 0.61, 0.01, 1, 0.19, 0.34, 0.31, 2026-06-30, 0.26, 0.3, , , , , 624|590|12|0.055|0.005|2.4|1|1|1, 0.42|0.16|0.028|1.8|12|624|560, hammer~0~3.4|inside~1~0.62, 72|10|82|C|compounder|15|16|11|7|10|8|5|24.5|13|100|0||0.14|0.18|0.19|1|1.1|0.35|0.09|280000|0|28~0.19~0.16~0.19~0.18|rev-accel+sector-tailwind, 3.4|1|1|1, 4.6, 7|0|1|0.018|1, 2|0.06, 74|strong|590|1.87|3|0.28|1, 310|8.2|1|1, 6|67|9.4|21|2|0|-4.1, 3|0.12, 2.3|3.1|0.3|ext-up|9|67|1.2|5.1|5|60|-0.4|4.4, 11|64|45|27|3.1|6.8|4|38|-1.2|, 8|63|-4.2|-9.5|1|-1",
     "BEL, 415, 402, 395, 360, 66, 1.9, 409, 391, L, 1, 1, 0, 0.55, 0.31, 0.07, 18, 6, 84, BOB, hammer@1, 0.62, 0.03, 1, 0.21, 0.28, 0.27, 2026-06-30, 0.33, 0.24, 14|coil|0.022|0.71|0.006|411||||0.09, , 12|0.06|1|3.6|0.04|420, , , , ldbng~2~2.1|kicker~2~0.004, 80|16|96|B|inflection|16|16|10|8|12|8|6|38|22|100|1|cfdiv|0.16|0.22|0.24|1|0.9|0.05|0.11|95000|0|28~0.17~0.15~0.18~0.22|rev-accel+margin-up+roce-inflect+sector-tailwind, 4.1|0|1|1, 2.2, 4|1|0|0.026|1, , 60|mild|398|1.33|2|0.11|0, 150|4.4|0|1, 4|75|11.2|24|1|0|-6.0, 5|0.07, 1.4|1.9|0.18|warm-up|7|71|2.2|3.8|6|64|1.9|4.6, 8|63|38|19|2.4|5.5|3|33|-0.8|hammer, 6|58|-6.1|-11.2|0|1",
     "JINDALSTEL, 1175, 1120, 1090, 1010, 60, 1.4, 1160, 1120, L, 1, 1, 1240, 0.5, 0.27, 0.11, 26, 5, 76, LBB, , , 0.11, 0, 0.08, 0.12, 0.1, 2026-03-31, 0.21, 0.1, , 4.2|50|0.014|1|1|0.03|12|78",
-    "MEESHO, 205, 198, 190, 0, 63, 1.4, 200, 191, I, 1, 1, 0, 0.5, 0.26, 0.08, 14, 5, 72, S2P, pin-bar@0, 0.58, 0.05, 0, 0.33, 99, 99, 2026-06-30, , , 9|pop|0.021|0.66|0.032|201|1|0.043|1.9|0.08",
+    "MEESHO, 205, 198, 190, 0, 63, 1.4, 200, 191, I, 1, 1, 0, 0.5, 0.26, 0.08, 14, 5, 72, S2P, pin-bar@0, 0.58, 0.05, 0, 0.33, 99, 99, 2026-06-30, , , 9|pop|0.021|0.66|0.032|201|1|0.043|1.9|0.08, , , , , , , , , , , , , , , , , , , 5|60|48|24|3.1|4|11010",
     "SAIL, 195, 190, 185, 132, 55, 0.9, 201, 188, L, 1, 0, 201, 0.44, 0.22, 0.06, 20, 5, 66, COIL, , , 0.14, 0, -0.04, -0.22, -0.21, 2026-06-30, -0.1, -0.15, , , , 0.18|11|1|3.8|178|2|0.015",
     "NYKAA, 341, 333, 325, 300, 58, 1.3, 339, 328, I, 1, 1, 360, 0.47, 0.24, 0.09, 20, 4, 55, , , , 0.16, 0, 0.24, 0.55, 0.5, 2026-06-30, 0.4, 0.48, 8|coil|0.028|0.85|0.011|338||||0.11",
     "TMB, 892, 878, 870, 845, 55, 1.1, 905, 862, I, 1, 0, 905, 0.44, 0.22, 0.05, 30, 3, 44, , , , 0.09, 0, 0.06, 0.03, 0.02, 2026-06-30, 0.05, 0.04, ",
@@ -1945,6 +1946,11 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
       var pbp = (p[48]||"").split("|");
       d.pb = (pbp[0]!=null && pbp[0]!=="" && isFinite(+pbp[0])) ? {
         n:+pbp[0]||0, hitRate:+pbp[1]||0, medFwd:+pbp[2]||0, medMin:+pbp[3]||0, riding:pbp[4]==="1", brokeAgo:+pbp[5]
+      } : null;
+      var rdyp = (p[49]||"").split("|");
+      d.rdy = (rdyp[0]!=null && rdyp[0]!=="" && isFinite(+rdyp[0])) ? {
+        n:+rdyp[0]||0, up:+rdyp[1]||0, b5:+rdyp[2]||0, b8:+rdyp[3]||0, medFwd:+rdyp[4]||0, readyCount:+rdyp[5]||0,
+        flags: (function(s){ s=s||""; return {tight:s[0]==="1", dryVol:s[1]==="1", nearHigh:s[2]==="1", trend:s[3]==="1", notExt:s[4]==="1"}; })(rdyp[6])
       } : null;
       var st = deriveStructure(d.price, d.breakout, d.basePct, d.baseBars, d.volRatio);
       d.structurePts=st.pts; d.structureLbl=st.label;
@@ -2967,6 +2973,7 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
       case "stretchext":   return !!(d.sx && (d.sx.band==="ext-up" || d.sx.band==="ext-dn"));
       case "cdlma":        return !!(d.cm && d.cm.live);
       case "parab":        return !!(d.pb && (d.pb.riding || d.pb.brokeAgo>=0));
+      case "prebreak":     return !!d.rdy;
       case "mb":         return d.mb && /^(A|B)$/.test(d.mb.cls);
       case "mba":        return d.mb && d.mb.cls==="A";
       case "mbearly":   { var eg=mbEarly(d); return !!(d.mb && d.mb.total!=null && eg && (eg.tier==="early"||eg.tier==="ignition")); }
@@ -3043,6 +3050,11 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
         ? "📉 Parabolic break"+(d.pb.brokeAgo>0?" · "+d.pb.brokeAgo+"d ago":"")+(pbHasEdge?" · hist fell further "+d.pb.hitRate+"% of the time":" · no track record yet")
         : "📉 Parabolic run — still accelerating"+(pbHasEdge?" · past breaks here fell further "+d.pb.hitRate+"% of the time":" · no track record yet");
       tags.push({t:pbTxt, c: (d.pb.brokeAgo>=0 && pbHasEdge) ? "neg" : "warn"});
+    }
+    if(d.rdy){
+      var rdyHasEdge = preBreakoutHasEdge(d.rdy);
+      tags.push({t:"🎯 Pre-breakout "+d.rdy.readyCount+"/5 ready"+(rdyHasEdge?" · hist made +5% "+d.rdy.b5+"% of the time":" · no track record yet"),
+                 c: rdyHasEdge ? "pos" : "warn"});
     }
     if(d.blueSky) tags.push({t:"All-time high", c:"pos"});
     var rt = resultTiming(d.qDate);
@@ -3191,6 +3203,14 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
           ? "still accelerating in a parabolic curve — past breaks here fell further "+d.pb.hitRate+"% of the time"
           : "accelerating in a textbook parabolic curve — unsustainable pace, no track record yet for this stock");
       }
+    }
+
+    if(d.rdy){
+      var rdyEdge = preBreakoutHasEdge(d.rdy);
+      score += rdyEdge ? 14 : 6;
+      pos.push(rdyEdge
+        ? "pre-breakout setup ("+d.rdy.readyCount+"/5 conditions aligned — coil, dry volume, near highs, trend, not extended) — historically made +5% "+d.rdy.b5+"% of the time within 20 sessions"
+        : "pre-breakout setup ("+d.rdy.readyCount+"/5 conditions aligned) — no track record yet for this stock");
     }
 
     if(d.acc && d.acc.score){
@@ -6429,6 +6449,62 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
   }
   function parabolicHasEdge(pb){ return !!(pb && pb.n>=5 && (pb.hitRate>=50 || pb.medMin<=-5)); }
 
+  // Pre-breakout readiness — a composite of 5 precursor conditions this tool already screens
+  // separately (coiling, volume drying up, basing near the highs, a healthy trend, not already
+  // extended). None of these alone predicts anything; several lining up AT ONCE is a tighter,
+  // lower-risk setup than any one signal in isolation — and that combination is itself testable
+  // against the stock's own history, so it stays an honest "better-supported odds" read rather
+  // than a bigger version of a fake prediction. Single-stock OHLCV only (no cross-sectional RS —
+  // that's scan-context-only and can't be replayed bar-by-bar through history here).
+  function preBreakoutFlagsAt(c,h,l,v,e10,e20,e50,e200,i){
+    var f = {tight:false, dryVol:false, nearHigh:false, trend:false, notExt:false};
+    if(i>=48 && e10[i]>0){
+      var rNow=0,k; for(k=i-7;k<=i;k++) rNow+=(h[k]-l[k]); rNow/=8;
+      var rPrior=0; for(k=i-47;k<i-7;k++) rPrior+=(h[k]-l[k]); rPrior/=40;
+      f.tight = rPrior>0 && rNow<=rPrior*0.62 && Math.abs(c[i]-e10[i])/c[i]<=0.035;
+    }
+    if(i>=50){
+      var vNow=0,k2; for(k2=i-7;k2<=i;k2++) vNow+=v[k2]; vNow/=8;
+      var vPrior=0; for(k2=i-49;k2<=i;k2++) vPrior+=v[k2]; vPrior/=50;
+      f.dryVol = vPrior>0 && vNow<=vPrior*0.82;
+    }
+    var look=Math.min(i+1,252), hi=-1e9,k3;
+    for(k3=i-look+1;k3<=i;k3++) if(h[k3]>hi) hi=h[k3];
+    f.nearHigh = hi>0 && (hi-c[i])/hi<=0.12;
+    f.trend = (e50[i]>0 && e200[i]>0) ? (c[i]>e50[i] && e50[i]>e200[i]) : (e50[i]>0 && c[i]>e50[i]);
+    f.notExt = e20[i]>0 && c[i] <= e20[i]*1.06;
+    var n = (f.tight?1:0)+(f.dryVol?1:0)+(f.nearHigh?1:0)+(f.trend?1:0)+(f.notExt?1:0);
+    return {f:f, n:n};
+  }
+  function preBreakoutRead(o){
+    var c=o.c, h=o.h, l=o.l, v=o.v, n=c && c.length || 0;
+    if(n<260) return null;   // needs a real 200-EMA + enough runway to backtest
+    var e10=smaArr(c,10), e20=emaArr(c,20), e50=emaArr(c,50), e200=emaArr(c,200);
+    var last = preBreakoutFlagsAt(c,h,l,v,e10,e20,e50,e200,n-1);
+    if(last.n < 4) return null;   // nothing live right now — don't bother backtesting
+    // 20 bars, not 10 — a coil can run 1-3 weeks before it actually resolves, and the event is
+    // timestamped at the FIRST bar the setup qualifies (usually early in the coil, not at the
+    // pop), so the forward window needs enough runway to still be looking when the pop happens.
+    var fwd=20, events=[], wasReady=false, t;
+    for(t=48; t<n-1-fwd; t++){
+      var r = preBreakoutFlagsAt(c,h,l,v,e10,e20,e50,e200,t), ready = r.n>=4;
+      if(ready && !wasReady){
+        var base=c[t], mx=base, k; for(k=t+1;k<=t+fwd;k++) if(h[k]>mx) mx=h[k];
+        events.push({ fwd:(c[t+fwd]/base-1), mfe:(mx/base-1) });
+      }
+      wasReady = ready;
+    }
+    var nEv=events.length;
+    return {
+      flags:last.f, readyCount:last.n, n:nEv,
+      up: nEv ? Math.round(events.filter(function(e){return e.fwd>0;}).length/nEv*100) : 0,
+      b5: nEv ? Math.round(events.filter(function(e){return e.mfe>=0.05;}).length/nEv*100) : 0,
+      b8: nEv ? Math.round(events.filter(function(e){return e.mfe>=0.08;}).length/nEv*100) : 0,
+      medFwd: nEv ? Math.round((events.map(function(e){return e.fwd;}).slice().sort(function(p,q){return p-q;})[Math.floor(nEv/2)])*1000)/10 : 0
+    };
+  }
+  function preBreakoutHasEdge(rdy){ return !!(rdy && rdy.n>=5 && (rdy.b5>=45 || rdy.up>=55)); }
+
   // ATR as a % of price, over the last n bars
   function atrPct(h,l,c,n){
     var len=c.length; if(len < n+2) return 0;
@@ -7029,6 +7105,10 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
     // parabolic blow-off / break — currently accelerating, or just cracked below its own curve
     var pb = parabolicRead({h:h, l:l, c:c});
     var pbStr = pb ? [pb.n, pb.hitRate, r2(pb.medFwd), r2(pb.medMin), (pb.riding?1:0), pb.brokeAgo].join("|") : "";
+    // pre-breakout readiness — coil/dry-volume/near-highs/trend/not-extended, 4+ of 5 at once
+    var rdy = preBreakoutRead({c:c, h:h, l:l, v:vol});
+    var rdyFlagBits = rdy ? [rdy.flags.tight,rdy.flags.dryVol,rdy.flags.nearHigh,rdy.flags.trend,rdy.flags.notExt].map(function(x){return x?1:0;}).join("") : "";
+    var rdyStr = rdy ? [rdy.n, rdy.up, rdy.b5, rdy.b8, r2(rdy.medFwd), rdy.readyCount, rdyFlagBits].join("|") : "";
     // last ~520 bars kept for charting the top-ranked names — enough for EMA200 and a
     // full weekly SMA10/50 view (≈104 weeks). Rounded to keep localStorage small.
     var TB = 520, ts = Math.max(0, c.length - TB), rnd = function(x){ return Math.round(x*100)/100; };
@@ -7064,7 +7144,7 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
       blueSky: (bsky.newHigh && bsky.above) ? 1 : 0,
       fibZone: fib ? fib.zone : "",
       fibRetr: fib ? Math.round(fib.retr*100)/100 : null,
-      coil: coilStr, mvt: mvtStr, gg: ggStr, sg: sgStr, dx: dxStr, hdf: hdfStr, cdl: cdlStr, mb: "", vm: vmStr, acc: accStr, vsk: vskStr, vfh: vfhStr, gxw: gxwStr, sx: sxStr, cm: cmStr, pb: pbStr,
+      coil: coilStr, mvt: mvtStr, gg: ggStr, sg: sgStr, dx: dxStr, hdf: hdfStr, cdl: cdlStr, mb: "", vm: vmStr, acc: accStr, vsk: vskStr, vfh: vfhStr, gxw: gxwStr, sx: sxStr, cm: cmStr, pb: pbStr, rdy: rdyStr,
       revYoY: null, profYoY: null, epsYoY: null, qDate: "", profYoYPrev: null, ttmYoY: null   // filled in later by applyFund()
     };
   }
@@ -7075,7 +7155,7 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
       r.basePct||0, r.baseBars||0, r.stage2||0, (r.rs==null?"":r.rs), (r.setup||""),
       (r.trig||""), (r.trigWR==null?"":r.trigWR), (r.athPct==null?"":r.athPct), (r.blueSky||0),
       (r.revYoY==null?"":r.revYoY), (r.profYoY==null?"":r.profYoY), (r.epsYoY==null?"":r.epsYoY), (r.qDate||""),
-      (r.profYoYPrev==null?"":r.profYoYPrev), (r.ttmYoY==null?"":r.ttmYoY), (r.coil||""), (r.mvt||""), (r.gg||""), (r.sg||""), (r.dx||""), (r.hdf||""), (r.cdl||""), (r.mb||""), (r.vm||""), (r.adr==null?"":r.adr), (r.nr||""), (r.gx||""), (r.acc||""), (r.vsk||""), (r.vfh||""), (r.gxw||""), (r.sx||""), (r.cm||""), (r.pb||"")].join(", ");
+      (r.profYoYPrev==null?"":r.profYoYPrev), (r.ttmYoY==null?"":r.ttmYoY), (r.coil||""), (r.mvt||""), (r.gg||""), (r.sg||""), (r.dx||""), (r.hdf||""), (r.cdl||""), (r.mb||""), (r.vm||""), (r.adr==null?"":r.adr), (r.nr||""), (r.gx||""), (r.acc||""), (r.vsk||""), (r.vfh||""), (r.gxw||""), (r.sx||""), (r.cm||""), (r.pb||""), (r.rdy||"")].join(", ");
   }
 
   /* ---------- auto-screen: fetch adapters ---------- */
