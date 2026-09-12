@@ -319,6 +319,10 @@ table.mb-scen td.num{font-family:"IBM Plex Mono",monospace;text-align:right;padd
 .cx-mtrend{stroke:#e8b93a;stroke-width:1.6;fill:none}
 .cx-mtrend-pt{fill:#e8b93a;stroke:var(--surface);stroke-width:1}
 .cx-mtrend-pending{fill:#e8b93a;stroke:var(--surface);stroke-width:1;opacity:.85}
+.cx-protractor{stroke:#ff5fd1;stroke-width:1.4;stroke-dasharray:5 3;fill:none}
+.cx-protractor-pt{fill:#ff5fd1;stroke:var(--surface);stroke-width:1}
+.cx-protractor-pending{fill:#ff5fd1;stroke:var(--surface);stroke-width:1;opacity:.85}
+.cx-protractor-lab{fill:#ff5fd1;font-size:9px;font-weight:600;font-family:"IBM Plex Mono",monospace}
 .cx-svg.cx-drawing{cursor:crosshair}
 .cx-fiiwin{fill:#22b8cf;fill-opacity:.07;stroke:#22b8cf;stroke-opacity:.5;stroke-width:1;stroke-dasharray:3 2}
 .cx-fiiwinvol{fill:#22b8cf;fill-opacity:.14;stroke:none}
@@ -423,7 +427,7 @@ table.sc-setup td.num{font-family:"IBM Plex Mono",monospace;text-align:right}
     <span class="mark" aria-hidden="true">₹</span>
     <div>
       <h1>The 10% Ledger</h1>
-      <p>Momentum + pullback screener · NSE swing setups <span style="opacity:.5;font-size:11px">· build 2026-09-12i</span></p>
+      <p>Momentum + pullback screener · NSE swing setups <span style="opacity:.5;font-size:11px">· build 2026-09-12j</span></p>
     </div>
   </div>
   <div class="controls">
@@ -1095,6 +1099,8 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
         <button id="bookRefreshLive" class="ghost" title="Fetch fresh candles for this stock">↻ live</button>
         <button id="bookDrawTrend" class="ghost" aria-pressed="false" title="Click two points on the chart to draw your own trendline — it's anchored to the actual dates/prices you click, so it stays in place as the chart updates and works on daily or weekly.">✏️ Draw trendline</button>
         <button id="bookClearTrend" class="ghost" hidden title="Remove every manually-drawn trendline on this stock">🗑 clear my lines</button>
+        <button id="bookProtractor" class="ghost" aria-pressed="false" title="Click two points to measure the angle of a move — shows degrees (this chart's own scale, not a fixed physical angle) plus the %/bar rate, which is the number to trust when comparing steepness across different charts.">📐 Protractor</button>
+        <button id="bookClearProtractor" class="ghost" hidden title="Remove every angle measurement on this stock">🗑 clear angles</button>
         <button id="bookWatch" class="ghost" title="Add / remove this stock from your watchlist">☆ Watchlist</button>
         <button id="bookAnnounce" class="ghost" title="Open this stock's NSE announcements in a new tab">📢 Announcements</button>
         <button id="bookOpen" class="ghost" title="Open this stock in the Analyzer">Full analysis →</button>
@@ -2875,6 +2881,7 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
   var bookPool = [];
   var bookToken = 0;
   var manualDrawMode = false, manualPending = null;   // manual-trendline draw state (transient, not persisted)
+  var protractorMode = false, protractorPending = null;   // angle-measurement draw state (transient, not persisted)
 
   function bookWL(){ var m={}; (state.watchlist||[]).forEach(function(w){ m[w.symbol]=1; }); return m; }
 
@@ -3833,19 +3840,29 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
     var cl=$("#bookClearTrend");
     if(cl) cl.hidden = !(state.manualTrend && state.manualTrend[lastBookSym] && state.manualTrend[lastBookSym].length);
   }
+  function refreshProtractorUI(){
+    var btn=$("#bookProtractor");
+    if(btn){
+      btn.classList.toggle("pos", protractorMode);
+      btn.textContent = !protractorMode ? "📐 Protractor" : (protractorPending ? "📐 click the 2nd point…" : "📐 click the 1st point…");
+    }
+    var cl=$("#bookClearProtractor");
+    if(cl) cl.hidden = !(state.protractor && state.protractor[lastBookSym] && state.protractor[lastBookSym].length);
+  }
   function bookDrawChart(d){
     var host = $("#bookChart"); if(!host) return;
     var myTok = ++bookToken;
     var sym = d.symbol;
-    if(sym!==lastBookSym){ manualPending=null; manualDrawMode=false; }   // don't carry a half-drawn line across stocks
+    if(sym!==lastBookSym){ manualPending=null; manualDrawMode=false; protractorPending=null; protractorMode=false; }   // don't carry a half-drawn line/measurement across stocks
     lastBookSym = sym;
     refreshDrawTrendUI();
+    refreshProtractorUI();
     var tf = state.chartTF==="weekly" ? "weekly" : "daily";
     var e = evaluateRow(d), tpx = trigParts(d);
     var opts = {symbol:sym, entry:e.tr.entry, stop:e.tr.stop, t10:e.tr.t10,
                 support:d.support, resistance:d.resistance, weekly: tf==="weekly", trigAgo: tpx?tpx.ago:-1,
                 stretchBand: state.bookStretchBand===true, fiiWindow: state.bookFiiWindow!==false,
-                drawing: manualDrawMode, pendingPoint: manualPending};
+                drawing: manualDrawMode || protractorMode, pendingPoint: manualPending, protractorPendingPoint: protractorPending};
     var _oc = readOC();
     if(sym===(($("#a_sym").value||"").toUpperCase()) && ocHasSignal(_oc)){
       opts.ocCall=_oc.call; opts.ocPut=_oc.put; opts.ocMaxpain=_oc.maxpain;
@@ -3881,7 +3898,7 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
       host.innerHTML = chartLegend(tf) + meta + buildChartSVG(series, opts);
       var svgEl = host.querySelector("svg");
       if(svgEl) svgEl.addEventListener("click", function(ev){
-        if(!manualDrawMode || !opts._map) return;
+        if((!manualDrawMode && !protractorMode) || !opts._map) return;
         var rect = svgEl.getBoundingClientRect(); if(!rect.width || !rect.height) return;
         var vb = svgEl.viewBox.baseVal, map = opts._map;
         var sx = (ev.clientX-rect.left) * (vb.width/rect.width), sy = (ev.clientY-rect.top) * (vb.height/rect.height);
@@ -3889,13 +3906,23 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
         var bi = Math.max(0, Math.min(map.n-1, Math.round((sx-map.PL) * (map.n-1) / xw)));
         var price = map.hi - (sy-map.T) / (map.PB-map.T) * (map.hi-map.lo);
         var date = map.D[bi]; if(!date) return;
-        if(!manualPending){ manualPending = {date:date, price:price}; }
-        else {
-          state.manualTrend = state.manualTrend || {};
-          (state.manualTrend[sym] = state.manualTrend[sym] || []).push({ d1:manualPending.date, p1:manualPending.price, d2:date, p2:price });
-          manualPending = null; manualDrawMode = false; save();
+        if(manualDrawMode){
+          if(!manualPending){ manualPending = {date:date, price:price}; }
+          else {
+            state.manualTrend = state.manualTrend || {};
+            (state.manualTrend[sym] = state.manualTrend[sym] || []).push({ d1:manualPending.date, p1:manualPending.price, d2:date, p2:price });
+            manualPending = null; manualDrawMode = false; save();
+          }
+          refreshDrawTrendUI();
+        } else if(protractorMode){
+          if(!protractorPending){ protractorPending = {date:date, price:price}; }
+          else {
+            state.protractor = state.protractor || {};
+            (state.protractor[sym] = state.protractor[sym] || []).push({ d1:protractorPending.date, p1:protractorPending.price, d2:date, p2:price });
+            protractorPending = null; protractorMode = false; save();
+          }
+          refreshProtractorUI();
         }
-        refreshDrawTrendUI();
         bookDrawChart(d);   // redraw from the cache — no re-fetch
       });
     }
@@ -4907,6 +4934,30 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
     if(opts.pendingPoint){
       var pi=nearestBarIndex(D, opts.pendingPoint.date);
       if(pi>=0) g.push('<circle cx="'+f1(X(pi))+'" cy="'+f1(Y(opts.pendingPoint.price))+'" r="4" class="cx-mtrend-pending"/>');
+    }
+    // protractor — measures the angle + rate of a move between two clicked points. The angle is
+    // read off THIS chart's own pixel geometry (bar spacing × price scale), not a physical unit —
+    // it changes if the visible window/zoom changes, so it's only meaningful as a same-chart,
+    // same-timeframe comparison. The %/bar figure alongside it is scale-independent and the more
+    // trustworthy number for comparing the steepness of different moves.
+    var protractorLines = (state.protractor && state.protractor[opts.symbol]) || [];
+    protractorLines.forEach(function(ln){
+      var i1=nearestBarIndex(D, ln.d1), i2=nearestBarIndex(D, ln.d2);
+      if(i1<0 || i2<0 || i1===i2) return;
+      if(i1>i2){ var ti=i1;i1=i2;i2=ti; var tp=ln.p1;ln={d1:ln.d2,p1:ln.p2,d2:ln.d1,p2:tp}; }
+      var x1=X(i1), y1=Y(ln.p1), x2=X(i2), y2=Y(ln.p2);
+      var angDeg = Math.atan2(y1-y2, x2-x1) * 180/Math.PI;   // y1-y2 flips SVG's downward y — up = positive
+      var bars = i2-i1, pctChg = ln.p1 ? (ln.p2-ln.p1)/ln.p1*100 : 0;
+      var perBar = bars ? pctChg/bars : 0;
+      var midx=(x1+x2)/2, labY=Math.min(y1,y2)-8;
+      g.push('<line x1="'+f1(x1)+'" y1="'+f1(y1)+'" x2="'+f1(x2)+'" y2="'+f1(y2)+'" class="cx-protractor"/>');
+      g.push('<circle cx="'+f1(x1)+'" cy="'+f1(y1)+'" r="3" class="cx-protractor-pt"/>');
+      g.push('<circle cx="'+f1(x2)+'" cy="'+f1(y2)+'" r="3" class="cx-protractor-pt"/>');
+      g.push('<text x="'+f1(midx)+'" y="'+f1(labY)+'" text-anchor="middle" class="cx-protractor-lab">'+(angDeg>=0?"+":"")+angDeg.toFixed(0)+'° · '+(pctChg>=0?"+":"")+pctChg.toFixed(1)+'% / '+bars+'b · '+(perBar>=0?"+":"")+perBar.toFixed(2)+'%/b</text>');
+    });
+    if(opts.protractorPendingPoint){
+      var ppi=nearestBarIndex(D, opts.protractorPendingPoint.date);
+      if(ppi>=0) g.push('<circle cx="'+f1(X(ppi))+'" cy="'+f1(Y(opts.protractorPendingPoint.price))+'" r="4" class="cx-protractor-pending"/>');
     }
     return '<svg viewBox="0 0 '+W+' '+HH+'" class="cx-svg'+(opts.drawing?' cx-drawing':'')+'" preserveAspectRatio="xMidYMid meet" role="img" aria-label="daily price chart for '+esc(opts.symbol||"")+'">'+g.join("")+'</svg>';
   }
@@ -8079,12 +8130,24 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
     });
     if($("#bookDrawTrend")) $("#bookDrawTrend").addEventListener("click", function(){
       manualDrawMode = !manualDrawMode; manualPending = null;
+      if(manualDrawMode){ protractorMode = false; protractorPending = null; refreshProtractorUI(); }
       refreshDrawTrendUI();
       var d=bookPool[state.bookIdx]; if(d) bookDrawChart(d);
     });
     if($("#bookClearTrend")) $("#bookClearTrend").addEventListener("click", function(){
       if(state.manualTrend) delete state.manualTrend[lastBookSym];
       save(); refreshDrawTrendUI();
+      var d=bookPool[state.bookIdx]; if(d) bookDrawChart(d);
+    });
+    if($("#bookProtractor")) $("#bookProtractor").addEventListener("click", function(){
+      protractorMode = !protractorMode; protractorPending = null;
+      if(protractorMode){ manualDrawMode = false; manualPending = null; refreshDrawTrendUI(); }
+      refreshProtractorUI();
+      var d=bookPool[state.bookIdx]; if(d) bookDrawChart(d);
+    });
+    if($("#bookClearProtractor")) $("#bookClearProtractor").addEventListener("click", function(){
+      if(state.protractor) delete state.protractor[lastBookSym];
+      save(); refreshProtractorUI();
       var d=bookPool[state.bookIdx]; if(d) bookDrawChart(d);
     });
     $$("#bookTF button").forEach(function(b){
