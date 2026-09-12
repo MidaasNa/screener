@@ -334,6 +334,13 @@ table.mb-scen td.num{font-family:"IBM Plex Mono",monospace;text-align:right;padd
 .cx-parab-x{stroke:#d64545;stroke-width:1.6;fill:none}
 .cx-parab-lab{fill:#ffb020;font-size:9px;font-weight:600;font-family:"IBM Plex Mono",monospace}
 .cx-parab-lab.broke{fill:#d64545}
+.cx-maang-base{stroke:var(--muted);stroke-width:.8;stroke-opacity:.4;fill:none}
+.cx-maang-wedge{fill:#22d3ee;fill-opacity:.16;stroke:#22d3ee;stroke-opacity:.5;stroke-width:.8}
+.cx-maang-fast{stroke:var(--accent);stroke-width:1.6;fill:none}
+.cx-maang-slow{stroke:var(--muted);stroke-width:1.6;fill:none}
+.cx-maang-pt{fill:#22d3ee;stroke:none}
+.cx-maang-lab{fill:var(--muted);font-size:7px;font-family:"IBM Plex Mono",monospace}
+.cx-maang-lab.dev{fill:#22d3ee;font-weight:700;font-size:8px}
 .cx-svg.cx-drawing{cursor:crosshair}
 .cx-fiiwin{fill:#22b8cf;fill-opacity:.07;stroke:#22b8cf;stroke-opacity:.5;stroke-width:1;stroke-dasharray:3 2}
 .cx-fiiwinvol{fill:#22b8cf;fill-opacity:.14;stroke:none}
@@ -438,7 +445,7 @@ table.sc-setup td.num{font-family:"IBM Plex Mono",monospace;text-align:right}
     <span class="mark" aria-hidden="true">₹</span>
     <div>
       <h1>The 10% Ledger</h1>
-      <p>Momentum + pullback screener · NSE swing setups <span style="opacity:.5;font-size:11px">· build 2026-09-12m</span></p>
+      <p>Momentum + pullback screener · NSE swing setups <span style="opacity:.5;font-size:11px">· build 2026-09-12p</span></p>
     </div>
   </div>
   <div class="controls">
@@ -630,7 +637,7 @@ table.sc-setup td.num{font-family:"IBM Plex Mono",monospace;text-align:right}
       <details class="sub" id="rawBox">
         <summary>Raw data — paste your own or edit the scan output</summary>
         <p class="hint">One stock per line, comma or tab separated. First 6 fields required. Edit any row and press “Score all”.</p>
-        <code class="cols">SYM, price, EMA20, EMA50, EMA200, RSI, volR, breakout, support, sector, macd, hhhl, resist, probT1, probT10, basePct, baseBars, stage2, RS, setup, trigger, trigWR, athPct, blueSky(1/0), revYoY, profYoY, epsYoY, qDate, profYoYPrev, ttmYoY, coil(...), mvt(...), gg(...), sg(...), dx(...), hdf(thrust|correction|babyRange|volSurge|bars|hi|lo), cdl(code~ago~stat | …), mb(fund|infl|total|cls|arch|…), vm(mult|ago|up|rising), adr(%), nr(4or7|ago|inside|rangePct|bull), gx(crossAgo|from50), acc(...), vsk(...), vfh(...), gxw(...), sx(z|atrExt|slope|band|nu|tagU|fwdU|advU|nd|tagD|fwdD|advD), cm(n|up%|big5%|big8%|medFwd|medMfe|nDn|upDn%|medFwdDn|live), pb(n|hitRate%|medFwd%|medMin%|riding(1/0)|brokeAgo), rdy(n|up%|big5%|big8%|medFwd|readyCount|flagBits(tight/dryVol/nearHigh/trend/notExt))</code>
+        <code class="cols">SYM, price, EMA20, EMA50, EMA200, RSI, volR, breakout, support, sector, macd, hhhl, resist, probT1, probT10, basePct, baseBars, stage2, RS, setup, trigger, trigWR, athPct, blueSky(1/0), revYoY, profYoY, epsYoY, qDate, profYoYPrev, ttmYoY, coil(...), mvt(...), gg(...), sg(...), dx(...), hdf(thrust|correction|babyRange|volSurge|bars|hi|lo), cdl(code~ago~stat | …), mb(fund|infl|total|cls|arch|…), vm(mult|ago|up|rising), adr(%), nr(4or7|ago|inside|rangePct|bull), gx(crossAgo|from50), acc(...), vsk(...), vfh(...), gxw(...), sx(z|atrExt|slope|band|nu|tagU|fwdU|advU|nd|tagD|fwdD|advD), cm(n|up%|big5%|big8%|medFwd|medMfe|nDn|upDn%|medFwdDn|live), pb(n|hitRate%|medFwd%|medMin%|riding(1/0)|brokeAgo), rdy(n|up%|big5%|big8%|medFwd|readyCount|flagBits(tight/dryVol/nearHigh/trend/notExt)|run6m%|extended(1/0)|cohortN|cohortBig5%|cohortMedFwd)</code>
         <textarea id="batchInput" spellcheck="false" aria-label="Stock data input"></textarea>
         <div class="row-actions">
           <button class="primary" id="scoreBtn">Score all</button>
@@ -1046,6 +1053,10 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
       <details class="sub" id="cmStudy">
         <summary>Hammer / morning star at the 10-SMA — does a big move follow? <span class="hint" id="cmStudySum"></span></summary>
         <div id="cmStudyOut" class="hint" style="margin-top:6px"></div>
+      </details>
+      <details class="sub" id="maAngleStudy">
+        <summary>MA angle — which angle finds multibaggers, which angle falls the hardest <span class="hint" id="maAngleStudySum"></span></summary>
+        <div id="maAngleStudyOut" class="hint" style="margin-top:6px"></div>
       </details>
       <div class="scan-head" style="margin-top:2px;flex-wrap:wrap;gap:8px">
         <label class="chk" style="margin-left:0">Show
@@ -1710,8 +1721,8 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
     "HINDZINC, 627, 598, 560, 505, 69, 2.3, 620, 606, L, 1, 1, 0, 0.58, 0.33, 0.06, 22, 6, 88, HDF, inside-bar@0, 0.61, 0.01, 1, 0.19, 0.34, 0.31, 2026-06-30, 0.26, 0.3, , , , , 624|590|12|0.055|0.005|2.4|1|1|1, 0.42|0.16|0.028|1.8|12|624|560, hammer~0~3.4|inside~1~0.62, 72|10|82|C|compounder|15|16|11|7|10|8|5|24.5|13|100|0||0.14|0.18|0.19|1|1.1|0.35|0.09|280000|0|28~0.19~0.16~0.19~0.18|rev-accel+sector-tailwind, 3.4|1|1|1, 4.6, 7|0|1|0.018|1, 2|0.06, 74|strong|590|1.87|3|0.28|1, 310|8.2|1|1, 6|67|9.4|21|2|0|-4.1, 3|0.12, 2.3|3.1|0.3|ext-up|9|67|1.2|5.1|5|60|-0.4|4.4, 11|64|45|27|3.1|6.8|4|38|-1.2|, 8|63|-4.2|-9.5|1|-1",
     "BEL, 415, 402, 395, 360, 66, 1.9, 409, 391, L, 1, 1, 0, 0.55, 0.31, 0.07, 18, 6, 84, BOB, hammer@1, 0.62, 0.03, 1, 0.21, 0.28, 0.27, 2026-06-30, 0.33, 0.24, 14|coil|0.022|0.71|0.006|411||||0.09, , 12|0.06|1|3.6|0.04|420, , , , ldbng~2~2.1|kicker~2~0.004, 80|16|96|B|inflection|16|16|10|8|12|8|6|38|22|100|1|cfdiv|0.16|0.22|0.24|1|0.9|0.05|0.11|95000|0|28~0.17~0.15~0.18~0.22|rev-accel+margin-up+roce-inflect+sector-tailwind, 4.1|0|1|1, 2.2, 4|1|0|0.026|1, , 60|mild|398|1.33|2|0.11|0, 150|4.4|0|1, 4|75|11.2|24|1|0|-6.0, 5|0.07, 1.4|1.9|0.18|warm-up|7|71|2.2|3.8|6|64|1.9|4.6, 8|63|38|19|2.4|5.5|3|33|-0.8|hammer, 6|58|-6.1|-11.2|0|1",
     "JINDALSTEL, 1175, 1120, 1090, 1010, 60, 1.4, 1160, 1120, L, 1, 1, 1240, 0.5, 0.27, 0.11, 26, 5, 76, LBB, , , 0.11, 0, 0.08, 0.12, 0.1, 2026-03-31, 0.21, 0.1, , 4.2|50|0.014|1|1|0.03|12|78",
-    "MEESHO, 205, 198, 190, 0, 63, 1.4, 200, 191, I, 1, 1, 0, 0.5, 0.26, 0.08, 14, 5, 72, S2P, pin-bar@0, 0.58, 0.05, 0, 0.33, 99, 99, 2026-06-30, , , 9|pop|0.021|0.66|0.032|201|1|0.043|1.9|0.08, , , , , , , , , , , , , , , , , , , 5|60|48|24|3.1|4|11010",
-    "SAIL, 195, 190, 185, 132, 55, 0.9, 201, 188, L, 1, 0, 201, 0.44, 0.22, 0.06, 20, 5, 66, COIL, , , 0.14, 0, -0.04, -0.22, -0.21, 2026-06-30, -0.1, -0.15, , , , 0.18|11|1|3.8|178|2|0.015",
+    "MEESHO, 205, 198, 190, 0, 63, 1.4, 200, 191, I, 1, 1, 0, 0.5, 0.26, 0.08, 14, 5, 72, S2P, pin-bar@0, 0.58, 0.05, 0, 0.33, 99, 99, 2026-06-30, , , 9|pop|0.021|0.66|0.032|201|1|0.043|1.9|0.08, , , , , , , , , , , , , , , , , , , 5|60|48|24|3.1|4|11010|22|0|0|0|0",
+    "SAIL, 195, 190, 185, 132, 55, 0.9, 201, 188, L, 1, 0, 201, 0.44, 0.22, 0.06, 20, 5, 66, COIL, , , 0.14, 0, -0.04, -0.22, -0.21, 2026-06-30, -0.1, -0.15, , , , 0.18|11|1|3.8|178|2|0.015, , , , , , , , , , , , , , , , 6|50|30|15|1.2|4|10110|180|1|5|20|-2.5",
     "NYKAA, 341, 333, 325, 300, 58, 1.3, 339, 328, I, 1, 1, 360, 0.47, 0.24, 0.09, 20, 4, 55, , , , 0.16, 0, 0.24, 0.55, 0.5, 2026-06-30, 0.4, 0.48, 8|coil|0.028|0.85|0.011|338||||0.11",
     "TMB, 892, 878, 870, 845, 55, 1.1, 905, 862, I, 1, 0, 905, 0.44, 0.22, 0.05, 30, 3, 44, , , , 0.09, 0, 0.06, 0.03, 0.02, 2026-06-30, 0.05, 0.04, ",
     "PERSISTENT, 6200, 5900, 6050, 5400, 64, 1.5, 6100, 5800, I, 0, 0, 6400, 0.42, 0.2, 0.14, 9, 2, 30, , , , 0.13, 0, 0.18, 0.22, 0.2, 2026-06-30, 0.19, 0.21, ",
@@ -1950,7 +1961,9 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
       var rdyp = (p[49]||"").split("|");
       d.rdy = (rdyp[0]!=null && rdyp[0]!=="" && isFinite(+rdyp[0])) ? {
         n:+rdyp[0]||0, up:+rdyp[1]||0, b5:+rdyp[2]||0, b8:+rdyp[3]||0, medFwd:+rdyp[4]||0, readyCount:+rdyp[5]||0,
-        flags: (function(s){ s=s||""; return {tight:s[0]==="1", dryVol:s[1]==="1", nearHigh:s[2]==="1", trend:s[3]==="1", notExt:s[4]==="1"}; })(rdyp[6])
+        flags: (function(s){ s=s||""; return {tight:s[0]==="1", dryVol:s[1]==="1", nearHigh:s[2]==="1", trend:s[3]==="1", notExt:s[4]==="1"}; })(rdyp[6]),
+        run6m: (rdyp[7]!=null && rdyp[7]!=="") ? +rdyp[7] : null, extended: rdyp[8]==="1",
+        cohortN:+rdyp[9]||0, cohortB5:+rdyp[10]||0, cohortMedFwd:+rdyp[11]||0
       } : null;
       var st = deriveStructure(d.price, d.breakout, d.basePct, d.baseBars, d.volRatio);
       d.structurePts=st.pts; d.structureLbl=st.label;
@@ -3053,8 +3066,12 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
     }
     if(d.rdy){
       var rdyHasEdge = preBreakoutHasEdge(d.rdy);
-      tags.push({t:"🎯 Pre-breakout "+d.rdy.readyCount+"/5 ready"+(rdyHasEdge?" · hist made +5% "+d.rdy.b5+"% of the time":" · no track record yet"),
-                 c: rdyHasEdge ? "pos" : "warn"});
+      var rdyTxt = "🎯 Pre-breakout "+d.rdy.readyCount+"/5 ready"+(rdyHasEdge?" · hist made +5% "+d.rdy.b5+"% of the time":" · no track record yet");
+      if(d.rdy.extended){
+        rdyTxt += " · already "+(d.rdy.run6m>=0?"+":"")+d.rdy.run6m+"% over 6mo";
+        if(d.rdy.cohortN>=4) rdyTxt += " (similarly-extended setups here: "+d.rdy.cohortB5+"% made +5%)";
+      }
+      tags.push({t:rdyTxt, c: (rdyHasEdge && !d.rdy.extended) ? "pos" : "warn"});
     }
     if(d.blueSky) tags.push({t:"All-time high", c:"pos"});
     var rt = resultTiming(d.qDate);
@@ -3207,10 +3224,23 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
 
     if(d.rdy){
       var rdyEdge = preBreakoutHasEdge(d.rdy);
-      score += rdyEdge ? 14 : 6;
-      pos.push(rdyEdge
-        ? "pre-breakout setup ("+d.rdy.readyCount+"/5 conditions aligned — coil, dry volume, near highs, trend, not extended) — historically made +5% "+d.rdy.b5+"% of the time within 20 sessions"
-        : "pre-breakout setup ("+d.rdy.readyCount+"/5 conditions aligned) — no track record yet for this stock");
+      if(d.rdy.extended){
+        // the 5 flags are all local (this coil, this 20-EMA) — none of them notice the stock is
+        // already up big over 6 months, so treat an extended instance as a caution, not a plus,
+        // and cite this stock's OWN extended-setup track record when there's enough of it.
+        if(d.rdy.cohortN>=4){
+          score += d.rdy.cohortB5>=45 ? 4 : -8;
+          (d.rdy.cohortB5>=45 ? pos : neg).push("pre-breakout setup, but already "+(d.rdy.run6m>=0?"+":"")+d.rdy.run6m+"% over 6mo — this stock's own similarly-extended setups made +5% only "+d.rdy.cohortB5+"% of the time"+(d.rdy.cohortB5>=45?" (holds up anyway)":" (worse than fresh setups)"));
+        } else {
+          score -= 4;
+          neg.push("pre-breakout setup, but already "+(d.rdy.run6m>=0?"+":"")+d.rdy.run6m+"% over 6mo — no separate track record for this stock when this extended, weigh with extra caution");
+        }
+      } else {
+        score += rdyEdge ? 14 : 6;
+        pos.push(rdyEdge
+          ? "pre-breakout setup ("+d.rdy.readyCount+"/5 conditions aligned — coil, dry volume, near highs, trend, not extended) — historically made +5% "+d.rdy.b5+"% of the time within 20 sessions"
+          : "pre-breakout setup ("+d.rdy.readyCount+"/5 conditions aligned) — no track record yet for this stock");
+      }
     }
 
     if(d.acc && d.acc.score){
@@ -3372,6 +3402,97 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
         (dn ? '<tr><td><b class="neg">10-SMA &lt; 50-SMA</b><br><span class="dim">countertrend catch</span></td><td class="num">'+dn.n+' <span class="dim">('+dn.st+' stk)</span></td><td class="num">'+dn.pUp+'%</td><td class="num dim">–</td><td class="num dim">–</td><td class="num">'+(dn.fw>=0?'+':'')+dn.fw+'%</td></tr>' : '')+
       '</table>'+
       '<p style="margin:6px 0 0;color:var(--muted)">Base rate for reference: any NSE stock over 10 sessions is up ~52% of the time and makes a ≥ 5% peak roughly ~30–35% of the time. So the pattern is worth trading only if the <b>uptrend row</b> beats that by a clear margin. The literature agrees on the direction: Bulkowski rates the <b>hammer</b> a weak reversal (~59%) on its own but the <b>morning star</b> ~78%, and both improve sharply when they form <i>at support in an uptrend</i> — which is exactly the 10-SMA-above-50 row. '+(s.live?('<b>'+s.live+'</b> scanned stock'+(s.live===1?' has':'s have')+' this setup live now — Chart Book → "Hammer / morning star at the 10-SMA".'):'')+' Sample shifts with which stocks you scan.</p>';
+  }
+
+  // MA-angle backtest — buckets the SAME degree-deviation the "MA angle" chart gauge shows
+  // (10-SMA vs 50-SMA, atan2(%change over 10 bars, 10 bars) — a fixed convention, always the
+  // same units regardless of stock/timeframe) and asks two questions per bucket: (1) how often
+  // did a stock reading that angle go on to at least double (a rough "multibagger track") within
+  // whatever long-horizon runway the cached history has, and (2) how far did price fall at worst
+  // over the following month. Always uses 10-SMA/50-SMA specifically (not the chart's own
+  // EMA/SMA toggle) since that's literally the pair the user asked about — keeps one consistent
+  // definition instead of mixing two different MA pairs into the same table.
+  var MAANG_BUCKETS = ["≤ -20°","-20° to -5°","-5° to +5°","+5° to +20°","+20° to +40°","≥ +40°"];
+  function maAngleBucket(dev){
+    if(dev<=-20) return MAANG_BUCKETS[0];
+    if(dev<=-5) return MAANG_BUCKETS[1];
+    if(dev<5) return MAANG_BUCKETS[2];
+    if(dev<20) return MAANG_BUCKETS[3];
+    if(dev<40) return MAANG_BUCKETS[4];
+    return MAANG_BUCKETS[5];
+  }
+  function maAngleEventsFor(o){
+    var c=o.c, h=o.h, n=c && c.length || 0;
+    if(n<90) return [];
+    var fast=smaArr(c,10), slow=smaArr(c,50), GW=10, STEP=5, FWD_SHORT=20;
+    var FWD_LONG=Math.min(250, n-2);
+    var events=[], i;
+    for(i=59; i<n-FWD_SHORT-1; i+=STEP){
+      if(i-GW<0 || fast[i]==null || fast[i-GW]==null || slow[i]==null || slow[i-GW]==null || fast[i-GW]===0 || slow[i-GW]===0) continue;
+      var pctFast=(fast[i]/fast[i-GW]-1)*100, pctSlow=(slow[i]/slow[i-GW]-1)*100;
+      var dev = Math.atan2(pctFast,GW)*180/Math.PI - Math.atan2(pctSlow,GW)*180/Math.PI;
+      var base=c[i], minC=base, k;
+      for(k=i+1; k<=Math.min(i+FWD_SHORT,n-1); k++) if(c[k]<minC) minC=c[k];
+      var maxDD=(minC/base-1)*100;
+      var longEnd=Math.min(i+FWD_LONG, n-1), longRunBars=longEnd-i, maxHigh=base;
+      for(k=i+1; k<=longEnd; k++) if(h[k]>maxHigh) maxHigh=h[k];
+      events.push({ bucket:maAngleBucket(dev), maxDD:maxDD, longRunBars:longRunBars,
+        mbHit: longRunBars>=100 && (maxHigh/base-1)>=1.0, longRet:(c[longEnd]/base-1)*100 });
+    }
+    return events;
+  }
+  function maAngleStudy(rows){
+    var byB={}; MAANG_BUCKETS.forEach(function(b){ byB[b]={n:0, ddSum:0, mbHits:0, longN:0, longRetSum:0, stocks:{}}; });
+    var stocksUsed={};
+    rows.forEach(function(d){
+      var o = chartCache[d.symbol] || (getExtra(d.symbol) && getExtra(d.symbol).chart);
+      if(!o || !o.c || o.c.length<90) return;
+      stocksUsed[d.symbol]=1;
+      maAngleEventsFor(o).forEach(function(e){
+        var bb=byB[e.bucket]; bb.n++; bb.ddSum+=e.maxDD; bb.stocks[d.symbol]=1;
+        if(e.longRunBars>=100){ bb.longN++; bb.longRetSum+=e.longRet; if(e.mbHit) bb.mbHits++; }
+      });
+    });
+    var totalStocks=Object.keys(stocksUsed).length;
+    if(!totalStocks) return null;
+    var out=[];
+    MAANG_BUCKETS.forEach(function(b){
+      var x=byB[b]; if(!x.n) return;
+      out.push({ bucket:b, n:x.n, stocks:Object.keys(x.stocks).length,
+        avgDD: Math.round(x.ddSum/x.n*10)/10,
+        mbRate: x.longN ? Math.round(x.mbHits/x.longN*100) : null,
+        avgLongRet: x.longN ? Math.round(x.longRetSum/x.longN*10)/10 : null,
+        longN: x.longN });
+    });
+    return { rows:out, totalStocks:totalStocks };
+  }
+  function renderMaAngleStudy(rows){
+    var out=$("#maAngleStudyOut"), sum=$("#maAngleStudySum"); if(!out) return;
+    var s = maAngleStudy(rows);
+    if(!s || !s.rows.length){
+      if(sum) sum.textContent="· no data";
+      out.innerHTML='<span class="empty">Needs stocks with a cached chart — run a scan first (Chart Book keeps full history for the top-scored names), or open a few charts here to cache them, then reopen this.</span>';
+      return;
+    }
+    var best = s.rows.filter(function(r){return r.mbRate!=null;}).slice().sort(function(a,b){return b.mbRate-a.mbRate;})[0];
+    var worst = s.rows.slice().sort(function(a,b){return a.avgDD-b.avgDD;})[0];
+    if(sum) sum.textContent = best ? "· "+best.bucket+" found the most multibaggers · "+worst.bucket+" fell the hardest" : "";
+    out.innerHTML =
+      '<p style="margin:0 0 6px">Every 5th bar of every cached stock\'s history, bucketed by the <b>same 10-SMA vs 50-SMA degree deviation the chart gauge shows</b> (fixed units: atan2(%-change over 10 bars, 10 bars) — comparable across stocks). For each bucket: how far price fell at worst over the <b>next month</b>, and — for bars with at least ~5 months of runway left in the cached history — whether price at least <b>doubled</b> at some point afterward (a rough multibagger track, not a strict definition).</p>'+
+      '<table class="oc-guide" style="max-width:720px">'+
+        '<tr><th>10-SMA vs 50-SMA angle</th><th>Events</th><th>Worst drawdown (next 20d, avg)</th><th>Went on to 2×+ at some point</th><th>Median longer-run return</th></tr>'+
+        s.rows.map(function(r){
+          var isBest = best && r.bucket===best.bucket, isWorst = r.bucket===worst.bucket;
+          return '<tr'+(isBest?' style="background:var(--surface-2)"':'')+'>'+
+            '<td><b'+(isBest?' class="pos"':isWorst?' class="neg"':'')+'>'+esc(r.bucket)+'</b></td>'+
+            '<td class="num">'+r.n+' <span class="dim">('+r.stocks+' stk)</span></td>'+
+            '<td class="num'+(isWorst?' neg':'')+'">'+r.avgDD+'%</td>'+
+            '<td class="num'+(isBest?' pos':'')+'">'+(r.mbRate!=null?r.mbRate+'% <span class="dim">(n='+r.longN+')</span>':'<span class="dim">– not enough runway</span>')+'</td>'+
+            '<td class="num">'+(r.avgLongRet!=null?(r.avgLongRet>=0?'+':'')+r.avgLongRet+'%':'<span class="dim">–</span>')+'</td>'+
+          '</tr>';
+        }).join("")+
+      '</table>'+
+      '<p style="margin:6px 0 0;color:var(--muted)">Across <b>'+s.totalStocks+'</b> cached stock'+(s.totalStocks===1?'':'s')+' — Chart Book only keeps full history for the top-scored names from your scan, so this widens (and gets more reliable) the more of them you\'ve opened. Bars 5 apart, not every single day, to avoid one long trend dominating the count. "2×+ at some point" checks the highest price reached in the runway, not just where it closed — a real 2× move counts even if it later gave some back. This describes what already happened on THESE stocks\' own charts, not a forecast for any specific stock today.</p>';
   }
 
   // live "stretch from the mean" read for the chart on screen (uses fresh candles)
@@ -3746,6 +3867,7 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
     renderVsStudy(rows);
     renderSxStudy(rows);
     renderCmStudy(rows);
+    renderMaAngleStudy(rows);
     var pool = rows.filter(function(d){ return bookInScope(d, scope); });
     if(scope==="mb" || scope==="mba" || scope==="mbtop")
       pool.sort(function(a,b){ return (b.mb?b.mb.total:0) - (a.mb?a.mb.total:0); });
@@ -4857,6 +4979,37 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
       return pts.length>1 ? '<polyline points="'+pts.join(" ")+'" class="'+cls+'"/>' : '';
     }
     g.push(poly(e200,"cx-e200")); g.push(poly(e50,"cx-e50")); g.push(poly(e20,"cx-e20"));
+    // MA angle gauge — the degree deviation between the two moving averages on THIS chart
+    // (10-SMA vs 50-SMA in SMA mode, 20-EMA vs 50-EMA in EMA mode), always drawn, no clicking.
+    // Deliberately NOT measured off this chart's own pixel geometry (unlike the manual
+    // Protractor, whose degrees shift with zoom/timeframe) — it uses a FIXED, transparent
+    // convention instead: angle = atan2(% change over the window, bars in the window), so a
+    // reading here means the same thing on any stock, any timeframe, always. Window = 10 bars.
+    // Drawn as a small schematic gauge (both lines translated to a shared point for comparison,
+    // like comparing two vectors) in the price panel's lower-left corner — it is a diagram of
+    // the two slopes, not a claim about a real position on the chart.
+    (function(){
+      var GW=10, gi=n-1, gi0=gi-GW;
+      if(gi0<0 || e20[gi]==null || e20[gi0]==null || e50[gi]==null || e50[gi0]==null || e20[gi0]===0 || e50[gi0]===0) return;
+      var pctFast=(e20[gi]/e20[gi0]-1)*100, pctSlow=(e50[gi]/e50[gi0]-1)*100;
+      var angFast=Math.atan2(pctFast,GW)*180/Math.PI, angSlow=Math.atan2(pctSlow,GW)*180/Math.PI;
+      var dev=angFast-angSlow;
+      var gx=PL+62, gy=T+44, gr=30;
+      function gpt(deg){ var rad=deg*Math.PI/180; return {x:gx+gr*Math.cos(rad), y:gy-gr*Math.sin(rad)}; }
+      var clampDeg=function(d){ return Math.max(-85,Math.min(85,d)); };
+      var pf=gpt(clampDeg(angFast)), ps=gpt(clampDeg(angSlow));
+      g.push('<line x1="'+f1(gx-gr)+'" y1="'+f1(gy)+'" x2="'+f1(gx+gr)+'" y2="'+f1(gy)+'" class="cx-maang-base"/>');
+      var lo1=Math.min(clampDeg(angFast),clampDeg(angSlow)), hi1=Math.max(clampDeg(angFast),clampDeg(angSlow));
+      var wedgePts=[]; for(var wd=lo1; wd<=hi1; wd+=3){ var wp=gpt(wd); wedgePts.push(f1(wp.x)+","+f1(wp.y)); }
+      wedgePts.unshift(f1(gx)+","+f1(gy)); wedgePts.push(f1(gx)+","+f1(gy));
+      g.push('<polygon points="'+wedgePts.join(" ")+'" class="cx-maang-wedge"/>');
+      g.push('<line x1="'+f1(gx)+'" y1="'+f1(gy)+'" x2="'+f1(pf.x)+'" y2="'+f1(pf.y)+'" class="cx-maang-fast"/>');
+      g.push('<line x1="'+f1(gx)+'" y1="'+f1(gy)+'" x2="'+f1(ps.x)+'" y2="'+f1(ps.y)+'" class="cx-maang-slow"/>');
+      g.push('<circle cx="'+f1(gx)+'" cy="'+f1(gy)+'" r="2" class="cx-maang-pt"/>');
+      var fastLbl = useSMA ? "10-SMA" : "20-EMA", slowLbl = useSMA ? "50-SMA" : "50-EMA";
+      g.push('<text x="'+f1(gx-gr)+'" y="'+f1(gy+16)+'" text-anchor="start" class="cx-maang-lab">'+fastLbl+' '+(angFast>=0?"+":"")+angFast.toFixed(0)+'° · '+slowLbl+' '+(angSlow>=0?"+":"")+angSlow.toFixed(0)+'°</text>');
+      g.push('<text x="'+f1(gx-gr)+'" y="'+f1(gy+27)+'" text-anchor="start" class="cx-maang-lab dev">Δ '+(dev>=0?"+":"")+dev.toFixed(0)+'°</text>');
+    })();
     // ±2σ "stretch" envelope — price's normal divergence band around the 20-EMA (Disparity Index)
     if(opts.stretchBand){
       var _sr = stretchRead(o);
@@ -6482,6 +6635,14 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
     var e10=smaArr(c,10), e20=emaArr(c,20), e50=emaArr(c,50), e200=emaArr(c,200);
     var last = preBreakoutFlagsAt(c,h,l,v,e10,e20,e50,e200,n-1);
     if(last.n < 4) return null;   // nothing live right now — don't bother backtesting
+    // the 5 flags above are all LOCAL (this coil, this 20-EMA) — none of them notice a stock
+    // that's already up huge over the last 6 months, so the same "ready" read fires just as
+    // readily near the top of a multi-hundred-percent run as it does on a fresh setup. Track
+    // each event's trailing ~6-month (126-session) return so an already-extended instance can
+    // be told apart from a fresh one, and — where THIS stock has enough of its own history in
+    // both states — report the matching cohort's own numbers instead of the blended average.
+    var run6mAt = function(idx){ return idx>=126 ? (c[idx]/c[idx-126]-1) : null; };
+    var EXT_THRESH = 0.6;   // "already extended" = up 60%+ over the trailing ~6 months
     // 20 bars, not 10 — a coil can run 1-3 weeks before it actually resolves, and the event is
     // timestamped at the FIRST bar the setup qualifies (usually early in the coil, not at the
     // pop), so the forward window needs enough runway to still be looking when the pop happens.
@@ -6490,17 +6651,28 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
       var r = preBreakoutFlagsAt(c,h,l,v,e10,e20,e50,e200,t), ready = r.n>=4;
       if(ready && !wasReady){
         var base=c[t], mx=base, k; for(k=t+1;k<=t+fwd;k++) if(h[k]>mx) mx=h[k];
-        events.push({ fwd:(c[t+fwd]/base-1), mfe:(mx/base-1) });
+        events.push({ fwd:(c[t+fwd]/base-1), mfe:(mx/base-1), run6m: run6mAt(t) });
       }
       wasReady = ready;
     }
-    var nEv=events.length;
+    function stats(evs){
+      var nE=evs.length; if(!nE) return {n:0,up:0,b5:0,b8:0,medFwd:0};
+      return {
+        n:nE,
+        up: Math.round(evs.filter(function(e){return e.fwd>0;}).length/nE*100),
+        b5: Math.round(evs.filter(function(e){return e.mfe>=0.05;}).length/nE*100),
+        b8: Math.round(evs.filter(function(e){return e.mfe>=0.08;}).length/nE*100),
+        medFwd: Math.round((evs.map(function(e){return e.fwd;}).slice().sort(function(p,q){return p-q;})[Math.floor(nE/2)])*1000)/10
+      };
+    }
+    var overall = stats(events);
+    var run6mNow = run6mAt(n-1), extendedNow = run6mNow!=null && run6mNow>=EXT_THRESH;
+    var cohortEvents = events.filter(function(e){ return e.run6m!=null && (extendedNow ? e.run6m>=EXT_THRESH : e.run6m<EXT_THRESH); });
+    var cohort = cohortEvents.length>=4 ? stats(cohortEvents) : null;
     return {
-      flags:last.f, readyCount:last.n, n:nEv,
-      up: nEv ? Math.round(events.filter(function(e){return e.fwd>0;}).length/nEv*100) : 0,
-      b5: nEv ? Math.round(events.filter(function(e){return e.mfe>=0.05;}).length/nEv*100) : 0,
-      b8: nEv ? Math.round(events.filter(function(e){return e.mfe>=0.08;}).length/nEv*100) : 0,
-      medFwd: nEv ? Math.round((events.map(function(e){return e.fwd;}).slice().sort(function(p,q){return p-q;})[Math.floor(nEv/2)])*1000)/10 : 0
+      flags:last.f, readyCount:last.n, n:overall.n, up:overall.up, b5:overall.b5, b8:overall.b8, medFwd:overall.medFwd,
+      run6m: run6mNow!=null ? Math.round(run6mNow*1000)/10 : null, extended:extendedNow,
+      cohortN: cohort ? cohort.n : 0, cohortB5: cohort ? cohort.b5 : 0, cohortMedFwd: cohort ? cohort.medFwd : 0
     };
   }
   function preBreakoutHasEdge(rdy){ return !!(rdy && rdy.n>=5 && (rdy.b5>=45 || rdy.up>=55)); }
@@ -7108,7 +7280,8 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
     // pre-breakout readiness — coil/dry-volume/near-highs/trend/not-extended, 4+ of 5 at once
     var rdy = preBreakoutRead({c:c, h:h, l:l, v:vol});
     var rdyFlagBits = rdy ? [rdy.flags.tight,rdy.flags.dryVol,rdy.flags.nearHigh,rdy.flags.trend,rdy.flags.notExt].map(function(x){return x?1:0;}).join("") : "";
-    var rdyStr = rdy ? [rdy.n, rdy.up, rdy.b5, rdy.b8, r2(rdy.medFwd), rdy.readyCount, rdyFlagBits].join("|") : "";
+    var rdyStr = rdy ? [rdy.n, rdy.up, rdy.b5, rdy.b8, r2(rdy.medFwd), rdy.readyCount, rdyFlagBits,
+      (rdy.run6m==null?"":r2(rdy.run6m)), (rdy.extended?1:0), rdy.cohortN, rdy.cohortB5, r2(rdy.cohortMedFwd)].join("|") : "";
     // last ~520 bars kept for charting the top-ranked names — enough for EMA200 and a
     // full weekly SMA10/50 view (≈104 weeks). Rounded to keep localStorage small.
     var TB = 520, ts = Math.max(0, c.length - TB), rnd = function(x){ return Math.round(x*100)/100; };
