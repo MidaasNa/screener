@@ -329,6 +329,11 @@ table.mb-scen td.num{font-family:"IBM Plex Mono",monospace;text-align:right;padd
 .cx-protractor-pt{fill:#ff5fd1;stroke:var(--surface);stroke-width:1}
 .cx-protractor-pending{fill:#ff5fd1;stroke:var(--surface);stroke-width:1;opacity:.85}
 .cx-protractor-lab{fill:#ff5fd1;font-size:9px;font-weight:600;font-family:"IBM Plex Mono",monospace}
+.cx-parab{stroke:#ffb020;stroke-width:1.6;stroke-dasharray:4 2;fill:none}
+.cx-parab-broke{stroke:#d64545;stroke-width:1.8;fill:none}
+.cx-parab-x{stroke:#d64545;stroke-width:1.6;fill:none}
+.cx-parab-lab{fill:#ffb020;font-size:9px;font-weight:600;font-family:"IBM Plex Mono",monospace}
+.cx-parab-lab.broke{fill:#d64545}
 .cx-svg.cx-drawing{cursor:crosshair}
 .cx-fiiwin{fill:#22b8cf;fill-opacity:.07;stroke:#22b8cf;stroke-opacity:.5;stroke-width:1;stroke-dasharray:3 2}
 .cx-fiiwinvol{fill:#22b8cf;fill-opacity:.14;stroke:none}
@@ -433,7 +438,7 @@ table.sc-setup td.num{font-family:"IBM Plex Mono",monospace;text-align:right}
     <span class="mark" aria-hidden="true">₹</span>
     <div>
       <h1>The 10% Ledger</h1>
-      <p>Momentum + pullback screener · NSE swing setups <span style="opacity:.5;font-size:11px">· build 2026-09-12k</span></p>
+      <p>Momentum + pullback screener · NSE swing setups <span style="opacity:.5;font-size:11px">· build 2026-09-12l</span></p>
     </div>
   </div>
   <div class="controls">
@@ -625,7 +630,7 @@ table.sc-setup td.num{font-family:"IBM Plex Mono",monospace;text-align:right}
       <details class="sub" id="rawBox">
         <summary>Raw data — paste your own or edit the scan output</summary>
         <p class="hint">One stock per line, comma or tab separated. First 6 fields required. Edit any row and press “Score all”.</p>
-        <code class="cols">SYM, price, EMA20, EMA50, EMA200, RSI, volR, breakout, support, sector, macd, hhhl, resist, probT1, probT10, basePct, baseBars, stage2, RS, setup, trigger, trigWR, athPct, blueSky(1/0), revYoY, profYoY, epsYoY, qDate, profYoYPrev, ttmYoY, coil(...), mvt(...), gg(...), sg(...), dx(...), hdf(thrust|correction|babyRange|volSurge|bars|hi|lo), cdl(code~ago~stat | …), mb(fund|infl|total|cls|arch|…), vm(mult|ago|up|rising), adr(%), nr(4or7|ago|inside|rangePct|bull), gx(crossAgo|from50), acc(...), vsk(...), vfh(...), gxw(...), sx(z|atrExt|slope|band|nu|tagU|fwdU|advU|nd|tagD|fwdD|advD), cm(n|up%|big5%|big8%|medFwd|medMfe|nDn|upDn%|medFwdDn|live)</code>
+        <code class="cols">SYM, price, EMA20, EMA50, EMA200, RSI, volR, breakout, support, sector, macd, hhhl, resist, probT1, probT10, basePct, baseBars, stage2, RS, setup, trigger, trigWR, athPct, blueSky(1/0), revYoY, profYoY, epsYoY, qDate, profYoYPrev, ttmYoY, coil(...), mvt(...), gg(...), sg(...), dx(...), hdf(thrust|correction|babyRange|volSurge|bars|hi|lo), cdl(code~ago~stat | …), mb(fund|infl|total|cls|arch|…), vm(mult|ago|up|rising), adr(%), nr(4or7|ago|inside|rangePct|bull), gx(crossAgo|from50), acc(...), vsk(...), vfh(...), gxw(...), sx(z|atrExt|slope|band|nu|tagU|fwdU|advU|nd|tagD|fwdD|advD), cm(n|up%|big5%|big8%|medFwd|medMfe|nDn|upDn%|medFwdDn|live), pb(n|hitRate%|medFwd%|medMin%|riding(1/0)|brokeAgo)</code>
         <textarea id="batchInput" spellcheck="false" aria-label="Stock data input"></textarea>
         <div class="row-actions">
           <button class="primary" id="scoreBtn">Score all</button>
@@ -1074,6 +1079,7 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
             <option value="accstrong">Accumulation — strong (in a base or not)</option>
             <option value="stretchext">Over-extended from the 20-EMA — mean-reversion watch</option>
             <option value="cdlma">Hammer / morning star at the 10-SMA (live)</option>
+            <option value="parab">Parabolic run — accelerating or just broke</option>
             <option value="mbtop">Multibagger Radar — all, ranked by score</option>
             <option value="mb">Multibagger Radar — class A / B</option>
             <option value="mba">Multibagger Radar — class A only</option>
@@ -1699,9 +1705,9 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
   };
 
   var SAMPLE = [
-    "# cols: SYM,price,EMA20,EMA50,EMA200,RSI,volR,breakout,support,sector,macd,hhhl,resist,probT1,probT10,basePct,baseBars,stage2,RS,setup,trigger,trigWR,athPct,blueSky,revYoY,profYoY,epsYoY,qDate,profYoYPrev,ttmYoY,coil,mvt,gg,sg,dx,hdf,cdl,mb,vm,adr,nr,gx,acc,vsk,vfh,gxw,sx,cm",
-    "HINDZINC, 627, 598, 560, 505, 69, 2.3, 620, 606, L, 1, 1, 0, 0.58, 0.33, 0.06, 22, 6, 88, HDF, inside-bar@0, 0.61, 0.01, 1, 0.19, 0.34, 0.31, 2026-06-30, 0.26, 0.3, , , , , 624|590|12|0.055|0.005|2.4|1|1|1, 0.42|0.16|0.028|1.8|12|624|560, hammer~0~3.4|inside~1~0.62, 72|10|82|C|compounder|15|16|11|7|10|8|5|24.5|13|100|0||0.14|0.18|0.19|1|1.1|0.35|0.09|280000|0|28~0.19~0.16~0.19~0.18|rev-accel+sector-tailwind, 3.4|1|1|1, 4.6, 7|0|1|0.018|1, 2|0.06, 74|strong|590|1.87|3|0.28|1, 310|8.2|1|1, 6|67|9.4|21|2|0|-4.1, 3|0.12, 2.3|3.1|0.3|ext-up|9|67|1.2|5.1|5|60|-0.4|4.4, 11|64|45|27|3.1|6.8|4|38|-1.2|",
-    "BEL, 415, 402, 395, 360, 66, 1.9, 409, 391, L, 1, 1, 0, 0.55, 0.31, 0.07, 18, 6, 84, BOB, hammer@1, 0.62, 0.03, 1, 0.21, 0.28, 0.27, 2026-06-30, 0.33, 0.24, 14|coil|0.022|0.71|0.006|411||||0.09, , 12|0.06|1|3.6|0.04|420, , , , ldbng~2~2.1|kicker~2~0.004, 80|16|96|B|inflection|16|16|10|8|12|8|6|38|22|100|1|cfdiv|0.16|0.22|0.24|1|0.9|0.05|0.11|95000|0|28~0.17~0.15~0.18~0.22|rev-accel+margin-up+roce-inflect+sector-tailwind, 4.1|0|1|1, 2.2, 4|1|0|0.026|1, , 60|mild|398|1.33|2|0.11|0, 150|4.4|0|1, 4|75|11.2|24|1|0|-6.0, 5|0.07, 1.4|1.9|0.18|warm-up|7|71|2.2|3.8|6|64|1.9|4.6, 8|63|38|19|2.4|5.5|3|33|-0.8|hammer",
+    "# cols: SYM,price,EMA20,EMA50,EMA200,RSI,volR,breakout,support,sector,macd,hhhl,resist,probT1,probT10,basePct,baseBars,stage2,RS,setup,trigger,trigWR,athPct,blueSky,revYoY,profYoY,epsYoY,qDate,profYoYPrev,ttmYoY,coil,mvt,gg,sg,dx,hdf,cdl,mb,vm,adr,nr,gx,acc,vsk,vfh,gxw,sx,cm,pb",
+    "HINDZINC, 627, 598, 560, 505, 69, 2.3, 620, 606, L, 1, 1, 0, 0.58, 0.33, 0.06, 22, 6, 88, HDF, inside-bar@0, 0.61, 0.01, 1, 0.19, 0.34, 0.31, 2026-06-30, 0.26, 0.3, , , , , 624|590|12|0.055|0.005|2.4|1|1|1, 0.42|0.16|0.028|1.8|12|624|560, hammer~0~3.4|inside~1~0.62, 72|10|82|C|compounder|15|16|11|7|10|8|5|24.5|13|100|0||0.14|0.18|0.19|1|1.1|0.35|0.09|280000|0|28~0.19~0.16~0.19~0.18|rev-accel+sector-tailwind, 3.4|1|1|1, 4.6, 7|0|1|0.018|1, 2|0.06, 74|strong|590|1.87|3|0.28|1, 310|8.2|1|1, 6|67|9.4|21|2|0|-4.1, 3|0.12, 2.3|3.1|0.3|ext-up|9|67|1.2|5.1|5|60|-0.4|4.4, 11|64|45|27|3.1|6.8|4|38|-1.2|, 8|63|-4.2|-9.5|1|-1",
+    "BEL, 415, 402, 395, 360, 66, 1.9, 409, 391, L, 1, 1, 0, 0.55, 0.31, 0.07, 18, 6, 84, BOB, hammer@1, 0.62, 0.03, 1, 0.21, 0.28, 0.27, 2026-06-30, 0.33, 0.24, 14|coil|0.022|0.71|0.006|411||||0.09, , 12|0.06|1|3.6|0.04|420, , , , ldbng~2~2.1|kicker~2~0.004, 80|16|96|B|inflection|16|16|10|8|12|8|6|38|22|100|1|cfdiv|0.16|0.22|0.24|1|0.9|0.05|0.11|95000|0|28~0.17~0.15~0.18~0.22|rev-accel+margin-up+roce-inflect+sector-tailwind, 4.1|0|1|1, 2.2, 4|1|0|0.026|1, , 60|mild|398|1.33|2|0.11|0, 150|4.4|0|1, 4|75|11.2|24|1|0|-6.0, 5|0.07, 1.4|1.9|0.18|warm-up|7|71|2.2|3.8|6|64|1.9|4.6, 8|63|38|19|2.4|5.5|3|33|-0.8|hammer, 6|58|-6.1|-11.2|0|1",
     "JINDALSTEL, 1175, 1120, 1090, 1010, 60, 1.4, 1160, 1120, L, 1, 1, 1240, 0.5, 0.27, 0.11, 26, 5, 76, LBB, , , 0.11, 0, 0.08, 0.12, 0.1, 2026-03-31, 0.21, 0.1, , 4.2|50|0.014|1|1|0.03|12|78",
     "MEESHO, 205, 198, 190, 0, 63, 1.4, 200, 191, I, 1, 1, 0, 0.5, 0.26, 0.08, 14, 5, 72, S2P, pin-bar@0, 0.58, 0.05, 0, 0.33, 99, 99, 2026-06-30, , , 9|pop|0.021|0.66|0.032|201|1|0.043|1.9|0.08",
     "SAIL, 195, 190, 185, 132, 55, 0.9, 201, 188, L, 1, 0, 201, 0.44, 0.22, 0.06, 20, 5, 66, COIL, , , 0.14, 0, -0.04, -0.22, -0.21, 2026-06-30, -0.1, -0.15, , , , 0.18|11|1|3.8|178|2|0.015",
@@ -1935,6 +1941,10 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
       d.cm = (cmp[0]!=null && cmp[0]!=="" && isFinite(+cmp[0])) ? {
         n:+cmp[0]||0, up:+cmp[1]||0, b5:+cmp[2]||0, b8:+cmp[3]||0, medFwd:+cmp[4]||0, medMfe:+cmp[5]||0,
         nDn:+cmp[6]||0, upDn:+cmp[7]||0, medFwdDn:+cmp[8]||0, live:(cmp[9]||"")
+      } : null;
+      var pbp = (p[48]||"").split("|");
+      d.pb = (pbp[0]!=null && pbp[0]!=="" && isFinite(+pbp[0])) ? {
+        n:+pbp[0]||0, hitRate:+pbp[1]||0, medFwd:+pbp[2]||0, medMin:+pbp[3]||0, riding:pbp[4]==="1", brokeAgo:+pbp[5]
       } : null;
       var st = deriveStructure(d.price, d.breakout, d.basePct, d.baseBars, d.volRatio);
       d.structurePts=st.pts; d.structureLbl=st.label;
@@ -2956,6 +2966,7 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
       case "accstrong":    return d.acc && d.acc.label==="strong";
       case "stretchext":   return !!(d.sx && (d.sx.band==="ext-up" || d.sx.band==="ext-dn"));
       case "cdlma":        return !!(d.cm && d.cm.live);
+      case "parab":        return !!(d.pb && (d.pb.riding || d.pb.brokeAgo>=0));
       case "mb":         return d.mb && /^(A|B)$/.test(d.mb.cls);
       case "mba":        return d.mb && d.mb.cls==="A";
       case "mbearly":   { var eg=mbEarly(d); return !!(d.mb && d.mb.total!=null && eg && (eg.tier==="early"||eg.tier==="ignition")); }
@@ -3026,6 +3037,13 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
     if(d.cm && d.cm.live)
       tags.push({t:"🔨 "+(d.cm.live==="mstar"?"Morning star":"Hammer")+" at 10-SMA"+(d.cm.n>=5?" · hist "+d.cm.b5+"% made +5% (uptrend)":""),
                  c: (d.cm.n>=5 && d.cm.b5>=45) ? "pos" : "warn"});
+    if(d.pb && (d.pb.riding || d.pb.brokeAgo>=0)){
+      var pbHasEdge = parabolicHasEdge(d.pb);
+      var pbTxt = d.pb.brokeAgo>=0
+        ? "📉 Parabolic break"+(d.pb.brokeAgo>0?" · "+d.pb.brokeAgo+"d ago":"")+(pbHasEdge?" · hist fell further "+d.pb.hitRate+"% of the time":" · no track record yet")
+        : "📉 Parabolic run — still accelerating"+(pbHasEdge?" · past breaks here fell further "+d.pb.hitRate+"% of the time":" · no track record yet");
+      tags.push({t:pbTxt, c: (d.pb.brokeAgo>=0 && pbHasEdge) ? "neg" : "warn"});
+    }
     if(d.blueSky) tags.push({t:"All-time high", c:"pos"});
     var rt = resultTiming(d.qDate);
     if(rt && rt.dueSoon) tags.push({t:"⚠ result due ~"+rt.nextTxt, c:"neg"});
@@ -3157,6 +3175,21 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
         score+=6; pos.push("stretched "+Math.abs(d.sx.z).toFixed(1)+"σ below a rising 20-EMA — mean-reversion bounce setup (pullback in an uptrend)");
       } else if(d.sx.band==="ext-dn"){
         neg.push("stretched "+Math.abs(d.sx.z).toFixed(1)+"σ below the 20-EMA — oversold, but not in a clean uptrend");
+      }
+    }
+
+    if(d.pb && (d.pb.riding || d.pb.brokeAgo>=0)){
+      var pbEdge = parabolicHasEdge(d.pb);
+      if(d.pb.brokeAgo>=0){
+        score -= pbEdge ? 16 : 8;
+        neg.push(pbEdge
+          ? "parabolic run just broke its curve — history says it kept falling "+d.pb.hitRate+"% of the time here (median further "+d.pb.medMin+"%)"
+          : "parabolic run just broke its curve — no track record yet for this stock, treat as a caution flag");
+      } else {
+        score -= pbEdge ? 10 : 5;
+        neg.push(pbEdge
+          ? "still accelerating in a parabolic curve — past breaks here fell further "+d.pb.hitRate+"% of the time"
+          : "accelerating in a textbook parabolic curve — unsustainable pace, no track record yet for this stock");
       }
     }
 
@@ -3887,6 +3920,11 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
       if(series.c.length<20){ host.innerHTML='<p class="empty">not enough history for a weekly chart</p>'; return; }
       renderStretch(o);   // the mean-reversion read always uses the daily series
       renderFootprintDetail(o, d);   // fills in the shareholding-window volume breakdown, if any
+      // parabolic blow-off / break overlay — daily view only (the 20-bar fit window this is
+      // built on is a daily-scale read; stretched across weekly bars it wouldn't mean the same thing)
+      var pbLive = (tf==="daily") ? parabolicRead(o) : null;
+      opts.parabola = (pbLive && pbLive.fit) ? pbLive.fit : null;
+      opts.parabolaBroke = !!(pbLive && pbLive.brokeAgo>=0);
       var age=chartAge(o), last=o.d[o.d.length-1];
       opts.liveLast = !!o.liveLast;
       opts.livePrice = o.liveLast ? o.c[o.c.length-1] : 0;
@@ -4851,6 +4889,30 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
       if(tgi>=0 && tgi<n){
         var tx=X(tgi), ty=Y(L[tgi])+9;
         g.push('<path d="M'+f1(tx-4)+' '+f1(ty+6)+' L'+f1(tx+4)+' '+f1(ty+6)+' L'+f1(tx)+' '+f1(ty)+' Z" class="cx-trig"/>');
+      }
+    }
+    // parabolic blow-off / break — auto-detected, drawn automatically (no toggle). `opts.parabola`
+    // is in FULL-array bar indices (computed once against the raw daily series); shift by `s`
+    // into this render's visible-window local indices the same way every other overlay does.
+    if(opts.parabola){
+      var pb=opts.parabola, pws=pb.ws-s, pwe=pb.we-s;
+      var pEnd=Math.min(n-1, (pb.brk!=null ? pb.brk-s : pwe)+2), pStart=Math.max(0,pws);
+      if(pwe>=0 && pStart<n){
+        var pbPts=[], pi;
+        for(pi=pStart; pi<=pEnd && pi<n; pi++){
+          var xo=pi-pws, val=Math.exp(pb.a*xo*xo+pb.b*xo+pb.c);
+          pbPts.push(f1(X(pi))+","+f1(Y(val)));
+        }
+        if(pbPts.length>=2) g.push('<polyline points="'+pbPts.join(" ")+'" class="'+(opts.parabolaBroke?"cx-parab-broke":"cx-parab")+'"/>');
+        if(opts.parabolaBroke && pb.brk!=null){
+          var bIdx=pb.brk-s;
+          if(bIdx>=0 && bIdx<n){
+            var bxp=X(bIdx), byp=Y(H[bIdx])-9;
+            g.push('<path d="M'+f1(bxp-4)+' '+f1(byp-4)+' L'+f1(bxp+4)+' '+f1(byp+4)+' M'+f1(bxp-4)+' '+f1(byp+4)+' L'+f1(bxp+4)+' '+f1(byp-4)+'" class="cx-parab-x"/>');
+          }
+        }
+        var pweV=Math.min(n-1,pwe), pweOff=pweV-pws;
+        g.push('<text x="'+f1(X(pweV))+'" y="'+f1(Y(Math.exp(pb.a*pweOff*pweOff+pb.b*pweOff+pb.c))-10)+'" text-anchor="middle" class="cx-parab-lab'+(opts.parabolaBroke?" broke":"")+'">'+(opts.parabolaBroke?"parabola broke":"parabolic — accelerating")+'</text>');
       }
     }
     var _labelYs=[];
@@ -6269,6 +6331,104 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
     };
   }
 
+  // least-squares fit of y = a*x^2 + b*x + c through ys[0..n-1] (x = bar offset within the window)
+  function fitQuadratic(ys){
+    var n=ys.length; if(n<8) return null;
+    var Sx=0,Sx2=0,Sx3=0,Sx4=0,Sy=0,Sxy=0,Sx2y=0,i;
+    for(i=0;i<n;i++){
+      var x=i, y=ys[i], x2=x*x;
+      Sx+=x; Sx2+=x2; Sx3+=x2*x; Sx4+=x2*x2; Sy+=y; Sxy+=x*y; Sx2y+=x2*y;
+    }
+    var A=[[Sx4,Sx3,Sx2],[Sx3,Sx2,Sx],[Sx2,Sx,n]], Bv=[Sx2y,Sxy,Sy];
+    function det3(m){ return m[0][0]*(m[1][1]*m[2][2]-m[1][2]*m[2][1]) - m[0][1]*(m[1][0]*m[2][2]-m[1][2]*m[2][0]) + m[0][2]*(m[1][0]*m[2][1]-m[1][1]*m[2][0]); }
+    var D=det3(A); if(Math.abs(D)<1e-9) return null;
+    function repl(col,v){ var r=[A[0].slice(),A[1].slice(),A[2].slice()]; r[0][col]=v[0]; r[1][col]=v[1]; r[2][col]=v[2]; return r; }
+    var a=det3(repl(0,Bv))/D, b=det3(repl(1,Bv))/D, c=det3(repl(2,Bv))/D;
+    var meanY=Sy/n, ssTot=0, ssRes=0;
+    for(i=0;i<n;i++){ var yhat=a*i*i+b*i+c, dy=ys[i]-yhat, dm=ys[i]-meanY; ssRes+=dy*dy; ssTot+=dm*dm; }
+    return { a:a, b:b, c:c, r2: ssTot>0 ? 1-ssRes/ssTot : 0 };
+  }
+  // does the W-bar window ending at bar t look like a genuine, ACCELERATING parabolic run?
+  // (an 18%+ rally, a quadratic that actually explains the shape — R²≥0.82 — curving upward,
+  // and a terminal slope meaningfully steeper than its own starting slope — i.e. each leg
+  // faster than the last, not just "up a lot"). Fit is on LOG(price), not raw price — a plain
+  // constant daily % gain compounds into a curve that looks "accelerating" in raw price purely
+  // from the arithmetic of compounding (caught in testing: a steady 2.5%/day for 20 bars faked
+  // a 1.6×+ slope ratio with zero actual change in rate). In log-price, a constant % rate is
+  // exactly linear — only a REAL increase in the daily % rate shows up as curvature. `fit.a/b/c`
+  // are therefore in log-price units; callers must `Math.exp()` a fitted value back to price.
+  var PARAB_W = 20, PARAB_MAXLOOK = 6;
+  function parabolicWindowFit(C, t, W){
+    if(t-W+1 < 0) return null;
+    var win = C.slice(t-W+1, t+1);
+    var gain = win[0]>0 ? (win[W-1]-win[0])/win[0] : 0;
+    if(gain < 0.18) return null;
+    var logWin = win.map(Math.log);
+    var fit = fitQuadratic(logWin);
+    if(!fit || fit.r2 < 0.82 || fit.a <= 0) return null;
+    var slopeStart = fit.b, slopeEnd = 2*fit.a*(W-1)+fit.b;
+    if(!(slopeStart>0 && slopeEnd>0 && slopeEnd >= slopeStart*1.6)) return null;
+    return fit;
+  }
+  // parabolic blow-off + break: is this stock CURRENTLY riding an accelerating curve, or did it
+  // just fall back below one? Only when one of those is true do we also run the (cheap but not
+  // free) full-history backtest of what happened after past breaks — so most rows never pay for
+  // it. Matches the tool's rule elsewhere: no track record for THIS stock → say so, don't hide
+  // the live geometric read but don't dress it up with a percentage that isn't backed by data.
+  function parabolicRead(o){
+    var C=o.c, H=o.h, L=o.l, n=C && C.length || 0, W=PARAB_W, maxLook=PARAB_MAXLOOK;
+    if(n < W+10) return null;
+    function atrAt(idx){
+      var s=0,k=0,i; for(i=Math.max(1,idx-13); i<=idx; i++){ s+=Math.max(H[i]-L[i],Math.abs(H[i]-C[i-1]),Math.abs(L[i]-C[i-1])); k++; }
+      return k ? s/k : (H[idx]-L[idx]);
+    }
+    var lt=n-1, riding=false, brokeAgo=-1, fit=null;
+    var lfit = parabolicWindowFit(C, lt, W);
+    if(lfit){ riding=true; fit={a:lfit.a,b:lfit.b,c:lfit.c,ws:lt-W+1,we:lt}; }
+    if(!riding){
+      outer:
+      for(var i=0;i<=2;i++){
+        var bt=lt-i;
+        for(var back=1; back<=maxLook; back++){
+          var pt=bt-back; if(pt<W-1) break;
+          var pf=parabolicWindowFit(C, pt, W); if(!pf) continue;
+          var x=(W-1)+back, curveVal=Math.exp(pf.a*x*x+pf.b*x+pf.c);
+          if(C[bt] < curveVal - 0.5*atrAt(bt)){ brokeAgo=i; fit={a:pf.a,b:pf.b,c:pf.c,ws:pt-W+1,we:pt,brk:bt}; break outer; }
+        }
+      }
+    }
+    if(!riding && brokeAgo<0) return null;   // nothing live right now — don't bother backtesting
+    // this stock IS live right now — walk its full history to see what past breaks led to
+    var fwd=10, events=[], t=W-1;
+    while(t < n-1-fwd){
+      var f=parabolicWindowFit(C,t,W);
+      if(f){
+        var breakIdx=-1;
+        for(var j=1;j<=maxLook && t+j<n;j++){
+          var x2=(W-1)+j, cv=Math.exp(f.a*x2*x2+f.b*x2+f.c);
+          if(C[t+j] < cv - 0.5*atrAt(t+j)){ breakIdx=t+j; break; }
+        }
+        if(breakIdx>=0 && breakIdx+fwd<n){
+          var baseC=C[breakIdx], minC=baseC, k;
+          for(k=breakIdx+1;k<=breakIdx+fwd;k++) if(C[k]<minC) minC=C[k];
+          events.push({ fwdRet:(C[breakIdx+fwd]/baseC-1), fwdMin:(minC/baseC-1) });
+          t = breakIdx+fwd; continue;
+        }
+      }
+      t++;
+    }
+    function med(a){ if(!a.length) return 0; var x=a.slice().sort(function(p,q){return p-q;}); return x[Math.floor(x.length/2)]; }
+    var nEv=events.length;
+    return {
+      n:nEv,
+      hitRate: nEv ? Math.round(events.filter(function(e){return e.fwdMin<=-0.05;}).length/nEv*100) : 0,
+      medFwd: nEv ? Math.round(med(events.map(function(e){return e.fwdRet;}))*1000)/10 : 0,
+      medMin: nEv ? Math.round(med(events.map(function(e){return e.fwdMin;}))*1000)/10 : 0,
+      riding:riding, brokeAgo:brokeAgo, fit:fit
+    };
+  }
+  function parabolicHasEdge(pb){ return !!(pb && pb.n>=5 && (pb.hitRate>=50 || pb.medMin<=-5)); }
+
   // ATR as a % of price, over the last n bars
   function atrPct(h,l,c,n){
     var len=c.length; if(len < n+2) return 0;
@@ -6866,6 +7026,9 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
     // hammer / morning-star touching the 10-SMA → big-move backtest (the user's claim)
     var cm = candleMABacktest({o:op, h:h, l:l, c:c});
     var cmStr = cm ? [cm.n, cm.up, cm.b5, cm.b8, r2(cm.medFwd), r2(cm.medMfe), cm.nDn, cm.upDn, r2(cm.medFwdDn), cm.live].join("|") : "";
+    // parabolic blow-off / break — currently accelerating, or just cracked below its own curve
+    var pb = parabolicRead({h:h, l:l, c:c});
+    var pbStr = pb ? [pb.n, pb.hitRate, r2(pb.medFwd), r2(pb.medMin), (pb.riding?1:0), pb.brokeAgo].join("|") : "";
     // last ~520 bars kept for charting the top-ranked names — enough for EMA200 and a
     // full weekly SMA10/50 view (≈104 weeks). Rounded to keep localStorage small.
     var TB = 520, ts = Math.max(0, c.length - TB), rnd = function(x){ return Math.round(x*100)/100; };
@@ -6901,7 +7064,7 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
       blueSky: (bsky.newHigh && bsky.above) ? 1 : 0,
       fibZone: fib ? fib.zone : "",
       fibRetr: fib ? Math.round(fib.retr*100)/100 : null,
-      coil: coilStr, mvt: mvtStr, gg: ggStr, sg: sgStr, dx: dxStr, hdf: hdfStr, cdl: cdlStr, mb: "", vm: vmStr, acc: accStr, vsk: vskStr, vfh: vfhStr, gxw: gxwStr, sx: sxStr, cm: cmStr,
+      coil: coilStr, mvt: mvtStr, gg: ggStr, sg: sgStr, dx: dxStr, hdf: hdfStr, cdl: cdlStr, mb: "", vm: vmStr, acc: accStr, vsk: vskStr, vfh: vfhStr, gxw: gxwStr, sx: sxStr, cm: cmStr, pb: pbStr,
       revYoY: null, profYoY: null, epsYoY: null, qDate: "", profYoYPrev: null, ttmYoY: null   // filled in later by applyFund()
     };
   }
@@ -6912,7 +7075,7 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
       r.basePct||0, r.baseBars||0, r.stage2||0, (r.rs==null?"":r.rs), (r.setup||""),
       (r.trig||""), (r.trigWR==null?"":r.trigWR), (r.athPct==null?"":r.athPct), (r.blueSky||0),
       (r.revYoY==null?"":r.revYoY), (r.profYoY==null?"":r.profYoY), (r.epsYoY==null?"":r.epsYoY), (r.qDate||""),
-      (r.profYoYPrev==null?"":r.profYoYPrev), (r.ttmYoY==null?"":r.ttmYoY), (r.coil||""), (r.mvt||""), (r.gg||""), (r.sg||""), (r.dx||""), (r.hdf||""), (r.cdl||""), (r.mb||""), (r.vm||""), (r.adr==null?"":r.adr), (r.nr||""), (r.gx||""), (r.acc||""), (r.vsk||""), (r.vfh||""), (r.gxw||""), (r.sx||""), (r.cm||"")].join(", ");
+      (r.profYoYPrev==null?"":r.profYoYPrev), (r.ttmYoY==null?"":r.ttmYoY), (r.coil||""), (r.mvt||""), (r.gg||""), (r.sg||""), (r.dx||""), (r.hdf||""), (r.cdl||""), (r.mb||""), (r.vm||""), (r.adr==null?"":r.adr), (r.nr||""), (r.gx||""), (r.acc||""), (r.vsk||""), (r.vfh||""), (r.gxw||""), (r.sx||""), (r.cm||""), (r.pb||"")].join(", ");
   }
 
   /* ---------- auto-screen: fetch adapters ---------- */
