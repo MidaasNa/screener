@@ -337,6 +337,11 @@ table.mb-scen td.num{font-family:"IBM Plex Mono",monospace;text-align:right;padd
 .cx-maang-dev{color:#1a9db3}
 :root[data-theme="dark"] .cx-maang-dev{color:#4fd8ee}
 @media (prefers-color-scheme: dark){ :root:not([data-theme="light"]) .cx-maang-dev{color:#4fd8ee} }
+.cx-maang-wedge{fill:#22d3ee;fill-opacity:.18;stroke:#22d3ee;stroke-opacity:.55;stroke-width:.8}
+.cx-maang-lab{font-size:9px;font-family:"IBM Plex Mono",monospace}
+.cx-maang-lab.dev{fill:#1a9db3;font-weight:700}
+:root[data-theme="dark"] .cx-maang-lab.dev{fill:#4fd8ee}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]) .cx-maang-lab.dev{fill:#4fd8ee} }
 .cx-svg.cx-drawing{cursor:crosshair}
 .cx-fiiwin{fill:#22b8cf;fill-opacity:.07;stroke:#22b8cf;stroke-opacity:.5;stroke-width:1;stroke-dasharray:3 2}
 .cx-fiiwinvol{fill:#22b8cf;fill-opacity:.14;stroke:none}
@@ -441,7 +446,7 @@ table.sc-setup td.num{font-family:"IBM Plex Mono",monospace;text-align:right}
     <span class="mark" aria-hidden="true">₹</span>
     <div>
       <h1>The 10% Ledger</h1>
-      <p>Momentum + pullback screener · NSE swing setups <span style="opacity:.5;font-size:11px">· build 2026-09-13a</span></p>
+      <p>Momentum + pullback screener · NSE swing setups <span style="opacity:.5;font-size:11px">· build 2026-09-13b</span></p>
     </div>
   </div>
   <div class="controls">
@@ -4996,6 +5001,28 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
       return pts.length>1 ? '<polyline points="'+pts.join(" ")+'" class="'+cls+'"/>' : '';
     }
     g.push(poly(e200,"cx-e200")); g.push(poly(e50,"cx-e50")); g.push(poly(e20,"cx-e20"));
+    // MA angle wedge — shades the actual gap between the two REAL moving-average lines already
+    // drawn above, over the same 10-bar window the "MA angle" text line measures. Bounded by the
+    // two curves' own real chart coordinates (X()/Y()), not a separately-positioned schematic
+    // shape — so it can never end up an arbitrary size relative to the candles the way the old
+    // fixed-radius gauge could (that one got pulled after it rendered as a giant triangle on a
+    // real stock; this one is geometrically tied to the chart, so it is exactly as big as the
+    // visible gap between the lines, no more).
+    (function(){
+      var GW=10, wi0=n-1-GW;
+      if(wi0<0) return;
+      var i, okAll=true;
+      for(i=wi0;i<n;i++){ if(e20[i]==null || e50[i]==null){ okAll=false; break; } }
+      if(!okAll) return;
+      var pts=[];
+      for(i=wi0;i<n;i++) pts.push(f1(X(i))+","+f1(Y(e20[i])));
+      for(i=n-1;i>=wi0;i--) pts.push(f1(X(i))+","+f1(Y(e50[i])));
+      g.push('<polygon points="'+pts.join(" ")+'" class="cx-maang-wedge"/>');
+      var pctFast=(e20[n-1]/e20[wi0]-1)*100, pctSlow=(e50[n-1]/e50[wi0]-1)*100;
+      var dev = Math.atan2(pctFast,GW)*180/Math.PI - Math.atan2(pctSlow,GW)*180/Math.PI;
+      var midY=(Y(e20[n-1])+Y(e50[n-1]))/2;
+      g.push('<text x="'+f1(X(n-1)-6)+'" y="'+f1(midY+3)+'" text-anchor="end" class="cx-maang-lab dev">Δ '+(dev>=0?"+":"")+dev.toFixed(0)+'°</text>');
+    })();
     // ±2σ "stretch" envelope — price's normal divergence band around the 20-EMA (Disparity Index)
     if(opts.stretchBand){
       var _sr = stretchRead(o);
