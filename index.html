@@ -319,7 +319,13 @@ table.mb-scen td.num{font-family:"IBM Plex Mono",monospace;text-align:right;padd
 .cx-mtrend{stroke:#e8b93a;stroke-width:1.6;fill:none}
 .cx-mtrend-pt{fill:#e8b93a;stroke:var(--surface);stroke-width:1}
 .cx-mtrend-pending{fill:#e8b93a;stroke:var(--surface);stroke-width:1;opacity:.85}
-.cx-protractor{stroke:#ff5fd1;stroke-width:1.4;stroke-dasharray:5 3;fill:none}
+.cx-protractor-base{stroke:#ff5fd1;stroke-width:1;stroke-opacity:.5;fill:none}
+.cx-protractor-arc{stroke:#ff5fd1;stroke-width:1;stroke-opacity:.5;fill:none}
+.cx-protractor-tick{stroke:#ff5fd1;stroke-width:1;stroke-opacity:.6;fill:none}
+.cx-protractor-tickmin{stroke:#ff5fd1;stroke-width:.6;stroke-opacity:.35;fill:none}
+.cx-protractor-num{fill:#ff5fd1;font-size:7px;font-family:"IBM Plex Mono",monospace;opacity:.8}
+.cx-protractor-wedge{stroke:#ff5fd1;stroke-width:1.6;fill:none;stroke-opacity:.85}
+.cx-protractor-ray{stroke:#ff5fd1;stroke-width:1.8;fill:none}
 .cx-protractor-pt{fill:#ff5fd1;stroke:var(--surface);stroke-width:1}
 .cx-protractor-pending{fill:#ff5fd1;stroke:var(--surface);stroke-width:1;opacity:.85}
 .cx-protractor-lab{fill:#ff5fd1;font-size:9px;font-weight:600;font-family:"IBM Plex Mono",monospace}
@@ -427,7 +433,7 @@ table.sc-setup td.num{font-family:"IBM Plex Mono",monospace;text-align:right}
     <span class="mark" aria-hidden="true">₹</span>
     <div>
       <h1>The 10% Ledger</h1>
-      <p>Momentum + pullback screener · NSE swing setups <span style="opacity:.5;font-size:11px">· build 2026-09-12j</span></p>
+      <p>Momentum + pullback screener · NSE swing setups <span style="opacity:.5;font-size:11px">· build 2026-09-12k</span></p>
     </div>
   </div>
   <div class="controls">
@@ -1099,7 +1105,7 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
         <button id="bookRefreshLive" class="ghost" title="Fetch fresh candles for this stock">↻ live</button>
         <button id="bookDrawTrend" class="ghost" aria-pressed="false" title="Click two points on the chart to draw your own trendline — it's anchored to the actual dates/prices you click, so it stays in place as the chart updates and works on daily or weekly.">✏️ Draw trendline</button>
         <button id="bookClearTrend" class="ghost" hidden title="Remove every manually-drawn trendline on this stock">🗑 clear my lines</button>
-        <button id="bookProtractor" class="ghost" aria-pressed="false" title="Click two points to measure the angle of a move — shows degrees (this chart's own scale, not a fixed physical angle) plus the %/bar rate, which is the number to trust when comparing steepness across different charts.">📐 Protractor</button>
+        <button id="bookProtractor" class="ghost" aria-pressed="false" title="Click the start of a move, then its end — plants a real protractor face (semicircle + degree ticks + baseline) sized to that move, with the angle read off the ray. Degrees are this chart's own scale, not a fixed physical angle; the %/bar rate alongside it is the number to trust when comparing steepness across different charts.">📐 Protractor</button>
         <button id="bookClearProtractor" class="ghost" hidden title="Remove every angle measurement on this stock">🗑 clear angles</button>
         <button id="bookWatch" class="ghost" title="Add / remove this stock from your watchlist">☆ Watchlist</button>
         <button id="bookAnnounce" class="ghost" title="Open this stock's NSE announcements in a new tab">📢 Announcements</button>
@@ -4935,25 +4941,48 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
       var pi=nearestBarIndex(D, opts.pendingPoint.date);
       if(pi>=0) g.push('<circle cx="'+f1(X(pi))+'" cy="'+f1(Y(opts.pendingPoint.price))+'" r="4" class="cx-mtrend-pending"/>');
     }
-    // protractor — measures the angle + rate of a move between two clicked points. The angle is
-    // read off THIS chart's own pixel geometry (bar spacing × price scale), not a physical unit —
-    // it changes if the visible window/zoom changes, so it's only meaningful as a same-chart,
-    // same-timeframe comparison. The %/bar figure alongside it is scale-independent and the more
-    // trustworthy number for comparing the steepness of different moves.
+    // protractor — a real protractor face (semicircle + degree ticks + baseline) planted at the
+    // 1st click, sized/aimed by the 2nd click, so a move can be visually laid against it like a
+    // physical protractor on paper. The degree reading is off THIS chart's own pixel geometry
+    // (bar spacing × price scale) — it changes if the visible window/zoom changes, so it's only
+    // a same-chart, same-timeframe comparison. The %/bar figure alongside it is scale-independent
+    // and the more trustworthy number for comparing the steepness of different moves.
     var protractorLines = (state.protractor && state.protractor[opts.symbol]) || [];
     protractorLines.forEach(function(ln){
       var i1=nearestBarIndex(D, ln.d1), i2=nearestBarIndex(D, ln.d2);
       if(i1<0 || i2<0 || i1===i2) return;
       if(i1>i2){ var ti=i1;i1=i2;i2=ti; var tp=ln.p1;ln={d1:ln.d2,p1:ln.p2,d2:ln.d1,p2:tp}; }
-      var x1=X(i1), y1=Y(ln.p1), x2=X(i2), y2=Y(ln.p2);
-      var angDeg = Math.atan2(y1-y2, x2-x1) * 180/Math.PI;   // y1-y2 flips SVG's downward y — up = positive
+      var cx=X(i1), cy=Y(ln.p1), x2=X(i2), y2=Y(ln.p2);
+      var r=Math.sqrt((x2-cx)*(x2-cx)+(y2-cy)*(y2-cy)); if(r<12) return;
+      var angDeg = Math.atan2(cy-y2, x2-cx) * 180/Math.PI;   // cy-y2 flips SVG's downward y — up = positive
       var bars = i2-i1, pctChg = ln.p1 ? (ln.p2-ln.p1)/ln.p1*100 : 0;
       var perBar = bars ? pctChg/bars : 0;
-      var midx=(x1+x2)/2, labY=Math.min(y1,y2)-8;
-      g.push('<line x1="'+f1(x1)+'" y1="'+f1(y1)+'" x2="'+f1(x2)+'" y2="'+f1(y2)+'" class="cx-protractor"/>');
-      g.push('<circle cx="'+f1(x1)+'" cy="'+f1(y1)+'" r="3" class="cx-protractor-pt"/>');
+      var upper = angDeg>=0;   // face opens upward for a rising move, downward for a falling one
+      function pt(deg){ var rad=deg*Math.PI/180; return {x:cx+r*Math.cos(rad), y: upper ? cy-r*Math.sin(rad) : cy+r*Math.sin(rad)}; }
+      // baseline (the protractor's flat edge)
+      g.push('<line x1="'+f1(cx-r)+'" y1="'+f1(cy)+'" x2="'+f1(cx+r)+'" y2="'+f1(cy)+'" class="cx-protractor-base"/>');
+      // outer arc, sampled every 5°
+      var arcPts=[]; for(var dg=0; dg<=180; dg+=5){ var ap=pt(dg); arcPts.push(f1(ap.x)+","+f1(ap.y)); }
+      g.push('<polyline points="'+arcPts.join(" ")+'" class="cx-protractor-arc"/>');
+      // degree ticks — major every 10° with a number, minor every 2° unlabeled
+      for(var dg2=0; dg2<=180; dg2+=2){
+        var major = dg2%10===0, outer2=pt(dg2), innerLen = major ? r-(dg2%30===0?14:11) : r-5;
+        var inner2 = { x:cx+innerLen*Math.cos(dg2*Math.PI/180), y: upper ? cy-innerLen*Math.sin(dg2*Math.PI/180) : cy+innerLen*Math.sin(dg2*Math.PI/180) };
+        g.push('<line x1="'+f1(inner2.x)+'" y1="'+f1(inner2.y)+'" x2="'+f1(outer2.x)+'" y2="'+f1(outer2.y)+'" class="'+(major?"cx-protractor-tick":"cx-protractor-tickmin")+'"/>');
+        if(major){
+          var lp = {x:cx+(r+10)*Math.cos(dg2*Math.PI/180), y: upper ? cy-(r+10)*Math.sin(dg2*Math.PI/180) : cy+(r+10)*Math.sin(dg2*Math.PI/180)};
+          g.push('<text x="'+f1(lp.x)+'" y="'+f1(lp.y+3)+'" text-anchor="middle" class="cx-protractor-num">'+dg2+'</text>');
+        }
+      }
+      // the wedge from the baseline (0°) to the actual measured ray
+      var wedgePts=[]; var absAng=Math.abs(angDeg); for(var dg3=0; dg3<=absAng; dg3+=4){ var wp=pt(dg3); wedgePts.push(f1(wp.x)+","+f1(wp.y)); }
+      wedgePts.push(f1(x2)+","+f1(y2));
+      g.push('<polyline points="'+wedgePts.join(" ")+'" class="cx-protractor-wedge"/>');
+      g.push('<line x1="'+f1(cx)+'" y1="'+f1(cy)+'" x2="'+f1(x2)+'" y2="'+f1(y2)+'" class="cx-protractor-ray"/>');
+      g.push('<circle cx="'+f1(cx)+'" cy="'+f1(cy)+'" r="3" class="cx-protractor-pt"/>');
       g.push('<circle cx="'+f1(x2)+'" cy="'+f1(y2)+'" r="3" class="cx-protractor-pt"/>');
-      g.push('<text x="'+f1(midx)+'" y="'+f1(labY)+'" text-anchor="middle" class="cx-protractor-lab">'+(angDeg>=0?"+":"")+angDeg.toFixed(0)+'° · '+(pctChg>=0?"+":"")+pctChg.toFixed(1)+'% / '+bars+'b · '+(perBar>=0?"+":"")+perBar.toFixed(2)+'%/b</text>');
+      var labY = upper ? (cy-r-16) : (cy+r+16);
+      g.push('<text x="'+f1(cx)+'" y="'+f1(labY)+'" text-anchor="middle" class="cx-protractor-lab">'+(angDeg>=0?"+":"")+angDeg.toFixed(0)+'° · '+(pctChg>=0?"+":"")+pctChg.toFixed(1)+'% / '+bars+'b · '+(perBar>=0?"+":"")+perBar.toFixed(2)+'%/b</text>');
     });
     if(opts.protractorPendingPoint){
       var ppi=nearestBarIndex(D, opts.protractorPendingPoint.date);
