@@ -334,13 +334,9 @@ table.mb-scen td.num{font-family:"IBM Plex Mono",monospace;text-align:right;padd
 .cx-parab-x{stroke:#d64545;stroke-width:1.6;fill:none}
 .cx-parab-lab{fill:#ffb020;font-size:9px;font-weight:600;font-family:"IBM Plex Mono",monospace}
 .cx-parab-lab.broke{fill:#d64545}
-.cx-maang-base{stroke:var(--muted);stroke-width:.8;stroke-opacity:.4;fill:none}
-.cx-maang-wedge{fill:#22d3ee;fill-opacity:.16;stroke:#22d3ee;stroke-opacity:.5;stroke-width:.8}
-.cx-maang-fast{stroke:var(--accent);stroke-width:1.6;fill:none}
-.cx-maang-slow{stroke:var(--muted);stroke-width:1.6;fill:none}
-.cx-maang-pt{fill:#22d3ee;stroke:none}
-.cx-maang-lab{fill:var(--muted);font-size:7px;font-family:"IBM Plex Mono",monospace}
-.cx-maang-lab.dev{fill:#22d3ee;font-weight:700;font-size:8px}
+.cx-maang-dev{color:#1a9db3}
+:root[data-theme="dark"] .cx-maang-dev{color:#4fd8ee}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]) .cx-maang-dev{color:#4fd8ee} }
 .cx-svg.cx-drawing{cursor:crosshair}
 .cx-fiiwin{fill:#22b8cf;fill-opacity:.07;stroke:#22b8cf;stroke-opacity:.5;stroke-width:1;stroke-dasharray:3 2}
 .cx-fiiwinvol{fill:#22b8cf;fill-opacity:.14;stroke:none}
@@ -445,7 +441,7 @@ table.sc-setup td.num{font-family:"IBM Plex Mono",monospace;text-align:right}
     <span class="mark" aria-hidden="true">₹</span>
     <div>
       <h1>The 10% Ledger</h1>
-      <p>Momentum + pullback screener · NSE swing setups <span style="opacity:.5;font-size:11px">· build 2026-09-12p</span></p>
+      <p>Momentum + pullback screener · NSE swing setups <span style="opacity:.5;font-size:11px">· build 2026-09-13a</span></p>
     </div>
   </div>
   <div class="controls">
@@ -3412,6 +3408,26 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
   // over the following month. Always uses 10-SMA/50-SMA specifically (not the chart's own
   // EMA/SMA toggle) since that's literally the pair the user asked about — keeps one consistent
   // definition instead of mixing two different MA pairs into the same table.
+  // plain-text MA-angle readout for whatever's on screen right now (daily or weekly, whichever
+  // the chart is showing) — same fixed atan2(%change over 10 bars, 10 bars) convention as the
+  // backtest above, so the number here means the same thing as the one in the study table.
+  // Follows the chart's own EMA/SMA toggle (10-SMA/50-SMA in SMA mode, 20-EMA/50-EMA in EMA mode).
+  function maAngleReadout(o, useSMA){
+    var c=o && o.c, n=c && c.length || 0, GW=10;
+    if(n<GW+50) return null;
+    var fast = useSMA ? smaArr(c,10) : emaArr(c,20), slow = useSMA ? smaArr(c,50) : emaArr(c,50);
+    var gi=n-1, gi0=gi-GW;
+    if(gi0<0 || fast[gi]==null || fast[gi0]==null || slow[gi]==null || slow[gi0]==null || fast[gi0]===0 || slow[gi0]===0) return null;
+    var pctFast=(fast[gi]/fast[gi0]-1)*100, pctSlow=(slow[gi]/slow[gi0]-1)*100;
+    var angFast=Math.atan2(pctFast,GW)*180/Math.PI, angSlow=Math.atan2(pctSlow,GW)*180/Math.PI;
+    return { angFast:angFast, angSlow:angSlow, dev:angFast-angSlow,
+      fastLbl: useSMA?"10-SMA":"20-EMA", slowLbl: useSMA?"50-SMA":"50-EMA" };
+  }
+  function maAngleReadoutLine(o, useSMA){
+    var r = maAngleReadout(o, useSMA); if(!r) return "";
+    return '<div class="cx-asof">MA angle — '+r.fastLbl+' '+(r.angFast>=0?"+":"")+r.angFast.toFixed(0)+'° · '+r.slowLbl+' '+
+      (r.angSlow>=0?"+":"")+r.angSlow.toFixed(0)+'° · <span class="cx-maang-dev">Δ '+(r.dev>=0?"+":"")+r.dev.toFixed(0)+'°</span></div>';
+  }
   var MAANG_BUCKETS = ["≤ -20°","-20° to -5°","-5° to +5°","+5° to +20°","+20° to +40°","≥ +40°"];
   function maAngleBucket(dev){
     if(dev<=-20) return MAANG_BUCKETS[0];
@@ -4081,6 +4097,7 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
         if(Math.abs(drift)>=0.015)
           meta += '<div class="cx-asof warn">Since this was scored, price moved '+(drift>0?'+':'')+(drift*100).toFixed(1)+'% ('+nfmt(d.price)+' → '+nfmt(latest)+') — re-scan before acting.</div>';
       }
+      meta += maAngleReadoutLine(series, state.chartMA==="sma");
       host.innerHTML = chartLegend(tf) + meta + buildChartSVG(series, opts);
       var svgEl = host.querySelector("svg");
       if(svgEl) svgEl.addEventListener("click", function(ev){
@@ -4979,37 +4996,6 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
       return pts.length>1 ? '<polyline points="'+pts.join(" ")+'" class="'+cls+'"/>' : '';
     }
     g.push(poly(e200,"cx-e200")); g.push(poly(e50,"cx-e50")); g.push(poly(e20,"cx-e20"));
-    // MA angle gauge — the degree deviation between the two moving averages on THIS chart
-    // (10-SMA vs 50-SMA in SMA mode, 20-EMA vs 50-EMA in EMA mode), always drawn, no clicking.
-    // Deliberately NOT measured off this chart's own pixel geometry (unlike the manual
-    // Protractor, whose degrees shift with zoom/timeframe) — it uses a FIXED, transparent
-    // convention instead: angle = atan2(% change over the window, bars in the window), so a
-    // reading here means the same thing on any stock, any timeframe, always. Window = 10 bars.
-    // Drawn as a small schematic gauge (both lines translated to a shared point for comparison,
-    // like comparing two vectors) in the price panel's lower-left corner — it is a diagram of
-    // the two slopes, not a claim about a real position on the chart.
-    (function(){
-      var GW=10, gi=n-1, gi0=gi-GW;
-      if(gi0<0 || e20[gi]==null || e20[gi0]==null || e50[gi]==null || e50[gi0]==null || e20[gi0]===0 || e50[gi0]===0) return;
-      var pctFast=(e20[gi]/e20[gi0]-1)*100, pctSlow=(e50[gi]/e50[gi0]-1)*100;
-      var angFast=Math.atan2(pctFast,GW)*180/Math.PI, angSlow=Math.atan2(pctSlow,GW)*180/Math.PI;
-      var dev=angFast-angSlow;
-      var gx=PL+62, gy=T+44, gr=30;
-      function gpt(deg){ var rad=deg*Math.PI/180; return {x:gx+gr*Math.cos(rad), y:gy-gr*Math.sin(rad)}; }
-      var clampDeg=function(d){ return Math.max(-85,Math.min(85,d)); };
-      var pf=gpt(clampDeg(angFast)), ps=gpt(clampDeg(angSlow));
-      g.push('<line x1="'+f1(gx-gr)+'" y1="'+f1(gy)+'" x2="'+f1(gx+gr)+'" y2="'+f1(gy)+'" class="cx-maang-base"/>');
-      var lo1=Math.min(clampDeg(angFast),clampDeg(angSlow)), hi1=Math.max(clampDeg(angFast),clampDeg(angSlow));
-      var wedgePts=[]; for(var wd=lo1; wd<=hi1; wd+=3){ var wp=gpt(wd); wedgePts.push(f1(wp.x)+","+f1(wp.y)); }
-      wedgePts.unshift(f1(gx)+","+f1(gy)); wedgePts.push(f1(gx)+","+f1(gy));
-      g.push('<polygon points="'+wedgePts.join(" ")+'" class="cx-maang-wedge"/>');
-      g.push('<line x1="'+f1(gx)+'" y1="'+f1(gy)+'" x2="'+f1(pf.x)+'" y2="'+f1(pf.y)+'" class="cx-maang-fast"/>');
-      g.push('<line x1="'+f1(gx)+'" y1="'+f1(gy)+'" x2="'+f1(ps.x)+'" y2="'+f1(ps.y)+'" class="cx-maang-slow"/>');
-      g.push('<circle cx="'+f1(gx)+'" cy="'+f1(gy)+'" r="2" class="cx-maang-pt"/>');
-      var fastLbl = useSMA ? "10-SMA" : "20-EMA", slowLbl = useSMA ? "50-SMA" : "50-EMA";
-      g.push('<text x="'+f1(gx-gr)+'" y="'+f1(gy+16)+'" text-anchor="start" class="cx-maang-lab">'+fastLbl+' '+(angFast>=0?"+":"")+angFast.toFixed(0)+'° · '+slowLbl+' '+(angSlow>=0?"+":"")+angSlow.toFixed(0)+'°</text>');
-      g.push('<text x="'+f1(gx-gr)+'" y="'+f1(gy+27)+'" text-anchor="start" class="cx-maang-lab dev">Δ '+(dev>=0?"+":"")+dev.toFixed(0)+'°</text>');
-    })();
     // ±2σ "stretch" envelope — price's normal divergence band around the 20-EMA (Disparity Index)
     if(opts.stretchBand){
       var _sr = stretchRead(o);
@@ -5260,6 +5246,7 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
         if(Math.abs(drift) >= 0.015)
           meta += '<div class="cx-asof warn">Since this was scored, price moved '+(drift>0?'+':'')+(drift*100).toFixed(1)+'% ('+nfmt(d.price)+' → '+nfmt(latest)+'). The score, entry and targets above are from the earlier data — re-scan or re-evaluate before acting.</div>';
       }
+      meta += maAngleReadoutLine(series, state.chartMA==="sma");
       host.innerHTML = chartLegend(tf) + meta + buildChartSVG(series, opts);
       renderHold(sym, o);
     }
