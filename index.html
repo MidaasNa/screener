@@ -117,6 +117,9 @@ button.ghost.pos:hover{background:var(--pos);color:#fff}
 .regime-banner.red{background:var(--neg-bg);color:var(--neg)}
 .summary{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:12px;font-size:12px}
 .summary .chip{background:var(--surface-2);border:1px solid var(--line);border-radius:6px;padding:4px 9px;color:var(--ink-soft)}
+.summary .chip.pos{background:var(--pos-bg);color:var(--pos);border-color:var(--pos)}
+.summary .chip.warn{background:var(--warn-bg);color:var(--warn);border-color:var(--warn)}
+.summary .chip.neg{background:var(--neg-bg);color:var(--neg);border-color:var(--neg)}
 .summary .chip b{font-family:"IBM Plex Mono";font-variant-numeric:tabular-nums;color:var(--ink)}
 
 /* table */
@@ -452,7 +455,7 @@ table.sc-setup td.num{font-family:"IBM Plex Mono",monospace;text-align:right}
     <span class="mark" aria-hidden="true">₹</span>
     <div>
       <h1>The 10% Ledger</h1>
-      <p>Momentum + pullback screener · NSE swing setups <span style="opacity:.5;font-size:11px">· build 2026-09-13e</span></p>
+      <p>Momentum + pullback screener · NSE swing setups <span style="opacity:.5;font-size:11px">· build 2026-09-13g</span></p>
     </div>
   </div>
   <div class="controls">
@@ -613,6 +616,7 @@ table.sc-setup td.num{font-family:"IBM Plex Mono",monospace;text-align:right}
         <label class="chk" style="margin-left:0" title="The 10-WEEK SMA crossed above the 50-WEEK SMA in the last ~8 weeks and is still above — a major higher-timeframe trend turn (Stage-1 → Stage-2 on the weekly). Much rarer and slower than the daily cross; needs ~1.3 years of history."><input type="checkbox" id="onlyGXW"> Fresh weekly 10/50 cross</label>
         <label class="chk" style="margin-left:0" title="Both crosses at once — a fresh 10/50 golden cross on the DAILY chart AND on the WEEKLY chart, both still above. The daily and weekly trend turning up together is the strongest version of the signal (and the rarest)."><input type="checkbox" id="onlyGXBoth"> Daily + weekly 10/50 cross</label>
         <label class="chk" style="margin-left:0" title="A hammer or morning-star candle in the last ~2 sessions whose low tagged the 10-day SMA — a reversal bar right at short-term support. The badge shows this stock's own history: of past cases that formed while the 10-SMA was above the 50-SMA (a pullback in an uptrend), how many made a ≥5% move within 10 days."><input type="checkbox" id="onlyCM"> 🔨 Hammer / M-star @ 10-SMA</label>
+        <label class="chk" style="margin-left:0" title="Only stocks whose sector currently scores the full 20 on the Sector filter — set manually in Screener → Leading sectors, or automatically via its Auto button."><input type="checkbox" id="onlySectorLead"> Leading sector</label>
         <label class="chk" style="margin-left:0"><input type="checkbox" id="onlyActionable"> Actionable</label>
       </div>
       <div class="summary" id="summary" aria-live="polite"></div>
@@ -1102,6 +1106,7 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
             <option value="cdlma">Hammer / morning star at the 10-SMA (live)</option>
             <option value="parab">Parabolic run — accelerating or just broke</option>
             <option value="prebreak">Pre-breakout — 4+/5 conditions aligned</option>
+            <option value="sectorlead">Leading sector only</option>
             <option value="mbtop">Multibagger Radar — all, ranked by score</option>
             <option value="mb">Multibagger Radar — class A / B</option>
             <option value="mba">Multibagger Radar — class A only</option>
@@ -2234,6 +2239,7 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
     var onlyGXWf = $("#onlyGXW") && $("#onlyGXW").checked;
     var onlyGXBothf = $("#onlyGXBoth") && $("#onlyGXBoth").checked;
     var onlyCMf = $("#onlyCM") && $("#onlyCM").checked;
+    var onlySL = $("#onlySectorLead") && $("#onlySectorLead").checked;
     var shown = evals;
     if(onlyS2) shown = shown.filter(function(e){ return !!e.d.setup; });
     if(onlyTrg) shown = shown.filter(function(e){ var t=trigParts(e.d); return t && t.ago<=2; });
@@ -2246,6 +2252,7 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
     if(onlyGXWf) shown = shown.filter(function(e){ return !!e.d.gxw; });
     if(onlyGXBothf) shown = shown.filter(function(e){ return !!e.d.gx && !!e.d.gxw; });
     if(onlyCMf) shown = shown.filter(function(e){ return !!(e.d.cm && e.d.cm.live); });
+    if(onlySL) shown = shown.filter(function(e){ return e.d.sectorLbl==="leading"; });
     if(onlyAct) shown = shown.filter(function(e){ return e.actionable; });
 
     if(!shown.length){
@@ -2303,6 +2310,7 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
     var gxBothN = evals.filter(function(e){ return !!e.d.gx && !!e.d.gxw; }).length;
     var cmN = evals.filter(function(e){ return e.d.cm && e.d.cm.live; }).length;
     var aplus = evals.filter(function(e){ return setupGrade(e.d)==="A+"; }).length;
+    var secLeadN = evals.filter(function(e){ return e.d.sectorLbl==="leading"; }).length;
     var topRs = evals.slice().filter(function(e){return e.d.rs!=null;}).sort(function(a,b){return b.d.rs-a.d.rs;})[0];
     summary.innerHTML =
       '<span class="chip"><b>'+evals.length+'</b> scanned</span>'+
@@ -2317,6 +2325,7 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
       (gxN?'<span class="chip"><b>'+gxN+'</b> fresh 10/50 cross</span>':'')+
       (gxwN?'<span class="chip"><b>'+gxwN+'</b> weekly 10/50 cross'+(gxBothN?' · <span class="pos">'+gxBothN+' also daily</span>':'')+'</span>':'')+
       (cmN?'<span class="chip"><b>'+cmN+'</b> 🔨 hammer/M-star @ 10-SMA</span>':'')+
+      (secLeadN?'<span class="chip"><b>'+secLeadN+'</b> in leading sectors</span>':'')+
       '<span class="chip"><b>'+act+'</b> actionable</span>'+
       (topRs?'<span class="chip">strongest: <b>'+esc(topRs.d.symbol)+'</b> RS '+topRs.d.rs+'</span>':'')+
       (best?'<span class="chip">top score: <b>'+esc(best.d.symbol)+'</b> ('+best.sc.total+')</span>':'');
@@ -2997,6 +3006,7 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
       case "cdlma":        return !!(d.cm && d.cm.live);
       case "parab":        return !!(d.pb && (d.pb.riding || d.pb.brokeAgo>=0));
       case "prebreak":     return !!d.rdy;
+      case "sectorlead":   return d.sectorLbl==="leading";
       case "mb":         return d.mb && /^(A|B)$/.test(d.mb.cls);
       case "mba":        return d.mb && d.mb.cls==="A";
       case "mbearly":   { var eg=mbEarly(d); return !!(d.mb && d.mb.total!=null && eg && (eg.tier==="early"||eg.tier==="ignition")); }
@@ -8637,6 +8647,7 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
     if($("#onlyGXW")) $("#onlyGXW").addEventListener("change", renderScreener);
     if($("#onlyGXBoth")) $("#onlyGXBoth").addEventListener("change", renderScreener);
     if($("#onlyCM")) $("#onlyCM").addEventListener("change", renderScreener);
+    if($("#onlySectorLead")) $("#onlySectorLead").addEventListener("change", renderScreener);
     if($("#coilWatchOnly")) $("#coilWatchOnly").addEventListener("change", renderCoil);
     if($("#coilUptrend")) $("#coilUptrend").addEventListener("change", renderCoil);
     if($("#ggUptrend")) $("#ggUptrend").addEventListener("change", renderGolden);
