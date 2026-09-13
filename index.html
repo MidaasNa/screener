@@ -207,6 +207,12 @@ details.sub textarea{width:100%;min-height:116px;margin-top:8px;background:var(-
 .chip-ck{position:relative;display:inline-flex;align-items:center;font-size:11.5px;padding:4px 10px;border:1px solid var(--line-strong);border-radius:999px;cursor:pointer;color:var(--muted)}
 .chip-ck.on{background:var(--accent-soft);color:var(--accent);border-color:var(--accent)}
 .chip-ck input{position:absolute;opacity:0;width:0;height:0}
+.chip-ck.green:not(.on){border-color:#2f9e44;color:#2f9e44}
+.chip-ck.red:not(.on){border-color:#d64545;color:#d64545}
+.chip-ck.yellow:not(.on){border-color:#e8912a;color:#e8912a}
+.chip-ck.on.green{background:rgba(47,158,68,.15);color:#2f9e44;border-color:#2f9e44}
+.chip-ck.on.red{background:rgba(214,69,69,.15);color:#d64545;border-color:#d64545}
+.chip-ck.on.yellow{background:rgba(232,145,42,.15);color:#e8912a;border-color:#e8912a}
 .progress{height:6px;background:var(--surface-2);border-radius:999px;overflow:hidden;margin-top:12px}
 .progress>i{display:block;height:100%;width:0;background:var(--accent)}
 @media (prefers-reduced-motion:no-preference){.progress>i{transition:width .2s linear}}
@@ -446,7 +452,7 @@ table.sc-setup td.num{font-family:"IBM Plex Mono",monospace;text-align:right}
     <span class="mark" aria-hidden="true">₹</span>
     <div>
       <h1>The 10% Ledger</h1>
-      <p>Momentum + pullback screener · NSE swing setups <span style="opacity:.5;font-size:11px">· build 2026-09-13c</span></p>
+      <p>Momentum + pullback screener · NSE swing setups <span style="opacity:.5;font-size:11px">· build 2026-09-13e</span></p>
     </div>
   </div>
   <div class="controls">
@@ -569,8 +575,11 @@ table.sc-setup td.num{font-family:"IBM Plex Mono",monospace;text-align:right}
 
       <details class="sub" id="sectorBox">
         <summary>Leading sectors <span class="hint" id="secCount"></span></summary>
+        <div class="row-actions" style="margin:0 0 8px">
+          <button id="sectorAutoBtn" class="ghost" aria-pressed="false" title="Auto — rank every sector in this scan by its stocks' average RS; top third become leading, bottom third lagging, after each scan.">Auto</button>
+        </div>
         <div class="chips" id="sectorChips"></div>
-        <p class="hint">Stocks in a checked sector score the full 20 on the Sector filter; the rest score 12. Set these to wherever market strength actually is right now — you can change them after a scan without re-fetching.</p>
+        <p class="hint">Stocks in a checked sector score the full 20 on the Sector filter; the rest score 12. Set these to wherever market strength actually is right now — you can change them after a scan without re-fetching, or use <b>Auto</b> to have the scan itself decide from average RS per sector.</p>
       </details>
 
       <details class="sub" id="universeEditBox">
@@ -1709,7 +1718,7 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
     scanSource: "proxy",
     proxyChoice: "custom",
     proxyCustom: "", apiKey: "", fmpKey: "", chartTF: "daily", chartMA: "ema",
-    universeSize: "200", customUniverse: "", leadingSectors: [],
+    universeSize: "200", customUniverse: "", leadingSectors: [], sectorMode: "manual", sectorPerf: null,
     dropForming: true, fetchEvents: false, fetchResults: true, fetchDeep: true, scanCache: null, hostOverride: false,
     oc: {}, journal: [], journalUrl: "", bookIdx: 0, bookScope: "all",
     bookSR: true, bookPat: true, bookVwap: true, bookTrend: true, bookStretchBand: false, bookFiiWindow: true,
@@ -3425,7 +3434,7 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
     if(gi0<0 || fast[gi]==null || fast[gi0]==null || slow[gi]==null || slow[gi0]==null || fast[gi0]===0 || slow[gi0]===0) return null;
     var pctFast=(fast[gi]/fast[gi0]-1)*100, pctSlow=(slow[gi]/slow[gi0]-1)*100;
     var angFast=Math.atan2(pctFast,GW)*180/Math.PI, angSlow=Math.atan2(pctSlow,GW)*180/Math.PI;
-    return { angFast:angFast, angSlow:angSlow, dev:angFast-angSlow,
+    return { angFast:angFast, angSlow:angSlow, dev:angFast-angSlow, pctFast:pctFast, pctSlow:pctSlow,
       fastLbl: useSMA?"10-SMA":"20-EMA", slowLbl: useSMA?"50-SMA":"50-EMA" };
   }
   function maAngleReadoutLine(o, useSMA){
@@ -3435,8 +3444,14 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
     // unchanged (Δ ≈ 0°) while both averages climb in parallel right now; the shaded wedge on
     // the chart shows that gap separately, labeled "gap %", specifically so the two aren't
     // read as the same number.
-    return '<div class="cx-asof">MA angle — '+r.fastLbl+' '+(r.angFast>=0?"+":"")+r.angFast.toFixed(0)+'° · '+r.slowLbl+' '+
-      (r.angSlow>=0?"+":"")+r.angSlow.toFixed(0)+'° · <span class="cx-maang-dev">Δ '+(r.dev>=0?"+":"")+r.dev.toFixed(0)+'° (rate of divergence)</span></div>';
+    // The %/10-bar figures are shown alongside each angle because atan2 SATURATES near ±90° —
+    // at high growth rates, a genuinely large difference in the underlying %-rate (e.g. +71% vs
+    // +51% over the window) compresses into just a few degrees of difference (82° vs 79°), which
+    // reads as "barely diverging" when the real gap in growth rate is actually huge. The degrees
+    // stay for a quick read; the %/10-bar numbers are the ones to trust when both angles are
+    // already steep.
+    return '<div class="cx-asof">MA angle — '+r.fastLbl+' '+(r.angFast>=0?"+":"")+r.angFast.toFixed(0)+'°('+(r.pctFast>=0?"+":"")+r.pctFast.toFixed(0)+'%/10b) · '+r.slowLbl+' '+
+      (r.angSlow>=0?"+":"")+r.angSlow.toFixed(0)+'°('+(r.pctSlow>=0?"+":"")+r.pctSlow.toFixed(0)+'%/10b) · <span class="cx-maang-dev" title="Degrees compress near ±90° at high growth rates — compare the %/10-bar figures above for the real gap when both angles are already steep.">Δ '+(r.dev>=0?"+":"")+r.dev.toFixed(0)+'° (rate of divergence)</span></div>';
   }
   var MAANG_BUCKETS = ["≤ -20°","-20° to -5°","-5° to +5°","+5° to +20°","+20° to +40°","≥ +40°"];
   function maAngleBucket(dev){
@@ -3973,11 +3988,16 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
     }
 
     var tags = bookMembership(d);
+    var secB = sectorBadgeFor(d.symbol);
+    var secChip = secB ? '<span class="chip '+(secB.status?({green:"pos",yellow:"warn",red:"neg"})[secB.status]:"")+'" title="'+
+      (secB.avgRS!=null ? "Sector avg RS "+secB.avgRS+(secB.rank?" · rank "+secB.rank+" of "+secB.total+" sectors this scan":"") : "No sector-performance data yet — run a scan")+
+      '">'+esc(secB.sector)+(secB.status?" · "+({green:"leading",yellow:"neutral",red:"lagging"})[secB.status]:"")+'</span>' : "";
     $("#bookHead").innerHTML =
       '<span class="chip"><b>'+esc(d.symbol)+'</b></span>'+
       '<span class="chip">score <b>'+sc.total+'</b></span>'+
       '<span class="chip">RS <b>'+(d.rs!=null?Math.round(d.rs):"–")+'</b></span>'+
       '<span class="chip">'+esc(state.timeframe)+' swing</span>'+
+      secChip+
       tags.map(function(t){ return '<span class="chip '+(t.c||"")+'">'+esc(t.t)+'</span>'; }).join("");
 
     if($("#bookConf")){
@@ -7479,6 +7499,53 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
     if(!ih && !br) bits.push("not enough data — defaulting to Yellow");
     return { regime:regime, score:s, why:bits.join(" · "), indexOk:!!ih };
   }
+  // automatic sector leadership — ranks every sector present in this scan by its stocks' average
+  // RS (0-99, already a cross-sectional percentile so sectors are directly comparable), same
+  // "green/yellow/red" 3-tier idea as the market regime. Top third = leading, bottom third =
+  // lagging, middle = neutral. Needs `rows` to carry the real sector NAME (only true for the
+  // fresh `ok` array at scan-finish time — sector name does not survive the CSV round-trip
+  // through #batchInput, only the leading/in-line/lagging point value does — so this must be
+  // computed once at scan time and the result stored in state, not recomputed from parsed rows).
+  function sectorPerformance(rows){
+    var bySec = {};
+    rows.forEach(function(d){
+      if(!d.sector) return;
+      var s = bySec[d.sector] = bySec[d.sector] || {n:0, rsSum:0, rsN:0, retSum:0, retN:0};
+      s.n++;
+      if(typeof d.rs==="number" && isFinite(d.rs)){ s.rsSum+=d.rs; s.rsN++; }
+      if(typeof d.ret126==="number" && isFinite(d.ret126)){ s.retSum+=d.ret126; s.retN++; }
+    });
+    var list = Object.keys(bySec).map(function(sec){
+      var s=bySec[sec];
+      return { sector:sec, n:s.n, avgRS: s.rsN ? Math.round(s.rsSum/s.rsN) : 50, avgRet: s.retN ? Math.round(s.retSum/s.retN*1000)/10 : 0 };
+    });
+    list.sort(function(a,b){ return b.avgRS-a.avgRS; });
+    var total=list.length, cut=Math.max(1,Math.ceil(total/3));
+    list.forEach(function(x,i){
+      x.rank=i+1; x.total=total;
+      x.status = i<cut ? "green" : (i>=total-cut ? "red" : "yellow");
+    });
+    return list;
+  }
+  // which sector a symbol belongs to + that sector's current standing, for the Chart Book badge.
+  // Looks sector NAME up via uniSectorMap (the universe list, always available — independent of
+  // any scan), and standing via state.sectorPerf (only as fresh as the last scan).
+  function sectorBadgeFor(symbol){
+    if(!uniSectorMap) buildSectorMap(universeText());
+    var sec = uniSectorMap[symbol]; if(!sec) return null;
+    var perfList = state.sectorPerf && state.sectorPerf.list;
+    var perf = perfList && perfList.filter(function(x){ return x.sector===sec; })[0];
+    return { sector:sec, status: perf?perf.status:null, avgRS: perf?perf.avgRS:null, rank: perf?perf.rank:null, total: perf?perf.total:null };
+  }
+  function applyAutoSectors(){
+    var list = state.sectorPerf && state.sectorPerf.list;
+    if(!list || !list.length) return;   // nothing computed yet — will apply on the next scan
+    state.leadingSectors = list.filter(function(x){ return x.status==="green"; }).map(function(x){ return x.sector; });
+    save();
+    applyLeadingSectors();
+    renderSectorChips();
+    renderScreener();
+  }
   function fetchIndexHealth(cfg, signal){
     if(state.scanSource!=="proxy" || !cfg || !cfg.proxy) return Promise.resolve(null);
     var url = wrapProxy(cfg.proxy, "https://query1.finance.yahoo.com/v8/finance/chart/^NSEI?range=1y&interval=1d");
@@ -8109,13 +8176,20 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
   function renderSectorChips(){
     var el=$("#sectorChips"); if(!el) return;
     var set = state.leadingSectors||[];
+    var mode = state.sectorMode||"manual";
+    var perfBy = {};
+    (state.sectorPerf && state.sectorPerf.list || []).forEach(function(x){ perfBy[x.sector]=x; });
     el.innerHTML = SECTORS.map(function(s){
       var on = set.indexOf(s)>=0;
-      return '<label class="chip-ck'+(on?" on":"")+'"><input type="checkbox" value="'+s+'"'+(on?" checked":"")+'>'+s+'</label>';
+      var p = perfBy[s];
+      var statTxt = p ? ' <span class="dim">RS '+p.avgRS+'</span>' : '';
+      return '<label class="chip-ck'+(on?" on":"")+(p?" "+p.status:"")+'"><input type="checkbox" value="'+s+'"'+(on?" checked":"")+'>'+s+statTxt+'</label>';
     }).join("");
-    $("#secCount").textContent = set.length ? "· "+set.length+" leading" : "· none set (all neutral)";
+    $("#secCount").textContent = (mode==="auto" ? "· auto · " : "· ")+(set.length ? set.length+" leading" : "none set (all neutral)");
+    if($("#sectorAutoBtn")) $("#sectorAutoBtn").setAttribute("aria-pressed", String(mode==="auto"));
     $$("#sectorChips input").forEach(function(cb){
       cb.addEventListener("change", function(){
+        state.sectorMode = "manual";   // a manual click always takes over from auto, same as regime
         var cur = (state.leadingSectors||[]).slice();
         var ix = cur.indexOf(cb.value);
         if(cb.checked && ix<0) cur.push(cb.value);
@@ -8331,7 +8405,6 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
       setProg(total,total);
       ok.sort(function(a,b){ return b.price-a.price; });
       var failed = Object.keys(failMap);
-      var leadingSet={}; (state.leadingSectors||[]).forEach(function(x){ leadingSet[x]=1; });
       var srcName = state.scanSource==="twelvedata" ? "Twelve Data"
         : state.scanSource==="fmp" ? "FMP"
         : "Yahoo/"+((String(cfg.proxy||"").match(/\/\/([^/?]+)/)||[])[1]||"proxy");
@@ -8340,6 +8413,15 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
       withRet.slice().sort(function(a,b){ return a.ret126-b.ret126; })
         .forEach(function(r,i,arr){ r.rs = arr.length>1 ? Math.round(i/(arr.length-1)*99) : 50; });
       ok.forEach(function(r){ if(r.rs==null) r.rs = 50; });
+      // automatic sector leadership — ranks sectors by this scan's average RS. Must run before
+      // `leadingSet` below is built, since auto mode re-picks state.leadingSectors from this.
+      if(ok.length){
+        state.sectorPerf = { list: sectorPerformance(ok), at: new Date().toISOString() };
+        if((state.sectorMode||"manual")==="auto"){
+          state.leadingSectors = state.sectorPerf.list.filter(function(x){ return x.status==="green"; }).map(function(x){ return x.sector; });
+        }
+      }
+      var leadingSet={}; (state.leadingSectors||[]).forEach(function(x){ leadingSet[x]=1; });
       // automatic market regime — Nifty 50 health + this scan's breadth
       if((state.regimeMode||"manual")==="auto" && ok.length){
         var rc = regimeFrom(scanIndexHealth, breadthFrom(ok));
@@ -8719,6 +8801,11 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
         else { state.regimeMode = "manual"; state.regime = v; }
         save(); refreshRegimeUI(); renderScreener(); renderToday();
       });
+    });
+    if($("#sectorAutoBtn")) $("#sectorAutoBtn").addEventListener("click", function(){
+      state.sectorMode = "auto"; save();
+      applyAutoSectors();   // no-op until the next scan if nothing's been computed yet
+      renderSectorChips();
     });
     $$("#resultsTable thead th").forEach(function(th){
       th.addEventListener("click", function(){
