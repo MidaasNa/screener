@@ -455,7 +455,7 @@ table.sc-setup td.num{font-family:"IBM Plex Mono",monospace;text-align:right}
     <span class="mark" aria-hidden="true">₹</span>
     <div>
       <h1>The 10% Ledger</h1>
-      <p>Momentum + pullback screener · NSE swing setups <span style="opacity:.5;font-size:11px">· build 2026-09-13g</span></p>
+      <p>Momentum + pullback screener · NSE swing setups <span style="opacity:.5;font-size:11px">· build 2026-09-13h</span></p>
     </div>
   </div>
   <div class="controls">
@@ -579,10 +579,10 @@ table.sc-setup td.num{font-family:"IBM Plex Mono",monospace;text-align:right}
       <details class="sub" id="sectorBox">
         <summary>Leading sectors <span class="hint" id="secCount"></span></summary>
         <div class="row-actions" style="margin:0 0 8px">
-          <button id="sectorAutoBtn" class="ghost" aria-pressed="false" title="Auto — rank every sector in this scan by its stocks' average RS; top third become leading, bottom third lagging, after each scan.">Auto</button>
+          <button id="sectorAutoBtn" class="ghost" aria-pressed="false" title="Auto — after each scan, ranks each sector's own Nifty index against the Nifty 50 over ~3 months (real sector rotation); sectors with no dedicated Nifty index fall back to this scan's own average RS.">Auto</button>
         </div>
         <div class="chips" id="sectorChips"></div>
-        <p class="hint">Stocks in a checked sector score the full 20 on the Sector filter; the rest score 12. Set these to wherever market strength actually is right now — you can change them after a scan without re-fetching, or use <b>Auto</b> to have the scan itself decide from average RS per sector.</p>
+        <p class="hint">Stocks in a checked sector score the full 20 on the Sector filter; the rest score 12. Set these to wherever market strength actually is right now — you can change them after a scan without re-fetching, or use <b>Auto</b> to have it decide from real Nifty sectoral indices vs the Nifty 50 (falling back to this scan's average RS for the few sectors — CapGoods, Chemicals, Telecom — with no dedicated Nifty index).</p>
       </details>
 
       <details class="sub" id="universeEditBox">
@@ -3999,8 +3999,10 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
 
     var tags = bookMembership(d);
     var secB = sectorBadgeFor(d.symbol);
-    var secChip = secB ? '<span class="chip '+(secB.status?({green:"pos",yellow:"warn",red:"neg"})[secB.status]:"")+'" title="'+
-      (secB.avgRS!=null ? "Sector avg RS "+secB.avgRS+(secB.rank?" · rank "+secB.rank+" of "+secB.total+" sectors this scan":"") : "No sector-performance data yet — run a scan")+
+    var secTitle = secB && !secB.status ? "No sector-performance data yet — run a scan"
+      : secB && secB.source==="index" ? "Nifty "+esc(secB.sector)+" index "+(secB.sectorRet>=0?"+":"")+secB.sectorRet+"% vs Nifty 50 "+(secB.benchRet>=0?"+":"")+secB.benchRet+"% over ~3 months (relative "+(secB.relRet>=0?"+":"")+secB.relRet+"%) · rank "+secB.rank+" of "+secB.total
+      : secB ? "No dedicated Nifty index for this sector — ranked by this scan's own average RS ("+secB.avgRS+") instead · rank "+secB.rank+" of "+secB.total : "";
+    var secChip = secB ? '<span class="chip '+(secB.status?({green:"pos",yellow:"warn",red:"neg"})[secB.status]:"")+'" title="'+secTitle+
       '">'+esc(secB.sector)+(secB.status?" · "+({green:"leading",yellow:"neutral",red:"lagging"})[secB.status]:"")+'</span>' : "";
     $("#bookHead").innerHTML =
       '<span class="chip"><b>'+esc(d.symbol)+'</b></span>'+
@@ -7537,6 +7539,70 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
     });
     return list;
   }
+  // real Nifty sectoral indices, verified reachable on Yahoo (curl-tested against
+  // query1.finance.yahoo.com directly — not every one of this tool's 15 SECTOR tags has a
+  // dedicated tradeable NSE index; CapGoods/Chemicals/Telecom don't, and fall back to the
+  // scan-based sectorPerformance() above instead of going unranked).
+  var SECTOR_INDEX_MAP = {
+    IT:"^CNXIT", Bank:"^NSEBANK", Financials:"NIFTY_FIN_SERVICE.NS", Auto:"^CNXAUTO",
+    Pharma:"^CNXPHARMA", FMCG:"^CNXFMCG", Consumer:"^CNXCONSUM", Metal:"^CNXMETAL",
+    OilGas:"^CNXENERGY", Power:"^CNXENERGY", Infra:"^CNXINFRA", Realty:"^CNXREALTY"
+  };
+  var SECTOR_REL_DAYS = 63;   // ~3 trading months — long enough to read rotation, still swing-relevant
+  function sectorIndexReturn(closes, days){
+    var n=closes.length; if(n<5) return null;
+    var back=Math.min(days, n-1), a=closes[n-1-back], b=closes[n-1];
+    return a>0 ? (b/a-1) : null;
+  }
+  function fetchSectorIndices(cfg, signal){
+    if(state.scanSource!=="proxy" || !cfg || !cfg.proxy) return Promise.resolve(null);
+    var tickers={}; Object.keys(SECTOR_INDEX_MAP).forEach(function(s){ tickers[SECTOR_INDEX_MAP[s]]=1; });
+    tickers["^NSEI"]=1;
+    var list=Object.keys(tickers);
+    return Promise.all(list.map(function(t){
+      var url=wrapProxy(cfg.proxy, "https://query1.finance.yahoo.com/v8/finance/chart/"+encodeURIComponent(t)+"?range=6mo&interval=1d");
+      return fetchTimeout(url, 15000, signal)
+        .then(function(res){ if(!res.ok) throw new Error("HTTP "+res.status); return res.text(); })
+        .then(parseYahoo).catch(function(){ return null; });
+    })).then(function(results){
+      var byTicker={}; list.forEach(function(t,i){ byTicker[t]=results[i]; });
+      return byTicker;
+    });
+  }
+  // the real leadership call: each mapped sector's OWN Nifty index vs the Nifty 50 benchmark,
+  // over the same trailing window — actual sector rotation, not "best of whatever stocks
+  // happened to be in this scan". Sectors without a mapped index (or whose fetch failed) fall
+  // back to the scan's own average-RS instead of being dropped. The two groups are ranked and
+  // tiered SEPARATELY (index-vs-index only compared to other index-vs-index sectors, scan-avg
+  // only compared to other scan-avg sectors) rather than mixed onto one scale, since a
+  // percentage-point excess return and a 0-99 RS percentile aren't the same unit — merging them
+  // into a single sort would just be a different way of hiding an apples-to-oranges comparison.
+  function sectorPerformanceCombined(rows, idxByTicker){
+    var scanList = sectorPerformance(rows);
+    var bench = idxByTicker && idxByTicker["^NSEI"];
+    var benchRet = bench ? sectorIndexReturn(bench.close, SECTOR_REL_DAYS) : null;
+    var indexed=[], scanOnly=[];
+    scanList.forEach(function(x){
+      var ticker = SECTOR_INDEX_MAP[x.sector];
+      var idx = ticker && idxByTicker && idxByTicker[ticker];
+      var idxRet = idx ? sectorIndexReturn(idx.close, SECTOR_REL_DAYS) : null;
+      if(idxRet!=null && benchRet!=null){
+        indexed.push({ sector:x.sector, source:"index", n:x.n, avgRS:x.avgRS,
+          sectorRet:Math.round(idxRet*1000)/10, benchRet:Math.round(benchRet*1000)/10,
+          relRet:Math.round((idxRet-benchRet)*1000)/10 });
+      } else {
+        scanOnly.push({ sector:x.sector, source:"scan", n:x.n, avgRS:x.avgRS });
+      }
+    });
+    function tier(list, keyFn){
+      list.sort(function(a,b){ return keyFn(b)-keyFn(a); });
+      var total=list.length, cut=Math.max(1,Math.ceil(total/3));
+      list.forEach(function(x,i){ x.rank=i+1; x.total=total; x.status = total<=1 ? "yellow" : (i<cut?"green":(i>=total-cut?"red":"yellow")); });
+    }
+    tier(indexed, function(x){ return x.relRet; });
+    tier(scanOnly, function(x){ return x.avgRS; });
+    return indexed.concat(scanOnly);
+  }
   // which sector a symbol belongs to + that sector's current standing, for the Chart Book badge.
   // Looks sector NAME up via uniSectorMap (the universe list, always available — independent of
   // any scan), and standing via state.sectorPerf (only as fresh as the last scan).
@@ -7545,7 +7611,8 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
     var sec = uniSectorMap[symbol]; if(!sec) return null;
     var perfList = state.sectorPerf && state.sectorPerf.list;
     var perf = perfList && perfList.filter(function(x){ return x.sector===sec; })[0];
-    return { sector:sec, status: perf?perf.status:null, avgRS: perf?perf.avgRS:null, rank: perf?perf.rank:null, total: perf?perf.total:null };
+    return { sector:sec, status: perf?perf.status:null, avgRS: perf?perf.avgRS:null, rank: perf?perf.rank:null, total: perf?perf.total:null,
+      source: perf?perf.source:null, relRet: perf?perf.relRet:null, sectorRet: perf?perf.sectorRet:null, benchRet: perf?perf.benchRet:null };
   }
   function applyAutoSectors(){
     var list = state.sectorPerf && state.sectorPerf.list;
@@ -8192,7 +8259,9 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
     el.innerHTML = SECTORS.map(function(s){
       var on = set.indexOf(s)>=0;
       var p = perfBy[s];
-      var statTxt = p ? ' <span class="dim">RS '+p.avgRS+'</span>' : '';
+      var statTxt = p ? (p.source==="index"
+        ? ' <span class="dim" title="'+esc(s)+' sector index vs Nifty 50, ~3mo">'+(p.relRet>=0?"+":"")+p.relRet+'% vs Nifty</span>'
+        : ' <span class="dim" title="No dedicated Nifty index for this sector — ranked by this scan\'s own average RS instead">RS '+p.avgRS+'</span>') : '';
       return '<label class="chip-ck'+(on?" on":"")+(p?" "+p.status:"")+'"><input type="checkbox" value="'+s+'"'+(on?" checked":"")+'>'+s+statTxt+'</label>';
     }).join("");
     $("#secCount").textContent = (mode==="auto" ? "· auto · " : "· ")+(set.length ? set.length+" leading" : "none set (all neutral)");
@@ -8235,7 +8304,7 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
     if(!force && state.scanCache && state.scanCache.date===today && state.scanCache.csv && state.scanCache.uniKey===uniKey){
       $("#batchInput").value = state.scanCache.csv;
       state.batchInput = state.scanCache.csv; save();
-      applyLeadingSectors(); renderScreener(); renderGolden(); renderSilver(); renderDarvas(); renderHDF(); renderCoil(); renderCandles(); renderMultibagger(); renderJournal(); renderBook(); renderToday();
+      applyLeadingSectors(); renderSectorChips(); renderScreener(); renderGolden(); renderSilver(); renderDarvas(); renderHDF(); renderCoil(); renderCandles(); renderMultibagger(); renderJournal(); renderBook(); renderToday();
       setStatus("cached", false);
       $("#scanErrline").textContent = "Showing today's cached scan of these "+uni.length+" names — press “Force refresh” to re-fetch.";
       return;
@@ -8262,7 +8331,7 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
     var resFailCap = Math.max(25, Math.round(uni.length * 0.25));
     scanAbort = new AbortController();
     scanUIRunning(true);
-    var ok=[], failMap={}, extra={}, done=0, total=uni.length, lastStart=0, retried={}, scanIndexHealth=null;
+    var ok=[], failMap={}, extra={}, done=0, total=uni.length, lastStart=0, retried={}, scanIndexHealth=null, scanSectorIdx=null;
     setProg(0,total);
 
     // Twelve Data free tier: 8 API credits / rolling minute. We hold to 6 to leave
@@ -8397,6 +8466,11 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
         setStatus("checking the Nifty…", true);
         return fetchIndexHealth(cfg, scanAbort.signal).then(function(ih){ scanIndexHealth = ih; });
       }
+    }).then(function(){
+      if((state.sectorMode||"manual")==="auto" && ok.length && !scanAbort.signal.aborted){
+        setStatus("checking sector indices…", true);
+        return fetchSectorIndices(cfg, scanAbort.signal).then(function(idx){ scanSectorIdx = idx; });
+      }
     }).then(function(){ finish(false); }, function(e){
       if(e && e.cancelled){ finish(true); }
       else {
@@ -8423,10 +8497,12 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
       withRet.slice().sort(function(a,b){ return a.ret126-b.ret126; })
         .forEach(function(r,i,arr){ r.rs = arr.length>1 ? Math.round(i/(arr.length-1)*99) : 50; });
       ok.forEach(function(r){ if(r.rs==null) r.rs = 50; });
-      // automatic sector leadership — ranks sectors by this scan's average RS. Must run before
-      // `leadingSet` below is built, since auto mode re-picks state.leadingSectors from this.
+      // automatic sector leadership — each sector's own Nifty index vs the Nifty 50 benchmark
+      // where a real index exists (fetched just above, auto mode only); scan average-RS as the
+      // fallback for sectors with no dedicated index (CapGoods/Chemicals/Telecom). Must run
+      // before `leadingSet` below is built, since auto mode re-picks state.leadingSectors from this.
       if(ok.length){
-        state.sectorPerf = { list: sectorPerformance(ok), at: new Date().toISOString() };
+        state.sectorPerf = { list: sectorPerformanceCombined(ok, scanSectorIdx), at: new Date().toISOString() };
         if((state.sectorMode||"manual")==="auto"){
           state.leadingSectors = state.sectorPerf.list.filter(function(x){ return x.status==="green"; }).map(function(x){ return x.sector; });
         }
@@ -8459,6 +8535,7 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
       }
       save();
       refreshRegimeUI();
+      renderSectorChips();
       renderScreener();
       renderGolden();
       renderSilver();
