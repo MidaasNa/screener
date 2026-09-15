@@ -458,7 +458,7 @@ table.sc-setup td.num{font-family:"IBM Plex Mono",monospace;text-align:right}
     <span class="mark" aria-hidden="true">₹</span>
     <div>
       <h1>The 10% Ledger</h1>
-      <p>Momentum + pullback screener · NSE swing setups <span style="opacity:.5;font-size:11px">· build 2026-09-16b</span></p>
+      <p>Momentum + pullback screener · NSE swing setups <span style="opacity:.5;font-size:11px">· build 2026-09-16c</span></p>
     </div>
   </div>
   <div class="controls">
@@ -1115,6 +1115,7 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
             <option value="mb">Multibagger Radar — class A / B</option>
             <option value="mba">Multibagger Radar — class A only</option>
             <option value="mbearly">Multibagger + early / volume ignition</option>
+            <option value="dryup">🌱 Quiet base → volume breakout</option>
             <option value="watchlist">Watchlist</option>
           </select>
         </label>
@@ -3019,6 +3020,7 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
       case "parab":        return !!(d.pb && (d.pb.riding || d.pb.brokeAgo>=0));
       case "prebreak":     return !!d.rdy;
       case "sectorlead":   return d.sectorLbl==="leading";
+      case "dryup":        return !!d.db;
       case "mb":         return d.mb && /^(A|B)$/.test(d.mb.cls);
       case "mba":        return d.mb && d.mb.cls==="A";
       case "mbearly":   { var eg=mbEarly(d); return !!(d.mb && d.mb.total!=null && eg && (eg.tier==="early"||eg.tier==="ignition")); }
@@ -3089,6 +3091,8 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
     if(d.cm && d.cm.live)
       tags.push({t:"🔨 "+(d.cm.live==="mstar"?"Morning star":"Hammer")+" at 10-SMA"+(d.cm.n>=5?" · hist "+d.cm.b5+"% made +5% (uptrend)":""),
                  c: (d.cm.n>=5 && d.cm.b5>=45) ? "pos" : "warn"});
+    if(d.db)
+      tags.push({t:"🌱 Quiet base → vol breakout · dried to "+Math.round(d.db.ratio*100)+"% then "+d.db.volMult+"×"+(d.db.ago===0?" today":" "+d.db.ago+"d ago")+" · hist 20d median +2.9%, 64% win", c:"pos"});
     if(d.pb && (d.pb.riding || d.pb.brokeAgo>=0)){
       var pbHasEdge = parabolicHasEdge(d.pb);
       var pbTxt = d.pb.brokeAgo>=0
