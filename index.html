@@ -458,7 +458,7 @@ table.sc-setup td.num{font-family:"IBM Plex Mono",monospace;text-align:right}
     <span class="mark" aria-hidden="true">₹</span>
     <div>
       <h1>The 10% Ledger</h1>
-      <p>Momentum + pullback screener · NSE swing setups <span style="opacity:.5;font-size:11px">· build 2026-09-16c</span></p>
+      <p>Momentum + pullback screener · NSE swing setups <span style="opacity:.5;font-size:11px">· build 2026-09-16d</span></p>
     </div>
   </div>
   <div class="controls">
@@ -2281,7 +2281,13 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
             (e.d.gx?' <span class="pos" title="10-day SMA crossed above the 50-day SMA '+(e.d.gx.ago===0?'today':e.d.gx.ago+' session'+(e.d.gx.ago>1?'s':'')+' ago')+' — price now '+(e.d.gx.from50>=0?'+':'')+Math.round(e.d.gx.from50*100)+'% vs the 50-SMA" style="font-size:9px">✕10/50 '+(e.d.gx.ago===0?'0d':e.d.gx.ago+'d')+'</span>':'')+
             (e.d.gxw?' <span class="pos" title="10-WEEK SMA crossed above the 50-week SMA '+(e.d.gxw.ago===0?'this week':e.d.gxw.ago+' week'+(e.d.gxw.ago>1?'s':'')+' ago')+' — a major weekly-trend turn. Price now '+(e.d.gxw.from50>=0?'+':'')+Math.round(e.d.gxw.from50*100)+'% vs the 50-week SMA" style="font-size:9px">✕W '+(e.d.gxw.ago===0?'0w':e.d.gxw.ago+'w')+'</span>':'')+
             (e.d.cm && e.d.cm.live?' <span class="'+((e.d.cm.n>=5 && e.d.cm.b5>=45)?'pos':'warn')+'" title="'+(e.d.cm.live==="mstar"?"Morning star":"Hammer")+' candle in the last ≤2 sessions with its low at the 10-day SMA.'+(e.d.cm.n>=5?' This stock, past cases in an uptrend ('+e.d.cm.n+'): '+e.d.cm.b5+'% made ≥5% within 10 days, '+e.d.cm.up+'% higher 10d later, median peak +'+e.d.cm.medMfe+'%.':' (not enough history for a hit-rate)')+'" style="font-size:9px">🔨'+(e.d.cm.live==="mstar"?"MS":"H")+'@10'+(e.d.cm.n>=5?' '+e.d.cm.b5+'%':'')+'</span>':'')+
-            (e.d.db?' <span class="pos" title="O\'Neil cup-with-handle volume signature: volume dried up to '+Math.round(e.d.db.ratio*100)+'% of normal right before the breakout, then surged '+e.d.db.volMult+'× on the breakout bar ('+(e.d.db.ago===0?'today':e.d.db.ago+' session'+(e.d.db.ago>1?'s':'')+' ago')+'). Backtested: this exact shape (quiet base then a real volume breakout) went on to a 20-day median +2.94% / 64% win-rate — vs. 50% when the breakout wasn\'t preceded by a dry-up." style="font-size:9px">🌱quiet→brk</span>':'')+'</td>'+
+            (e.d.db?(function(){
+              var exceptional = e.d.db.ratio<=0.5;
+              var hist = exceptional
+                ? "Backtested: a dry-up THIS dramatic (≤50% of normal) went on to a 20-day median +4.11% / 73% win-rate (n=30 — a small sample, but a clear step up from an ordinary dry-up)."
+                : "Backtested: this exact shape (quiet base then a real volume breakout) went on to a 20-day median +2.94% / 64% win-rate — vs. 50% when the breakout wasn't preceded by a dry-up.";
+              return ' <span class="pos" title="O\'Neil cup-with-handle volume signature: volume dried up to '+Math.round(e.d.db.ratio*100)+'% of normal right before the breakout, then surged '+e.d.db.volMult+'× on the breakout bar ('+(e.d.db.ago===0?'today':e.d.db.ago+' session'+(e.d.db.ago>1?'s':'')+' ago')+'). '+hist+'" style="font-size:9px">'+(exceptional?'⭐🌱quiet→brk':'🌱quiet→brk')+'</span>';
+            })():'')+'</td>'+
           '<td class="num">'+e.sc.total+'</td>'+
           '<td class="num">'+rsCell(e.d.rs)+'</td>'+
           '<td><span class="pill '+e.v.cls+'">'+esc(e.v.label.replace(/ —.*/,""))+'</span></td>'+
@@ -3091,8 +3097,11 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
     if(d.cm && d.cm.live)
       tags.push({t:"🔨 "+(d.cm.live==="mstar"?"Morning star":"Hammer")+" at 10-SMA"+(d.cm.n>=5?" · hist "+d.cm.b5+"% made +5% (uptrend)":""),
                  c: (d.cm.n>=5 && d.cm.b5>=45) ? "pos" : "warn"});
-    if(d.db)
-      tags.push({t:"🌱 Quiet base → vol breakout · dried to "+Math.round(d.db.ratio*100)+"% then "+d.db.volMult+"×"+(d.db.ago===0?" today":" "+d.db.ago+"d ago")+" · hist 20d median +2.9%, 64% win", c:"pos"});
+    if(d.db){
+      var dbExceptional = d.db.ratio<=0.5;
+      tags.push({t:(dbExceptional?"⭐ ":"")+"🌱 Quiet base → vol breakout · dried to "+Math.round(d.db.ratio*100)+"% then "+d.db.volMult+"×"+(d.db.ago===0?" today":" "+d.db.ago+"d ago")+
+        (dbExceptional?" · dramatic dry-up — hist 20d median +4.1%, 73% win (n=30)":" · hist 20d median +2.9%, 64% win"), c:"pos"});
+    }
     if(d.pb && (d.pb.riding || d.pb.brokeAgo>=0)){
       var pbHasEdge = parabolicHasEdge(d.pb);
       var pbTxt = d.pb.brokeAgo>=0
