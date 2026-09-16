@@ -298,6 +298,7 @@ table.mb-scen td.num{font-family:"IBM Plex Mono",monospace;text-align:right;padd
 .cx-e20{fill:none;stroke:var(--accent);stroke-width:1.3}
 .cx-e50{fill:none;stroke:var(--muted);stroke-width:1.1}
 .cx-e200{fill:none;stroke:var(--muted);stroke-width:1;stroke-dasharray:2 2;opacity:.55}
+.cx-nifty{fill:none;stroke:#f5c518;stroke-width:1.4;stroke-dasharray:5 3}
 .cx-line{stroke-width:1;stroke-dasharray:4 3;fill:none}
 .cx-line.cx-ent{stroke:var(--ink)} .cx-line.cx-stp{stroke:var(--neg)} .cx-line.cx-tgt{stroke:var(--pos)}
 .cx-line.cx-sup{stroke:var(--pos);stroke-dasharray:1 3} .cx-line.cx-res{stroke:var(--neg);stroke-dasharray:1 3}
@@ -458,7 +459,7 @@ table.sc-setup td.num{font-family:"IBM Plex Mono",monospace;text-align:right}
     <span class="mark" aria-hidden="true">₹</span>
     <div>
       <h1>The 10% Ledger</h1>
-      <p>Momentum + pullback screener · NSE swing setups <span style="opacity:.5;font-size:11px">· build 2026-09-17a</span></p>
+      <p>Momentum + pullback screener · NSE swing setups <span style="opacity:.5;font-size:11px">· build 2026-09-17b</span></p>
     </div>
   </div>
   <div class="controls">
@@ -1142,6 +1143,7 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
           <button data-v="stretch" aria-pressed="false" title="±2σ envelope around the 20-EMA (Disparity Index band) + entry/exit markers: ▲ = a pullback to the RISING 20-EMA with a reversal bar (buy), ▼ = price tagged the upper band (take profit / scale out), ✕ = closed back below the 20-EMA after a buy (exit). The Stretch read below the plan backtests the ▲ rule on this stock and shows its expectancy in R.">Stretch band + signals</button>
           <button data-v="fii" aria-pressed="true" title="Shades the calendar quarter between the two dates entered in the Shareholding check panel, on both the price chart and the volume panel — so you can see what price and volume actually did while FII/DII accumulated (or didn't). Needs a saved Shareholding check for this symbol.">FII/DII footprint</button>
           <button data-v="vap" aria-pressed="false" title="Volume Profile / Volume At Price — a horizontal histogram (left edge of the chart) of how much volume traded at each price level over the visible window. The tallest bar (POC, gold outline) marks the price with the most trading interest — the strongest magnet for future support/resistance. Thin, sparse levels get crossed quickly; dense ones tend to hold.">Volume profile</button>
+          <button data-v="nifty" aria-pressed="false" title="The Nifty 50 index's own 10-day SMA, in golden yellow — rebased to start at this stock's own price on the first visible date, so the two lines are directly comparable as TREND, not literal index points. Shows whether this stock is keeping pace with, leading, or lagging the broader market's own short-term trend. Needs a scan to have run at least once (fetched alongside Market Regime data).">Nifty 10-SMA</button>
         </div>
         <button id="bookRefreshLive" class="ghost" title="Fetch fresh candles for this stock">↻ live</button>
         <button id="bookDrawTrend" class="ghost" aria-pressed="false" title="Click two points on the chart to draw your own trendline — it's anchored to the actual dates/prices you click, so it stays in place as the chart updates and works on daily or weekly.">✏️ Draw trendline</button>
@@ -1734,7 +1736,7 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
     universeSize: "200", customUniverse: "", leadingSectors: [], sectorMode: "manual", sectorPerf: null,
     dropForming: true, fetchEvents: false, fetchResults: true, fetchDeep: true, scanCache: null, hostOverride: false,
     oc: {}, journal: [], journalUrl: "", bookIdx: 0, bookScope: "all",
-    bookSR: true, bookPat: true, bookVwap: true, bookTrend: true, bookStretchBand: false, bookFiiWindow: true, bookVap: false,
+    bookSR: true, bookPat: true, bookVwap: true, bookTrend: true, bookStretchBand: false, bookFiiWindow: true, bookVap: false, bookNifty: false, niftySeries: null,
     todaySetup: "golden", todayLead: false, todayRisk: "0.25",
     mbMinScore: 55, mbNoFlags: false, mbOpen: {}
   };
@@ -4014,7 +4016,7 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
     if($("#bookScope") && $("#bookScope").value!==scope) $("#bookScope").value = scope;
     $$("#bookTF button").forEach(function(x){ x.setAttribute("aria-pressed", String(x.getAttribute("data-v")===(state.chartTF||"daily"))); });
     $$("#bookMA button").forEach(function(x){ x.setAttribute("aria-pressed", String(x.getAttribute("data-v")===(state.chartMA||"ema"))); });
-    $$("#bookOverlay button").forEach(function(x){ var v=x.getAttribute("data-v"); x.setAttribute("aria-pressed", String(v==="sr" ? state.bookSR!==false : v==="vwap" ? state.bookVwap!==false : v==="trend" ? state.bookTrend!==false : v==="stretch" ? state.bookStretchBand===true : v==="fii" ? state.bookFiiWindow!==false : v==="vap" ? state.bookVap===true : state.bookPat!==false)); });
+    $$("#bookOverlay button").forEach(function(x){ var v=x.getAttribute("data-v"); x.setAttribute("aria-pressed", String(v==="sr" ? state.bookSR!==false : v==="vwap" ? state.bookVwap!==false : v==="trend" ? state.bookTrend!==false : v==="stretch" ? state.bookStretchBand===true : v==="fii" ? state.bookFiiWindow!==false : v==="vap" ? state.bookVap===true : v==="nifty" ? state.bookNifty===true : state.bookPat!==false)); });
     var rows = parseBatch($("#batchInput").value);
     renderVsStudy(rows);
     renderSxStudy(rows);
@@ -5024,6 +5026,7 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
       (state.bookStretchBand===true?'<span class="kstretch"><i></i>±2σ stretch</span><span style="color:#2f9e44">&#9650; buy</span><span style="color:#e8912a">&#9660; take profit</span><span style="color:#d64545">&#10005; exit</span>':'')+
       (state.bookFiiWindow!==false?'<span style="color:#0e8fa8">🏦 FII/DII window</span>':'')+
       (state.bookVap===true?'<span style="color:#8a7ad1">▬ volume profile</span><span style="color:#b08a1a">▬ POC</span>':'')+
+      (state.bookNifty===true?'<span style="color:#f5c518">- - Nifty 10-SMA (rebased)</span>':'')+
       '<span class="kent"><i></i>entry</span><span class="kstp"><i></i>stop</span><span class="ktgt"><i></i>+10%</span>'+
     '</div>';
   }
@@ -5045,6 +5048,27 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
       }
     }
     return w;
+  }
+  // Nifty 50's own 10-day SMA, rebased onto the stock's price scale so it's visually comparable
+  // on the same panel — the raw Nifty index level (~25,000) would be meaningless plotted next to
+  // a stock trading at, say, ₹800. Rebasing: find the first visible chart date that also has a
+  // Nifty bar, scale the whole Nifty-SMA series so IT starts at the stock's own close on that
+  // date, then track both from there. The result shows relative trend (is this stock keeping
+  // pace with / diverging from the broader market's own 10-day trend), not the literal index
+  // value — that's a deliberate readability tradeoff, not an attempt to hide the real numbers.
+  function niftySmaLine(D, C){
+    var ns = state.niftySeries;
+    if(!ns || !ns.c || ns.c.length<15) return null;
+    var nSma = smaArr(ns.c, 10);
+    var dateIdx = {}; for(var k=0;k<ns.d.length;k++) dateIdx[ns.d[k]] = k;
+    var scale=null, out=new Array(D.length).fill(null);
+    for(var i=0;i<D.length;i++){
+      var di = D[i]!=null ? dateIdx[D[i]] : null;
+      if(di==null || nSma[di]==null) continue;
+      if(scale==null) scale = C[i] / nSma[di];
+      out[i] = nSma[di]*scale;
+    }
+    return scale!=null ? out : null;
   }
   function buildChartSVG(o, opts){
     var N = opts.weekly ? 90 : 140, full=o.c.length, s=Math.max(0, full-N);
@@ -5187,6 +5211,10 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
       return pts.length>1 ? '<polyline points="'+pts.join(" ")+'" class="'+cls+'"/>' : '';
     }
     g.push(poly(e200,"cx-e200")); g.push(poly(e50,"cx-e50")); g.push(poly(e20,"cx-e20"));
+    if(state.bookNifty===true){
+      var niftyLine = niftySmaLine(D, C);
+      if(niftyLine) g.push(poly(niftyLine, "cx-nifty"));
+    }
     // MA gap wedge — shades the actual space between the two REAL moving-average lines already
     // drawn above, over the last 10 bars. Bounded by the two curves' own real chart coordinates
     // (X()/Y()), not a separately-positioned schematic shape — so it can never end up an
@@ -7999,12 +8027,14 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
     renderSectorChips();
     renderScreener();
   }
-  function fetchIndexHealth(cfg, signal){
+  // raw Nifty 50 daily series — the single source for BOTH Auto Market Regime's index health
+  // AND the Chart Book "Nifty 10-SMA" overlay, so the two never need separate network fetches.
+  function fetchNiftyRaw(cfg, signal){
     if(state.scanSource!=="proxy" || !cfg || !cfg.proxy) return Promise.resolve(null);
     var url = wrapProxy(cfg.proxy, "https://query1.finance.yahoo.com/v8/finance/chart/^NSEI?range=1y&interval=1d");
     return fetchTimeout(url, 15000, signal)
       .then(function(res){ if(!res.ok) throw new Error("HTTP "+res.status); return res.text(); })
-      .then(function(txt){ return indexHealthFrom(parseYahoo(txt)); })
+      .then(function(txt){ return parseYahoo(txt); })
       .catch(function(){ return null; });
   }
   function applyAutoRegime(){
@@ -8707,7 +8737,7 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
     var resFailCap = Math.max(25, Math.round(uni.length * 0.25));
     scanAbort = new AbortController();
     scanUIRunning(true);
-    var ok=[], failMap={}, extra={}, done=0, total=uni.length, lastStart=0, retried={}, scanIndexHealth=null, scanSectorIdx=null;
+    var ok=[], failMap={}, extra={}, done=0, total=uni.length, lastStart=0, retried={}, scanIndexHealth=null, scanSectorIdx=null, scanNiftyRaw=null;
     setProg(0,total);
 
     // Twelve Data free tier: 8 API credits / rolling minute. We hold to 6 to leave
@@ -8838,9 +8868,12 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
     }).then(function(){
       if(wantEvents && ok.length && !scanAbort.signal.aborted) return runEarnings();
     }).then(function(){
-      if((state.regimeMode||"manual")==="auto" && ok.length && !scanAbort.signal.aborted){
+      if(ok.length && !scanAbort.signal.aborted){
         setStatus("checking the Nifty…", true);
-        return fetchIndexHealth(cfg, scanAbort.signal).then(function(ih){ scanIndexHealth = ih; });
+        return fetchNiftyRaw(cfg, scanAbort.signal).then(function(niftyO){
+          scanNiftyRaw = niftyO;
+          if((state.regimeMode||"manual")==="auto" && niftyO) scanIndexHealth = indexHealthFrom(niftyO);
+        });
       }
     }).then(function(){
       if((state.sectorMode||"manual")==="auto" && ok.length && !scanAbort.signal.aborted){
@@ -8882,6 +8915,12 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
         if((state.sectorMode||"manual")==="auto"){
           state.leadingSectors = state.sectorPerf.list.filter(function(x){ return x.status==="green"; }).map(function(x){ return x.sector; });
         }
+      }
+      // trimmed raw Nifty close series, kept for the Chart Book "Nifty 10-SMA" overlay — independent
+      // of Market Regime (Auto or not), since it's now fetched unconditionally whenever a scan runs
+      if(scanNiftyRaw && scanNiftyRaw.close && scanNiftyRaw.close.length){
+        var NT=300, nts=Math.max(0, scanNiftyRaw.close.length-NT);
+        state.niftySeries = { c: scanNiftyRaw.close.slice(nts).map(function(x){ return Math.round(x*100)/100; }), d: scanNiftyRaw.dates.slice(nts) };
       }
       var leadingSet={}; (state.leadingSectors||[]).forEach(function(x){ leadingSet[x]=1; });
       // automatic market regime — Nifty 50 health + this scan's breadth
@@ -9186,11 +9225,11 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
     });
     $$("#bookOverlay button").forEach(function(b){
       var v=b.getAttribute("data-v");
-      b.setAttribute("aria-pressed", String(v==="sr" ? state.bookSR!==false : v==="vwap" ? state.bookVwap!==false : v==="trend" ? state.bookTrend!==false : v==="stretch" ? state.bookStretchBand===true : v==="fii" ? state.bookFiiWindow!==false : v==="vap" ? state.bookVap===true : state.bookPat!==false));
+      b.setAttribute("aria-pressed", String(v==="sr" ? state.bookSR!==false : v==="vwap" ? state.bookVwap!==false : v==="trend" ? state.bookTrend!==false : v==="stretch" ? state.bookStretchBand===true : v==="fii" ? state.bookFiiWindow!==false : v==="vap" ? state.bookVap===true : v==="nifty" ? state.bookNifty===true : state.bookPat!==false));
       b.addEventListener("click", function(){
         var on = b.getAttribute("aria-pressed")!=="true";
         b.setAttribute("aria-pressed", String(on));
-        if(v==="sr") state.bookSR=on; else if(v==="vwap") state.bookVwap=on; else if(v==="trend") state.bookTrend=on; else if(v==="stretch") state.bookStretchBand=on; else if(v==="fii") state.bookFiiWindow=on; else if(v==="vap") state.bookVap=on; else state.bookPat=on;
+        if(v==="sr") state.bookSR=on; else if(v==="vwap") state.bookVwap=on; else if(v==="trend") state.bookTrend=on; else if(v==="stretch") state.bookStretchBand=on; else if(v==="fii") state.bookFiiWindow=on; else if(v==="vap") state.bookVap=on; else if(v==="nifty") state.bookNifty=on; else state.bookPat=on;
         save();
         renderBook();
         var sym=($("#a_sym").value||"").toUpperCase(); if(sym) renderChart(sym);
