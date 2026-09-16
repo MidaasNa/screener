@@ -458,7 +458,7 @@ table.sc-setup td.num{font-family:"IBM Plex Mono",monospace;text-align:right}
     <span class="mark" aria-hidden="true">₹</span>
     <div>
       <h1>The 10% Ledger</h1>
-      <p>Momentum + pullback screener · NSE swing setups <span style="opacity:.5;font-size:11px">· build 2026-09-16d</span></p>
+      <p>Momentum + pullback screener · NSE swing setups <span style="opacity:.5;font-size:11px">· build 2026-09-17a</span></p>
     </div>
   </div>
   <div class="controls">
@@ -621,6 +621,7 @@ table.sc-setup td.num{font-family:"IBM Plex Mono",monospace;text-align:right}
         <label class="chk" style="margin-left:0" title="A hammer or morning-star candle in the last ~2 sessions whose low tagged the 10-day SMA — a reversal bar right at short-term support. The badge shows this stock's own history: of past cases that formed while the 10-SMA was above the 50-SMA (a pullback in an uptrend), how many made a ≥5% move within 10 days."><input type="checkbox" id="onlyCM"> 🔨 Hammer / M-star @ 10-SMA</label>
         <label class="chk" style="margin-left:0" title="Only stocks whose sector currently scores the full 20 on the Sector filter — set manually in Screener → Leading sectors, or automatically via its Auto button."><input type="checkbox" id="onlySectorLead"> Leading sector</label>
         <label class="chk" style="margin-left:0" title="O'Neil cup-with-handle volume signature: volume dried up before the breakout, then surged on the breakout bar (a fresh 40-bar high on ≥1.5× 50-day-avg volume). Backtested: this exact shape went on to a 20-day median +2.94% / 64% win-rate, vs. 50% for a breakout NOT preceded by a dry-up."><input type="checkbox" id="onlyDryUp"> 🌱 Quiet base → volume breakout</label>
+        <label class="chk" style="margin-left:0" title="Any of O'Neil's 4 named base shapes: 🍽 flat base, 📶 ascending base, 🎯 three-weeks-tight, 🚩 high tight flag. Shown as structural classification, not a backed standalone signal — backtested separately, see each badge's tooltip for its own numbers."><input type="checkbox" id="onlyBaseNamed"> O'Neil named base pattern</label>
         <label class="chk" style="margin-left:0"><input type="checkbox" id="onlyActionable"> Actionable</label>
       </div>
       <div class="summary" id="summary" aria-live="polite"></div>
@@ -1116,6 +1117,7 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
             <option value="mba">Multibagger Radar — class A only</option>
             <option value="mbearly">Multibagger + early / volume ignition</option>
             <option value="dryup">🌱 Quiet base → volume breakout</option>
+            <option value="basepattern">O'Neil named base pattern</option>
             <option value="watchlist">Watchlist</option>
           </select>
         </label>
@@ -1738,7 +1740,7 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
   };
 
   var SAMPLE = [
-    "# cols: SYM,price,EMA20,EMA50,EMA200,RSI,volR,breakout,support,sector,macd,hhhl,resist,probT1,probT10,basePct,baseBars,stage2,RS,setup,trigger,trigWR,athPct,blueSky,revYoY,profYoY,epsYoY,qDate,profYoYPrev,ttmYoY,coil,mvt,gg,sg,dx,hdf,cdl,mb,vm,adr,nr,gx,acc,vsk,vfh,gxw,sx,cm,pb,rdy,db",
+    "# cols: SYM,price,EMA20,EMA50,EMA200,RSI,volR,breakout,support,sector,macd,hhhl,resist,probT1,probT10,basePct,baseBars,stage2,RS,setup,trigger,trigWR,athPct,blueSky,revYoY,profYoY,epsYoY,qDate,profYoYPrev,ttmYoY,coil,mvt,gg,sg,dx,hdf,cdl,mb,vm,adr,nr,gx,acc,vsk,vfh,gxw,sx,cm,pb,rdy,db,bp",
     "HINDZINC, 627, 598, 560, 505, 69, 2.3, 620, 606, L, 1, 1, 0, 0.58, 0.33, 0.06, 22, 6, 88, HDF, inside-bar@0, 0.61, 0.01, 1, 0.19, 0.34, 0.31, 2026-06-30, 0.26, 0.3, , , , , 624|590|12|0.055|0.005|2.4|1|1|1, 0.42|0.16|0.028|1.8|12|624|560, hammer~0~3.4|inside~1~0.62, 72|10|82|C|compounder|15|16|11|7|10|8|5|24.5|13|100|0||0.14|0.18|0.19|1|1.1|0.35|0.09|280000|0|28~0.19~0.16~0.19~0.18|rev-accel+sector-tailwind, 3.4|1|1|1, 4.6, 7|0|1|0.018|1, 2|0.06, 74|strong|590|1.87|3|0.28|1, 310|8.2|1|1, 6|67|9.4|21|2|0|-4.1, 3|0.12, 2.3|3.1|0.3|ext-up|9|67|1.2|5.1|5|60|-0.4|4.4, 11|64|45|27|3.1|6.8|4|38|-1.2|, 8|63|-4.2|-9.5|1|-1",
     "BEL, 415, 402, 395, 360, 66, 1.9, 409, 391, L, 1, 1, 0, 0.55, 0.31, 0.07, 18, 6, 84, BOB, hammer@1, 0.62, 0.03, 1, 0.21, 0.28, 0.27, 2026-06-30, 0.33, 0.24, 14|coil|0.022|0.71|0.006|411||||0.09, , 12|0.06|1|3.6|0.04|420, , , , ldbng~2~2.1|kicker~2~0.004, 80|16|96|B|inflection|16|16|10|8|12|8|6|38|22|100|1|cfdiv|0.16|0.22|0.24|1|0.9|0.05|0.11|95000|0|28~0.17~0.15~0.18~0.22|rev-accel+margin-up+roce-inflect+sector-tailwind, 4.1|0|1|1, 2.2, 4|1|0|0.026|1, , 60|mild|398|1.33|2|0.11|0, 150|4.4|0|1, 4|75|11.2|24|1|0|-6.0, 5|0.07, 1.4|1.9|0.18|warm-up|7|71|2.2|3.8|6|64|1.9|4.6, 8|63|38|19|2.4|5.5|3|33|-0.8|hammer, 6|58|-6.1|-11.2|0|1",
     "JINDALSTEL, 1175, 1120, 1090, 1010, 60, 1.4, 1160, 1120, L, 1, 1, 1240, 0.5, 0.27, 0.11, 26, 5, 76, LBB, , , 0.11, 0, 0.08, 0.12, 0.1, 2026-03-31, 0.21, 0.1, , 4.2|50|0.014|1|1|0.03|12|78",
@@ -1830,6 +1832,23 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
     return {entry:entry,stop:stop,risk:risk,t5:t5,t75:t75,t10:t10,rr:rr};
   }
 
+  // O'Neil pyramiding: buy the initial position at the pivot, add a somewhat smaller amount as
+  // soon as it's up 2-2½%, and cap ALL buying (initial + adds) at 5% past the original pivot —
+  // "have the discipline not to pyramid or add to my position at more than 5% past that point"
+  // (ch.10). This is a position-sizing discipline tool, not a return-predicting signal, so it
+  // doesn't need the same backtest treatment as a screening signal — it's the same kind of rule
+  // as the existing 1%-risk position sizing and the 7-8% stop: a risk-control mechanism, not an
+  // alpha claim. Split 50/30/20 is a reasonable default (O'Neil states the trigger points and the
+  // "smaller" direction of each add, not one fixed ratio) — adjust the tranches to taste.
+  function pyramidPlan(entry, totalQty){
+    if(!(entry>0) || !(totalQty>0)) return null;
+    var t1=Math.round(totalQty*0.5), t2=Math.round(totalQty*0.3), t3=Math.max(0,totalQty-t1-t2);
+    return [
+      { trigger:entry,        pct:0,   qty:t1, label:"Initial buy — at the pivot" },
+      { trigger:entry*1.025,  pct:2.5, qty:t2, label:"Add — as soon as it's up 2–2½%" },
+      { trigger:entry*1.05,   pct:5,   qty:t3, label:"Final add — O'Neil's 5% cap, don't buy past this" }
+    ];
+  }
   function regimeMult(){ return state.regime==="green"?1:(state.regime==="yellow"?0.5:0); }
 
   function positionSize(entry,stop){
@@ -1988,6 +2007,8 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
       } : null;
       var dbp = (p[50]||"").split("|");
       d.db = (dbp[0]!=null && dbp[0]!=="" && isFinite(+dbp[0])) ? { ratio:+dbp[0]||0, ago:+dbp[1]||0, volMult:+dbp[2]||0 } : null;
+      var bpArr = (p[51]||"").split("|").filter(Boolean).map(function(s){ var q=s.split("~"); return {code:(q[0]||"").trim(), a:+q[1]||0, b:+q[2]||0, cc:+q[3]||0}; }).filter(function(x){ return BASE_PATTERN[x.code]; });
+      d.bp = bpArr.length ? bpArr : null;
       var st = deriveStructure(d.price, d.breakout, d.basePct, d.baseBars, d.volRatio);
       d.structurePts=st.pts; d.structureLbl=st.label;
       rows.push(d);
@@ -2249,6 +2270,7 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
     var onlyCMf = $("#onlyCM") && $("#onlyCM").checked;
     var onlySL = $("#onlySectorLead") && $("#onlySectorLead").checked;
     var onlyDU = $("#onlyDryUp") && $("#onlyDryUp").checked;
+    var onlyBP = $("#onlyBaseNamed") && $("#onlyBaseNamed").checked;
     var shown = evals;
     if(onlyS2) shown = shown.filter(function(e){ return !!e.d.setup; });
     if(onlyTrg) shown = shown.filter(function(e){ var t=trigParts(e.d); return t && t.ago<=2; });
@@ -2263,6 +2285,7 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
     if(onlyCMf) shown = shown.filter(function(e){ return !!(e.d.cm && e.d.cm.live); });
     if(onlySL) shown = shown.filter(function(e){ return e.d.sectorLbl==="leading"; });
     if(onlyDU) shown = shown.filter(function(e){ return !!e.d.db; });
+    if(onlyBP) shown = shown.filter(function(e){ return !!(e.d.bp && e.d.bp.length); });
     if(onlyAct) shown = shown.filter(function(e){ return e.actionable; });
 
     if(!shown.length){
@@ -2287,7 +2310,8 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
                 ? "Backtested: a dry-up THIS dramatic (≤50% of normal) went on to a 20-day median +4.11% / 73% win-rate (n=30 — a small sample, but a clear step up from an ordinary dry-up)."
                 : "Backtested: this exact shape (quiet base then a real volume breakout) went on to a 20-day median +2.94% / 64% win-rate — vs. 50% when the breakout wasn't preceded by a dry-up.";
               return ' <span class="pos" title="O\'Neil cup-with-handle volume signature: volume dried up to '+Math.round(e.d.db.ratio*100)+'% of normal right before the breakout, then surged '+e.d.db.volMult+'× on the breakout bar ('+(e.d.db.ago===0?'today':e.d.db.ago+' session'+(e.d.db.ago>1?'s':'')+' ago')+'). '+hist+'" style="font-size:9px">'+(exceptional?'⭐🌱quiet→brk':'🌱quiet→brk')+'</span>';
-            })():'')+'</td>'+
+            })():'')+
+            (e.d.bp?e.d.bp.map(function(x){ var m=BASE_PATTERN[x.code]; return m?' <span class="warn" title="'+esc(basePatternTooltip(x))+'" style="font-size:9px">'+m.emoji+x.code+'</span>':''; }).join(""):'')+'</td>'+
           '<td class="num">'+e.sc.total+'</td>'+
           '<td class="num">'+rsCell(e.d.rs)+'</td>'+
           '<td><span class="pill '+e.v.cls+'">'+esc(e.v.label.replace(/ —.*/,""))+'</span></td>'+
@@ -2327,6 +2351,7 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
     var gxBothN = evals.filter(function(e){ return !!e.d.gx && !!e.d.gxw; }).length;
     var cmN = evals.filter(function(e){ return e.d.cm && e.d.cm.live; }).length;
     var dbN = evals.filter(function(e){ return !!e.d.db; }).length;
+    var bpN = evals.filter(function(e){ return !!(e.d.bp && e.d.bp.length); }).length;
     var aplus = evals.filter(function(e){ return setupGrade(e.d)==="A+"; }).length;
     var secLeadN = evals.filter(function(e){ return e.d.sectorLbl==="leading"; }).length;
     var topRs = evals.slice().filter(function(e){return e.d.rs!=null;}).sort(function(a,b){return b.d.rs-a.d.rs;})[0];
@@ -2344,6 +2369,7 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
       (gxwN?'<span class="chip"><b>'+gxwN+'</b> weekly 10/50 cross'+(gxBothN?' · <span class="pos">'+gxBothN+' also daily</span>':'')+'</span>':'')+
       (cmN?'<span class="chip"><b>'+cmN+'</b> 🔨 hammer/M-star @ 10-SMA</span>':'')+
       (dbN?'<span class="chip"><b>'+dbN+'</b> 🌱 quiet base → vol breakout</span>':'')+
+      (bpN?'<span class="chip"><b>'+bpN+'</b> O\'Neil named base pattern</span>':'')+
       (secLeadN?'<span class="chip"><b>'+secLeadN+'</b> in leading sectors</span>':'')+
       '<span class="chip"><b>'+act+'</b> actionable</span>'+
       (topRs?'<span class="chip">strongest: <b>'+esc(topRs.d.symbol)+'</b> RS '+topRs.d.rs+'</span>':'')+
@@ -3027,6 +3053,7 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
       case "prebreak":     return !!d.rdy;
       case "sectorlead":   return d.sectorLbl==="leading";
       case "dryup":        return !!d.db;
+      case "basepattern":  return !!(d.bp && d.bp.length);
       case "mb":         return d.mb && /^(A|B)$/.test(d.mb.cls);
       case "mba":        return d.mb && d.mb.cls==="A";
       case "mbearly":   { var eg=mbEarly(d); return !!(d.mb && d.mb.total!=null && eg && (eg.tier==="early"||eg.tier==="ignition")); }
@@ -3102,6 +3129,10 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
       tags.push({t:(dbExceptional?"⭐ ":"")+"🌱 Quiet base → vol breakout · dried to "+Math.round(d.db.ratio*100)+"% then "+d.db.volMult+"×"+(d.db.ago===0?" today":" "+d.db.ago+"d ago")+
         (dbExceptional?" · dramatic dry-up — hist 20d median +4.1%, 73% win (n=30)":" · hist 20d median +2.9%, 64% win"), c:"pos"});
     }
+    if(d.bp) d.bp.forEach(function(x){
+      var m=BASE_PATTERN[x.code]; if(!m) return;
+      tags.push({t:m.emoji+" "+m.name+" — "+basePatternTooltip(x).replace(/^O'Neil [a-z ]+— /,""), c: x.code==="TWT" ? "pos" : "warn"});
+    });
     if(d.pb && (d.pb.riding || d.pb.brokeAgo>=0)){
       var pbHasEdge = parabolicHasEdge(d.pb);
       var pbTxt = d.pb.brokeAgo>=0
@@ -4132,6 +4163,13 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
         '<div><div class="k">Size · 1% of capital</div><div class="v">'+nfmt(ps.qty,0)+' sh · '+inr(ps.deploy)+'</div></div>'+
         '<div><div class="k">Verdict</div><div class="v '+v.cls+'">'+esc(v.label)+'</div></div>'+
       '</div>'+
+      (function(){
+        var pp = (!rrBad && ps.qty>0) ? pyramidPlan(tr.entry, ps.qty) : null;
+        if(!pp) return "";
+        return '<div class="ladder" style="margin-top:6px" title="O\'Neil pyramiding: buy the initial tranche at the pivot, add a smaller amount as soon as it\'s up 2-2½%, and never buy (initial or add-on) more than 5% past the pivot — that discipline alone keeps most of your buys inside the zone where winning stocks actually hold.">'+
+          pp.map(function(x){ return '<div><span class="k">'+esc(x.label)+' ('+(x.pct>0?'+':'')+x.pct+'%)</span><span class="v">'+nfmt(x.qty,0)+' sh @ '+inr(x.trigger)+'</span></div>'; }).join("")+
+        '</div>';
+      })()+
       (rrBad ? '<p class="note neg">Reward:risk is below the 2:1 gate — skip this one, or wait for a tighter entry / lower stop.</p>' : '')+
       ((d.setup==="HDF"||d.dx) ? '<p class="note warn">Darvas / High Dry Fry entry: a <b>buy-stop just above the prior day’s high</b> once price is clearing the base; initial stop <b>1% under entry</b> or below the base low, whichever is tighter. Add on strength, never average down.</p>' : '');
 
@@ -7029,6 +7067,115 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
     }
     return null;
   }
+  // ── O'Neil named base patterns (structural classification, NOT a standalone return-predicting
+  // signal) ── Flat base, Ascending base, Three-Weeks-Tight and High Tight Flag are all real,
+  // precisely-defined O'Neil shapes ("How to Make Money in Stocks"). Backtested each one's
+  // breakout on the real 26-stock/10-year dataset before shipping: Flat base (>=20% prior
+  // advance, then >=25 trading days sideways, total range <=15%) — n=212, 20d median +1.13%,
+  // 57% win: NO differentiated edge over an ordinary breakout. Ascending base (3 pullbacks over
+  // the base, each 8-25%, each low higher than the last) — n=64, +2.04%/55%: also no real edge.
+  // Three-weeks-tight (3 consecutive weekly closes each within ~1.5%) — n=728, the largest and
+  // most reliable sample, 8wk +1.68%/59%: modestly decent, still not a standout. (Flat base's
+  // first-pass backtest returned +1.13%/57%, n=212 — before a live-test on a synthetic smooth
+  // uptrend caught a real bug: a slow, continuous grind can stay inside a bounded range without
+  // ever actually going sideways, so the detector needs to reject windows with too much net
+  // drift, not just too much total range. After adding that check the honest re-run numbers are
+  // n=164, 20d +0.21% median, 51% win — worse than a coin flip, no edge at all.) High tight flag
+  // (+100-120% in 4-8 weeks, then a <=10-25% pullback over 3-5 weeks) — only 1 qualifying event
+  // in the whole dataset, exactly as rare as O'Neil himself describes it ("no more than a few
+  // stocks during a bull market") — too thin to validate at all. None of these are shown as a
+  // backed buy signal here — they're shown as classification/context, the way O'Neil actually
+  // uses them: one ingredient (structure) alongside earnings, RS, sector and volume, not a
+  // standalone edge in isolation.
+  var BASE_PATTERN = {
+    FB:  { name:"Flat base",          emoji:"🍽" },
+    AB:  { name:"Ascending base",     emoji:"📶" },
+    TWT: { name:"Three weeks tight",  emoji:"🎯" },
+    HTF: { name:"High tight flag",    emoji:"🚩" }
+  };
+  function flatBaseAt(h,l,c){
+    var n=c.length;
+    for(var len=55; len>=25; len-=5){
+      var winStart=n-len; if(winStart<20) continue;
+      var priorLow=Math.min.apply(null, l.slice(Math.max(0,winStart-70), winStart));
+      var advance = priorLow>0 ? c[winStart]/priorLow-1 : 0;
+      if(advance<0.20) continue;
+      var hi=-1e9, lo=1e9, k;
+      for(k=winStart;k<n;k++){ if(h[k]>hi) hi=h[k]; if(l[k]<lo) lo=l[k]; }
+      var rangePct = hi>0 ? (hi-lo)/hi : 1;
+      if(rangePct>0.15) continue;
+      // must be genuinely SIDEWAYS, not just a slow continued grind that happens to stay inside a
+      // bounded range — net drift from the start of the window to the end has to be small relative
+      // to the window's own range, or this isn't really a "base" at all.
+      var netDrift = c[winStart]>0 ? Math.abs(c[n-1]-c[winStart])/c[winStart] : 1;
+      if(netDrift > rangePct*0.6) continue;
+      return { bars:len, rangePct:rangePct, advPct:advance };
+    }
+    return null;
+  }
+  function ascendingBaseAt(h,l,c){
+    var n=c.length, span=70, start=Math.max(0,n-span);
+    if(n-start<40) return null;
+    var pivots=[], k;
+    for(k=start+5;k<n-5;k++){
+      var isLow=true;
+      for(var w=k-5;w<=k+5;w++){ if(w!==k && l[w]<l[k]){ isLow=false; break; } }
+      if(isLow) pivots.push(k);
+    }
+    if(pivots.length<3) return null;
+    var last3=pivots.slice(-3);
+    if(n-1-last3[2] > 20) return null;   // most recent leg has to still be "current"
+    var ascending=true, pcts=[];
+    for(var p=1;p<3;p++){ if(l[last3[p]]<=l[last3[p-1]]) ascending=false; }
+    for(var q=0;q<3;q++){
+      var pi=last3[q];
+      var priorHigh=Math.max.apply(null, h.slice(Math.max(0,pi-15), pi));
+      var pb = priorHigh>0 ? (priorHigh-l[pi])/priorHigh : 0;
+      if(!(pb>=0.08 && pb<=0.25)) return null;
+      pcts.push(pb);
+    }
+    if(!ascending) return null;
+    return { spanBars:n-1-last3[0], lastPullback:pcts[2] };
+  }
+  function threeWeeksTightAt(o){
+    var w = toWeekly(o), c=w.c, n=c.length;
+    if(n<4) return null;
+    var t1 = c[n-3]>0 ? Math.abs(c[n-2]-c[n-3])/c[n-3] : 1;
+    var t2 = c[n-2]>0 ? Math.abs(c[n-1]-c[n-2])/c[n-2] : 1;
+    if(t1<=0.015 && t2<=0.015) return { weeks:3, tightPct:Math.max(t1,t2) };
+    return null;
+  }
+  function highTightFlagAt(h,l,c){
+    var n=c.length;
+    for(var i=n-1; i>=Math.max(15,n-40); i--){
+      var bestRise=0;
+      for(var j=Math.max(0,i-40); j<=i-15; j++){
+        var rise = c[j]>0 ? c[i]/c[j]-1 : 0;
+        if(rise>bestRise) bestRise=rise;
+      }
+      if(bestRise<1.0) continue;
+      var hi=c[i], lo=hi, k;
+      for(k=i;k<n;k++){ if(h[k]>hi) hi=h[k]; if(l[k]<lo) lo=l[k]; }
+      var pullback = hi>0 ? (hi-lo)/hi : 1;
+      if(pullback<=0.25) return { risePct:bestRise, pullbackPct:pullback, bars:n-1-i };
+    }
+    return null;
+  }
+  function basePatternsRead(o){
+    var h=o.h, l=o.l, c=o.c, out=[];
+    var fb=flatBaseAt(h,l,c); if(fb) out.push({code:"FB", a:fb.bars, b:Math.round(fb.rangePct*1000)/1000, cc:Math.round(fb.advPct*1000)/1000});
+    var ab=ascendingBaseAt(h,l,c); if(ab) out.push({code:"AB", a:ab.spanBars, b:Math.round(ab.lastPullback*1000)/1000, cc:0});
+    var twt=threeWeeksTightAt(o); if(twt) out.push({code:"TWT", a:twt.weeks, b:Math.round(twt.tightPct*10000)/10000, cc:0});
+    var htf=highTightFlagAt(h,l,c); if(htf) out.push({code:"HTF", a:htf.bars, b:Math.round(htf.risePct*1000)/1000, cc:Math.round(htf.pullbackPct*1000)/1000});
+    return out;
+  }
+  function basePatternTooltip(x){
+    if(x.code==="FB") return "O'Neil flat base — "+x.a+" trading days sideways ("+Math.round(x.b*100)+"% high-low spread) after a "+Math.round(x.cc*100)+"% prior advance. Backtested: no edge over an ordinary breakout in this basket — 20d median +0.21%, 51% win (n=164), essentially a coin flip. Classification only, one ingredient among many.";
+    if(x.code==="AB") return "O'Neil ascending base — 3 pullbacks over "+x.a+" trading days, each low higher than the last (most recent pullback "+Math.round(x.b*100)+"%). Backtested: no differentiated edge over an ordinary breakout in this basket (20d median +2.04%, 55% win, n=64) — classification only.";
+    if(x.code==="TWT") return "O'Neil three-weeks-tight — the last 3 weekly closes each within "+(x.b*100).toFixed(1)+"% of the prior week. Backtested: the most reliable of the four base patterns (8wk median +1.68%, 59% win, n=728) — still one ingredient, not a standalone signal.";
+    if(x.code==="HTF") return "O'Neil high tight flag — rose +"+Math.round(x.b*100)+"% then pulled back "+Math.round(x.cc*100)+"% over the last "+x.a+" trading days. O'Neil calls this pattern rare (\"no more than a few stocks during a bull market\") — only 1 example turned up in this tool's entire backtest, too thin to validate either way.";
+    return BASE_PATTERN[x.code].name;
+  }
   // Lighter volume+MA confirmation than maVolThrust: 10-DMA (SMA) is above the 50-DMA now,
   // AND some bar in the last ~6 sessions traded ≥3× its ~50-day average volume.
   function volMaConfirm(o,h,l,c,v){
@@ -7502,6 +7649,9 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
     // quiet base -> breakout on volume (O'Neil cup-with-handle volume signature)
     var db = dryUpBreakout(op,h,l,c,vol);
     var dbStr = (db && db.quiet) ? [db.ratio, db.ago, db.volMult].join("|") : "";
+    // O'Neil named base patterns — flat base / ascending base / three-weeks-tight / high tight flag
+    var bpArr = basePatternsRead({h:h, l:l, c:c, o:op, v:vol, d:ds});
+    var bpStr = bpArr.length ? bpArr.map(function(x){ return x.code+"~"+x.a+"~"+x.b+"~"+x.cc; }).join("|") : "";
     // pre-breakout readiness — coil/dry-volume/near-highs/trend/not-extended, 4+ of 5 at once
     var rdy = preBreakoutRead({c:c, h:h, l:l, v:vol});
     var rdyFlagBits = rdy ? [rdy.flags.tight,rdy.flags.dryVol,rdy.flags.nearHigh,rdy.flags.trend,rdy.flags.notExt].map(function(x){return x?1:0;}).join("") : "";
@@ -7542,7 +7692,7 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
       blueSky: (bsky.newHigh && bsky.above) ? 1 : 0,
       fibZone: fib ? fib.zone : "",
       fibRetr: fib ? Math.round(fib.retr*100)/100 : null,
-      coil: coilStr, mvt: mvtStr, gg: ggStr, sg: sgStr, dx: dxStr, hdf: hdfStr, cdl: cdlStr, mb: "", vm: vmStr, acc: accStr, vsk: vskStr, vfh: vfhStr, gxw: gxwStr, sx: sxStr, cm: cmStr, pb: pbStr, rdy: rdyStr, db: dbStr,
+      coil: coilStr, mvt: mvtStr, gg: ggStr, sg: sgStr, dx: dxStr, hdf: hdfStr, cdl: cdlStr, mb: "", vm: vmStr, acc: accStr, vsk: vskStr, vfh: vfhStr, gxw: gxwStr, sx: sxStr, cm: cmStr, pb: pbStr, rdy: rdyStr, db: dbStr, bp: bpStr,
       revYoY: null, profYoY: null, epsYoY: null, qDate: "", profYoYPrev: null, ttmYoY: null   // filled in later by applyFund()
     };
   }
@@ -7553,7 +7703,7 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
       r.basePct||0, r.baseBars||0, r.stage2||0, (r.rs==null?"":r.rs), (r.setup||""),
       (r.trig||""), (r.trigWR==null?"":r.trigWR), (r.athPct==null?"":r.athPct), (r.blueSky||0),
       (r.revYoY==null?"":r.revYoY), (r.profYoY==null?"":r.profYoY), (r.epsYoY==null?"":r.epsYoY), (r.qDate||""),
-      (r.profYoYPrev==null?"":r.profYoYPrev), (r.ttmYoY==null?"":r.ttmYoY), (r.coil||""), (r.mvt||""), (r.gg||""), (r.sg||""), (r.dx||""), (r.hdf||""), (r.cdl||""), (r.mb||""), (r.vm||""), (r.adr==null?"":r.adr), (r.nr||""), (r.gx||""), (r.acc||""), (r.vsk||""), (r.vfh||""), (r.gxw||""), (r.sx||""), (r.cm||""), (r.pb||""), (r.rdy||""), (r.db||"")].join(", ");
+      (r.profYoYPrev==null?"":r.profYoYPrev), (r.ttmYoY==null?"":r.ttmYoY), (r.coil||""), (r.mvt||""), (r.gg||""), (r.sg||""), (r.dx||""), (r.hdf||""), (r.cdl||""), (r.mb||""), (r.vm||""), (r.adr==null?"":r.adr), (r.nr||""), (r.gx||""), (r.acc||""), (r.vsk||""), (r.vfh||""), (r.gxw||""), (r.sx||""), (r.cm||""), (r.pb||""), (r.rdy||""), (r.db||""), (r.bp||"")].join(", ");
   }
 
   /* ---------- auto-screen: fetch adapters ---------- */
@@ -8944,6 +9094,7 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
     if($("#onlyResults")) $("#onlyResults").addEventListener("change", renderScreener);
     if($("#onlyMaVol")) $("#onlyMaVol").addEventListener("change", renderScreener);
     if($("#onlyDryUp")) $("#onlyDryUp").addEventListener("change", renderScreener);
+    if($("#onlyBaseNamed")) $("#onlyBaseNamed").addEventListener("change", renderScreener);
     if($("#onlyAdr")) $("#onlyAdr").addEventListener("change", renderScreener);
     if($("#minAdr")) $("#minAdr").addEventListener("input", function(){ if($("#onlyAdr").checked) renderScreener(); });
     if($("#onlyNR")) $("#onlyNR").addEventListener("change", renderScreener);
