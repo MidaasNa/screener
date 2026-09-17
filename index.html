@@ -58,27 +58,27 @@ a{color:var(--accent);text-underline-offset:2px}
 .mono,.num{font-family:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;font-variant-numeric:tabular-nums}
 
 /* masthead */
-.masthead{display:flex;flex-wrap:wrap;gap:16px 28px;align-items:center;justify-content:space-between;
-  padding:16px 24px;background:var(--surface);border-bottom:1px solid var(--line-strong);position:sticky;top:0;z-index:20}
-.wordmark{display:flex;gap:13px;align-items:center}
-.wordmark .mark{font-family:"Fraunces",serif;font-size:26px;font-weight:600;color:var(--accent);
-  width:42px;height:42px;display:grid;place-items:center;border:1px solid var(--line-strong);border-radius:8px;background:var(--accent-soft)}
-.wordmark h1{font-size:21px;letter-spacing:.2px}
-.wordmark p{margin-top:2px;color:var(--muted);font-size:11px;letter-spacing:.9px;text-transform:uppercase}
-.controls{display:flex;flex-wrap:wrap;gap:10px 14px;align-items:flex-end}
+.masthead{display:flex;flex-wrap:wrap;gap:10px 28px;align-items:center;justify-content:space-between;
+  padding:9px 24px;background:var(--surface);border-bottom:1px solid var(--line-strong);position:sticky;top:0;z-index:20}
+.wordmark{display:flex;gap:10px;align-items:center}
+.wordmark .mark{font-family:"Fraunces",serif;font-size:20px;font-weight:600;color:var(--accent);
+  width:34px;height:34px;display:grid;place-items:center;border:1px solid var(--line-strong);border-radius:8px;background:var(--accent-soft)}
+.wordmark h1{font-size:17px;letter-spacing:.2px}
+.wordmark p{margin-top:1px;color:var(--muted);font-size:10px;letter-spacing:.8px;text-transform:uppercase}
+.controls{display:flex;flex-wrap:wrap;gap:8px 14px;align-items:flex-end}
 .field{display:flex;flex-direction:column;gap:4px}
 .field label{font-size:10px;text-transform:uppercase;letter-spacing:.7px;color:var(--muted)}
-.field input{width:118px;padding:7px 9px;background:var(--bg);border:1px solid var(--line-strong);border-radius:6px}
+.field input{width:118px;padding:5px 9px;background:var(--bg);border:1px solid var(--line-strong);border-radius:6px}
 .seg{display:inline-flex;border:1px solid var(--line-strong);border-radius:6px;overflow:hidden}
-.seg button{padding:7px 11px;background:var(--bg);border:0;color:var(--muted);font-size:12px;border-right:1px solid var(--line-strong)}
+.seg button{padding:5px 11px;background:var(--bg);border:0;color:var(--muted);font-size:12px;border-right:1px solid var(--line-strong)}
 .seg button:last-child{border-right:0}
 .seg button[aria-pressed="true"]{background:var(--btn-soft);color:var(--btn);box-shadow:inset 0 0 0 1px var(--btn)}
-.seg.regime button{padding:7px 9px}
+.seg.regime button{padding:5px 9px}
 .seg.regime button[aria-pressed="true"][data-v="auto"]{background:var(--btn-soft);color:var(--btn);box-shadow:inset 0 0 0 1px var(--btn)}
 .seg.regime button[aria-pressed="true"][data-v="green"]{background:var(--pos-bg);color:var(--pos);box-shadow:inset 0 0 0 1px var(--pos)}
 .seg.regime button[aria-pressed="true"][data-v="yellow"]{background:var(--warn-bg);color:var(--warn);box-shadow:inset 0 0 0 1px var(--warn)}
 .seg.regime button[aria-pressed="true"][data-v="red"]{background:var(--neg-bg);color:var(--neg);box-shadow:inset 0 0 0 1px var(--neg)}
-.icon-btn{width:38px;height:34px;border:1px solid var(--line-strong);border-radius:6px;background:var(--bg)}
+.icon-btn{width:34px;height:28px;border:1px solid var(--line-strong);border-radius:6px;background:var(--bg)}
 
 /* tabs */
 .tabs{display:flex;flex-wrap:wrap;gap:2px;padding:12px 24px 0;background:var(--surface);border-bottom:1px solid var(--line)}
@@ -462,7 +462,7 @@ table.sc-setup td.num{font-family:"IBM Plex Mono",monospace;text-align:right}
     <span class="mark" aria-hidden="true">₹</span>
     <div>
       <h1>The 10% Ledger</h1>
-      <p>Momentum + pullback screener · NSE swing setups <span style="opacity:.5;font-size:11px">· build 2026-09-18c</span></p>
+      <p>Momentum + pullback screener · NSE swing setups <span style="opacity:.5;font-size:11px">· build 2026-09-18d</span></p>
     </div>
   </div>
   <div class="controls">
@@ -489,7 +489,7 @@ table.sc-setup td.num{font-family:"IBM Plex Mono",monospace;text-align:right}
         <button data-v="yellow" aria-pressed="true">Yellow</button>
         <button data-v="red" aria-pressed="false">Red</button>
       </div>
-      <span id="regimeWhy" class="hint" style="margin-top:3px;font-size:10px;max-width:230px;line-height:1.35" hidden></span>
+      <span id="regimeWhy" class="hint" style="margin-top:3px;font-size:10px;max-width:480px;line-height:1.3" hidden></span>
     </div>
     <button class="icon-btn" id="themeBtn" title="Toggle theme" aria-label="Toggle light or dark theme">◐</button>
   </div>
