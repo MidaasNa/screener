@@ -459,7 +459,7 @@ table.sc-setup td.num{font-family:"IBM Plex Mono",monospace;text-align:right}
     <span class="mark" aria-hidden="true">₹</span>
     <div>
       <h1>The 10% Ledger</h1>
-      <p>Momentum + pullback screener · NSE swing setups <span style="opacity:.5;font-size:11px">· build 2026-09-17c</span></p>
+      <p>Momentum + pullback screener · NSE swing setups <span style="opacity:.5;font-size:11px">· build 2026-09-18a</span></p>
     </div>
   </div>
   <div class="controls">
@@ -1146,6 +1146,13 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
           <button data-v="nifty" aria-pressed="false" title="The Nifty 50 index's own 10-day SMA, in golden yellow — rebased to start at this stock's own price on the first visible date, so the two lines are directly comparable as TREND, not literal index points. Shows whether this stock is keeping pace with, leading, or lagging the broader market's own short-term trend. Needs a scan to have run at least once (fetched alongside Market Regime data).">Nifty 10-SMA</button>
         </div>
         <button id="bookRefreshLive" class="ghost" title="Fetch fresh candles for this stock">↻ live</button>
+        <span class="chk" style="margin-left:0;gap:4px" title="Rewind the chart to see how it looked N trading days ago — a good way to study how candles and moving averages actually formed, without hindsight. Everything (candles, MAs, patterns, the 'Data through' date) updates to that earlier point; nothing here re-runs the score or trade plan for that date.">
+          <button id="bookRewBack1" class="ghost" title="Step back 1 trading day">◀ 1d</button>
+          <button id="bookRewBackW" class="ghost" title="Jump back ~1 week (5 trading days)">1w back</button>
+          <button id="bookRewFwd1" class="ghost" title="Step forward 1 trading day">1d ▶</button>
+          <span id="bookRewLabel" class="dim" style="font-size:12px"></span>
+          <button id="bookRewLive" class="ghost" hidden title="Return to the live, most recent chart">↻ back to live</button>
+        </span>
         <button id="bookDrawTrend" class="ghost" aria-pressed="false" title="Click two points on the chart to draw your own trendline — it's anchored to the actual dates/prices you click, so it stays in place as the chart updates and works on daily or weekly.">✏️ Draw trendline</button>
         <button id="bookClearTrend" class="ghost" hidden title="Remove every manually-drawn trendline on this stock">🗑 clear my lines</button>
         <button id="bookProtractor" class="ghost" aria-pressed="false" title="Click the start of a move, then its end — plants a real protractor face (semicircle + degree ticks + baseline) sized to that move, with the angle read off the ray. Degrees are this chart's own scale, not a fixed physical angle; the %/bar rate alongside it is the number to trust when comparing steepness across different charts.">📐 Protractor</button>
@@ -2983,6 +2990,7 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
   var bookToken = 0;
   var manualDrawMode = false, manualPending = null;   // manual-trendline draw state (transient, not persisted)
   var protractorMode = false, protractorPending = null;   // angle-measurement draw state (transient, not persisted)
+  var bookRewindBars = 0;   // "look back N trading days" chart-study mode (transient, not persisted)
 
   function bookWL(){ var m={}; (state.watchlist||[]).forEach(function(w){ m[w.symbol]=1; }); return m; }
 
@@ -4202,7 +4210,7 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
     var host = $("#bookChart"); if(!host) return;
     var myTok = ++bookToken;
     var sym = d.symbol;
-    if(sym!==lastBookSym){ manualPending=null; manualDrawMode=false; protractorPending=null; protractorMode=false; }   // don't carry a half-drawn line/measurement across stocks
+    if(sym!==lastBookSym){ manualPending=null; manualDrawMode=false; protractorPending=null; protractorMode=false; bookRewindBars=0; }   // don't carry a half-drawn line/measurement/rewind across stocks
     lastBookSym = sym;
     refreshDrawTrendUI();
     refreshProtractorUI();
@@ -4226,6 +4234,12 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
     function draw(o, staleNote){
       if(myTok!==bookToken) return;   // a later Prev/Next won this race
       if(!o || !o.c || o.c.length<20){ host.innerHTML='<p class="empty">No chart data for '+esc(sym)+' — press <b>↻ live</b>, or it wasn’t among the charts kept from the scan (only the top names are cached).</p>'; if($("#bookStretch")){ $("#bookStretch").hidden=true; } return; }
+      var rewound = bookRewindBars>0;
+      if(rewound){
+        var rcut = Math.max(20, o.c.length - bookRewindBars);
+        bookRewindBars = o.c.length - rcut;   // clamp — can't rewind further back than the cached history allows
+        o = { o:(o.o||o.c).slice(0,rcut), h:o.h.slice(0,rcut), l:o.l.slice(0,rcut), c:o.c.slice(0,rcut), v:o.v.slice(0,rcut), d:o.d.slice(0,rcut), liveLast:false };
+      }
       var series = tf==="weekly" ? toWeekly(o) : o;
       if(series.c.length<20){ host.innerHTML='<p class="empty">not enough history for a weekly chart</p>'; return; }
       renderStretch(o);   // the mean-reversion read always uses the daily series
@@ -4238,17 +4252,21 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
       var age=chartAge(o), last=o.d[o.d.length-1];
       opts.liveLast = !!o.liveLast;
       opts.livePrice = o.liveLast ? o.c[o.c.length-1] : 0;
-      var meta = o.liveLast
+      var meta = rewound
+        ? '<div class="cx-asof warn">📼 Rewound '+bookRewindBars+' trading day'+(bookRewindBars===1?'':'s')+' — viewing as it looked on '+esc(last)+'. Candles, MAs and patterns are all as of that date; the score and trade plan above are still today\'s, not back-tested for this date.</div>'
+        : o.liveLast
         ? '<div class="cx-asof">Live — last candle is today ('+esc(last)+'), still forming at '+nfmt(opts.livePrice)+'.</div>'
         : (staleNote || age>3)
           ? '<div class="cx-asof warn">Data only through '+esc(last)+' ('+age+' day'+(age===1?'':'s')+' old)'+(staleNote?' — couldn’t fetch fresh candles':'')+'. Press <b>↻ live</b>.</div>'
           : '<div class="cx-asof">Data through '+esc(last)+(age>=1?' (last completed session)':'')+'.</div>';
       var latest = o.c[o.c.length-1];
-      if(d.price>0 && latest>0){
+      if(!rewound && d.price>0 && latest>0){
         var drift=(latest-d.price)/d.price;
         if(Math.abs(drift)>=0.015)
           meta += '<div class="cx-asof warn">Since this was scored, price moved '+(drift>0?'+':'')+(drift*100).toFixed(1)+'% ('+nfmt(d.price)+' → '+nfmt(latest)+') — re-scan before acting.</div>';
       }
+      $("#bookRewLabel").textContent = rewound ? ("viewing "+last) : "";
+      $("#bookRewLive").hidden = !rewound;
       meta += maAngleReadoutLine(series, state.chartMA==="sma");
       meta += effortResultReadLine(series);
       meta += hangingManReadLine(series);
@@ -9229,6 +9247,11 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
       save(); refreshProtractorUI();
       var d=bookPool[state.bookIdx]; if(d) bookDrawChart(d);
     });
+    function bookRewindRedraw(){ var d=bookPool[state.bookIdx]; if(d) bookDrawChart(d); }
+    if($("#bookRewBack1")) $("#bookRewBack1").addEventListener("click", function(){ bookRewindBars += 1; bookRewindRedraw(); });
+    if($("#bookRewBackW")) $("#bookRewBackW").addEventListener("click", function(){ bookRewindBars += 5; bookRewindRedraw(); });
+    if($("#bookRewFwd1")) $("#bookRewFwd1").addEventListener("click", function(){ bookRewindBars = Math.max(0, bookRewindBars-1); bookRewindRedraw(); });
+    if($("#bookRewLive")) $("#bookRewLive").addEventListener("click", function(){ bookRewindBars = 0; bookRewindRedraw(); });
     $$("#bookTF button").forEach(function(b){
       b.addEventListener("click", function(){
         var val=b.getAttribute("data-v");
