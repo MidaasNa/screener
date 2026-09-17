@@ -78,6 +78,12 @@ a{color:var(--accent);text-underline-offset:2px}
 .seg.regime button[aria-pressed="true"][data-v="green"]{background:var(--pos-bg);color:var(--pos);box-shadow:inset 0 0 0 1px var(--pos)}
 .seg.regime button[aria-pressed="true"][data-v="yellow"]{background:var(--warn-bg);color:var(--warn);box-shadow:inset 0 0 0 1px var(--warn)}
 .seg.regime button[aria-pressed="true"][data-v="red"]{background:var(--neg-bg);color:var(--neg);box-shadow:inset 0 0 0 1px var(--neg)}
+/* Auto button carries the LIVE computed colour once a scan has populated it, so the regime
+   reads at a glance from the button itself — no separate always-visible text line needed.
+   Hover the button for the full plain-English reason (see refreshRegimeUI's tooltip). */
+.seg.regime button[aria-pressed="true"][data-v="auto"][data-live="green"]{background:var(--pos-bg);color:var(--pos);box-shadow:inset 0 0 0 1px var(--pos)}
+.seg.regime button[aria-pressed="true"][data-v="auto"][data-live="yellow"]{background:var(--warn-bg);color:var(--warn);box-shadow:inset 0 0 0 1px var(--warn)}
+.seg.regime button[aria-pressed="true"][data-v="auto"][data-live="red"]{background:var(--neg-bg);color:var(--neg);box-shadow:inset 0 0 0 1px var(--neg)}
 .icon-btn{width:34px;height:28px;border:1px solid var(--line-strong);border-radius:6px;background:var(--bg)}
 
 /* tabs — single scrollable row rather than wrapping to a second line as more tabs get added */
@@ -461,8 +467,7 @@ table.sc-setup td.num{font-family:"IBM Plex Mono",monospace;text-align:right}
   <div class="wordmark">
     <span class="mark" aria-hidden="true">₹</span>
     <div>
-      <h1>The 10% Ledger</h1>
-      <p>Momentum + pullback screener · NSE swing setups <span style="opacity:.5;font-size:11px">· build 2026-09-18f</span></p>
+      <h1 title="Momentum + pullback screener · NSE swing setups · build 2026-09-18g">The 10% Ledger</h1>
     </div>
   </div>
   <div class="controls">
@@ -489,7 +494,6 @@ table.sc-setup td.num{font-family:"IBM Plex Mono",monospace;text-align:right}
         <button data-v="yellow" aria-pressed="true">Yellow</button>
         <button data-v="red" aria-pressed="false">Red</button>
       </div>
-      <span id="regimeWhy" class="hint" style="margin-top:3px;font-size:10px;max-width:360px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:inline-block;vertical-align:bottom" hidden></span>
     </div>
     <button class="icon-btn" id="themeBtn" title="Toggle theme" aria-label="Toggle light or dark theme">◐</button>
   </div>
@@ -8206,17 +8210,11 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
         ? "Auto: computed "+state.regimeAutoInfo.regime.toUpperCase()+" (score "+state.regimeAutoInfo.score+"/100)"+
           (state.regimeAutoInfo.indexOk?"":" — Nifty index didn't load, breadth only")+" · "+state.regimeAutoInfo.why+
           ". Click Green / Yellow / Red to override."
-        : "Auto — set the regime from the Nifty 50 trend + your scan's breadth after each scan. Run a scan to populate it.";
-    }
-    var lab=$("#regimeWhy");
-    if(lab){
-      if(mode==="auto" && state.regimeAutoInfo){
-        lab.hidden=false;
-        lab.textContent = "auto → "+state.regime.toUpperCase()+" · "+state.regimeAutoInfo.why;
-        lab.title = lab.textContent;
-      } else if(mode==="auto"){
-        lab.hidden=false; lab.textContent = "auto — run a scan to set the regime"; lab.title="";
-      } else lab.hidden=true;
+        : "Auto — set the regime from the Nifty 50 trend + your scan's breadth after each scan. Hover here any time for the full reason once a scan has run.";
+      // let the Auto button itself carry the live red/yellow/green colour (state.regime IS the
+      // computed value even in auto mode) instead of a separate always-visible text line — the
+      // detail moves to this hover tooltip so nothing is permanently taking up header space.
+      au.setAttribute("data-live", (mode==="auto" && state.regimeAutoInfo) ? state.regime : "");
     }
   }
 
