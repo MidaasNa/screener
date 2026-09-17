@@ -80,9 +80,9 @@ a{color:var(--accent);text-underline-offset:2px}
 .seg.regime button[aria-pressed="true"][data-v="red"]{background:var(--neg-bg);color:var(--neg);box-shadow:inset 0 0 0 1px var(--neg)}
 .icon-btn{width:34px;height:28px;border:1px solid var(--line-strong);border-radius:6px;background:var(--bg)}
 
-/* tabs */
-.tabs{display:flex;flex-wrap:wrap;gap:2px;padding:12px 24px 0;background:var(--surface);border-bottom:1px solid var(--line)}
-.tabs button{padding:9px 13px;background:transparent;border:0;border-bottom:2px solid transparent;color:var(--muted);font-weight:500;font-size:14px}
+/* tabs — single scrollable row rather than wrapping to a second line as more tabs get added */
+.tabs{display:flex;flex-wrap:nowrap;overflow-x:auto;gap:2px;padding:8px 24px 0;background:var(--surface);border-bottom:1px solid var(--line);scrollbar-width:thin}
+.tabs button{flex:0 0 auto;padding:7px 11px;background:transparent;border:0;border-bottom:2px solid transparent;color:var(--muted);font-weight:500;font-size:13px;white-space:nowrap}
 .tabs button:hover{color:var(--ink-soft)}
 .tabs button.active{color:var(--ink);border-bottom-color:var(--btn)}
 
@@ -462,7 +462,7 @@ table.sc-setup td.num{font-family:"IBM Plex Mono",monospace;text-align:right}
     <span class="mark" aria-hidden="true">₹</span>
     <div>
       <h1>The 10% Ledger</h1>
-      <p>Momentum + pullback screener · NSE swing setups <span style="opacity:.5;font-size:11px">· build 2026-09-18d</span></p>
+      <p>Momentum + pullback screener · NSE swing setups <span style="opacity:.5;font-size:11px">· build 2026-09-18f</span></p>
     </div>
   </div>
   <div class="controls">
@@ -489,7 +489,7 @@ table.sc-setup td.num{font-family:"IBM Plex Mono",monospace;text-align:right}
         <button data-v="yellow" aria-pressed="true">Yellow</button>
         <button data-v="red" aria-pressed="false">Red</button>
       </div>
-      <span id="regimeWhy" class="hint" style="margin-top:3px;font-size:10px;max-width:480px;line-height:1.3" hidden></span>
+      <span id="regimeWhy" class="hint" style="margin-top:3px;font-size:10px;max-width:360px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:inline-block;vertical-align:bottom" hidden></span>
     </div>
     <button class="icon-btn" id="themeBtn" title="Toggle theme" aria-label="Toggle light or dark theme">◐</button>
   </div>
@@ -1187,8 +1187,8 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
   <section id="tab-compare" hidden>
     <div class="card">
       <h2>Chart Compare</h2>
-      <p class="hint">The same stock, now and earlier, side by side — so you can compare how price and the moving averages actually looked without flipping back and forth. Candles and MAs only, no trade plan overlay, to keep the comparison clean.</p>
-      <div class="row-actions" style="margin-bottom:10px;flex-wrap:wrap">
+      <p class="hint">The same stock, now and earlier, side by side — so you can compare how price and the moving averages actually looked without flipping back and forth. No trade-plan lines (entry/stop/target) on either panel, to keep the comparison clean — but chart overlays below are shared with Chart Book and apply to both.</p>
+      <div class="row-actions" style="margin-bottom:6px;flex-wrap:wrap">
         <label class="chk" style="margin-left:0">Symbol
           <input id="cmpSearch" type="text" list="bookSyms" placeholder="symbol…" autocomplete="off" spellcheck="false"
                  style="margin-left:6px;width:130px;padding:6px 8px;background:var(--bg);border:1px solid var(--line-strong);border-radius:6px;font-size:13px;text-transform:uppercase">
@@ -1200,6 +1200,17 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
           <span id="cmpOffsetLabel" class="dim" style="font-size:12px"></span>
         </span>
       </div>
+      <div class="seg" id="cmpOverlay" role="group" aria-label="Chart overlays" style="margin-bottom:10px">
+        <button data-v="sr" aria-pressed="true" title="Bright horizontal support / resistance zones from clustered pivot highs &amp; lows (×n = touches)">S/R zones</button>
+        <button data-v="trend" aria-pressed="true" title="Diagonal trendlines — the best-fit rising line under the swing lows and falling / flat line over the swing highs across the whole visible chart, PLUS a dashed purple line for the current leg when it has turned or steepened away from the big line">Trendlines</button>
+        <button data-v="pat" aria-pressed="true" title="Named chart pattern over the recent structure — triangle / channel / wedge / range / double top-bottom — with its shorter trendlines and the label">Pattern</button>
+        <button data-v="vwap" aria-pressed="true" title="Anchored VWAP from the start of the consolidation base — the volume-weighted average price paid while the base formed">Base VWAP</button>
+        <button data-v="stretch" aria-pressed="false" title="±2σ envelope around the 20-EMA (Disparity Index band) + entry/exit markers">Stretch band + signals</button>
+        <button data-v="fii" aria-pressed="true" title="Shades the calendar quarter between the two dates entered in the Shareholding check panel, on both the price chart and the volume panel">FII/DII footprint</button>
+        <button data-v="vap" aria-pressed="false" title="Volume Profile — a horizontal histogram of how much volume traded at each price level over the visible window, with the POC (heaviest level) highlighted gold">Volume profile</button>
+        <button data-v="nifty" aria-pressed="false" title="The Nifty 50 index's own 10-day SMA, rebased to this stock's own starting price, in golden yellow">Nifty 10-SMA</button>
+      </div>
+      <div id="cmpLegend"></div>
       <div class="cmp-grid">
         <div class="cmp-pane">
           <div class="cmp-label">Now</div>
@@ -3260,7 +3271,8 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
     if(!o.c || o.c.length<20){ host.innerHTML='<p class="empty">not enough history</p>'; return; }
     var last = o.d[o.d.length-1];
     var meta = '<div class="cx-asof">'+(backBars>0?'As of ':'Data through ')+esc(last)+(backBars>0?' — '+backBars+' trading day'+(backBars===1?'':'s')+' back':'')+'.</div>';
-    host.innerHTML = meta + buildChartSVG(o, {symbol:sym, weekly:false});
+    var opts = {symbol:sym, weekly:false, stretchBand: state.bookStretchBand===true, fiiWindow: state.bookFiiWindow!==false};
+    host.innerHTML = meta + buildChartSVG(o, opts);
   }
   function cmpDrawPair(sym){
     if($("#cmpOffsetLabel")) $("#cmpOffsetLabel").textContent = cmpOffset+" trading day"+(cmpOffset===1?"":"s")+" back";
@@ -3288,6 +3300,8 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
     if(!cmpSym && rows.length) cmpSym = rows.slice().sort(function(a,b){ return scoreStock(b).total-scoreStock(a).total; })[0].symbol;
     if($("#cmpSearch") && !$("#cmpSearch").value) $("#cmpSearch").value = cmpSym||"";
     if($("#cmpOffsetLabel")) $("#cmpOffsetLabel").textContent = cmpOffset+" trading day"+(cmpOffset===1?"":"s")+" back";
+    $$("#cmpOverlay button").forEach(function(x){ var v=x.getAttribute("data-v"); x.setAttribute("aria-pressed", String(v==="sr" ? state.bookSR!==false : v==="vwap" ? state.bookVwap!==false : v==="trend" ? state.bookTrend!==false : v==="stretch" ? state.bookStretchBand===true : v==="fii" ? state.bookFiiWindow!==false : v==="vap" ? state.bookVap===true : v==="nifty" ? state.bookNifty===true : state.bookPat!==false)); });
+    if($("#cmpLegend")) $("#cmpLegend").innerHTML = chartLegend(false);
     if(!cmpSym || !rows.some(function(r){ return r.symbol===cmpSym; })){
       $("#cmpNowChart").innerHTML = '<p class="empty">'+(rows.length ? (cmpSym ? '“'+esc(cmpSym)+'” isn’t in the last scan.' : 'Type a symbol above.') : 'Run a scan first (Screener → Scan now).')+'</p>';
       $("#cmpPastChart").innerHTML = "";
@@ -8199,8 +8213,9 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
       if(mode==="auto" && state.regimeAutoInfo){
         lab.hidden=false;
         lab.textContent = "auto → "+state.regime.toUpperCase()+" · "+state.regimeAutoInfo.why;
+        lab.title = lab.textContent;
       } else if(mode==="auto"){
-        lab.hidden=false; lab.textContent = "auto — run a scan to set the regime";
+        lab.hidden=false; lab.textContent = "auto — run a scan to set the regime"; lab.title="";
       } else lab.hidden=true;
     }
   }
@@ -9323,6 +9338,16 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
     if($("#cmpBack1")) $("#cmpBack1").addEventListener("click", function(){ cmpOffset += 1; renderCompare(); });
     if($("#cmpBackW")) $("#cmpBackW").addEventListener("click", function(){ cmpOffset += 5; renderCompare(); });
     if($("#cmpFwd1")) $("#cmpFwd1").addEventListener("click", function(){ cmpOffset = Math.max(1, cmpOffset-1); renderCompare(); });
+    $$("#cmpOverlay button").forEach(function(b){
+      var v=b.getAttribute("data-v");
+      b.addEventListener("click", function(){
+        var on = b.getAttribute("aria-pressed")!=="true";
+        b.setAttribute("aria-pressed", String(on));
+        if(v==="sr") state.bookSR=on; else if(v==="vwap") state.bookVwap=on; else if(v==="trend") state.bookTrend=on; else if(v==="stretch") state.bookStretchBand=on; else if(v==="fii") state.bookFiiWindow=on; else if(v==="vap") state.bookVap=on; else if(v==="nifty") state.bookNifty=on; else state.bookPat=on;
+        save();
+        renderCompare();
+      });
+    });
     if($("#bookRefreshLive")) $("#bookRefreshLive").addEventListener("click", function(){
       var d=bookPool[state.bookIdx]; if(!d) return;
       delete chartCache[d.symbol]; var ex=getExtra(d.symbol); if(ex) delete ex.chart;
