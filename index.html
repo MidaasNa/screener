@@ -299,6 +299,9 @@ table.mb-scen td.num{font-family:"IBM Plex Mono",monospace;text-align:right;padd
 .cx-e50{fill:none;stroke:var(--muted);stroke-width:1.1}
 .cx-e200{fill:none;stroke:var(--muted);stroke-width:1;stroke-dasharray:2 2;opacity:.55}
 .cx-nifty{fill:none;stroke:#f5c518;stroke-width:1.4;stroke-dasharray:5 3}
+.cmp-grid{display:flex;gap:14px;flex-wrap:wrap;margin-top:10px}
+.cmp-pane{flex:1 1 380px;min-width:300px}
+.cmp-label{font-weight:600;font-size:13px;margin-bottom:4px;color:var(--muted)}
 .cx-line{stroke-width:1;stroke-dasharray:4 3;fill:none}
 .cx-line.cx-ent{stroke:var(--ink)} .cx-line.cx-stp{stroke:var(--neg)} .cx-line.cx-tgt{stroke:var(--pos)}
 .cx-line.cx-sup{stroke:var(--pos);stroke-dasharray:1 3} .cx-line.cx-res{stroke:var(--neg);stroke-dasharray:1 3}
@@ -459,7 +462,7 @@ table.sc-setup td.num{font-family:"IBM Plex Mono",monospace;text-align:right}
     <span class="mark" aria-hidden="true">₹</span>
     <div>
       <h1>The 10% Ledger</h1>
-      <p>Momentum + pullback screener · NSE swing setups <span style="opacity:.5;font-size:11px">· build 2026-09-18a</span></p>
+      <p>Momentum + pullback screener · NSE swing setups <span style="opacity:.5;font-size:11px">· build 2026-09-18b</span></p>
     </div>
   </div>
   <div class="controls">
@@ -504,6 +507,7 @@ table.sc-setup td.num{font-family:"IBM Plex Mono",monospace;text-align:right}
   <button data-tab="mb">Multibagger Radar</button>
   <button data-tab="journal">Trading Journal</button>
   <button data-tab="book">Chart Book</button>
+  <button data-tab="compare">Chart Compare</button>
   <button data-tab="analyzer">Analyzer</button>
   <button data-tab="announce">Announcements</button>
   <button data-tab="playbook">Playbook</button>
@@ -1176,6 +1180,35 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
       <div id="bookStretch" class="book-conf" aria-live="polite" hidden></div>
       <div id="bookShare" class="book-conf" aria-live="polite" hidden></div>
       <p class="hint" style="margin-top:10px">Entry / stop / targets are the tool's standard plan: entry at the breakout level (or your override in the Analyzer), stop under support or a fixed % if none, exit scaled at +5% / +7.5% / +10%, size fixed at 1% of capital at risk. For <b>Darvas Box</b> and <b>High Dry Fry</b> names the note above swaps in Darvas's own rule — a buy-stop above the prior day's high, stop 1% under entry or below the base low.</p>
+    </div>
+  </section>
+
+  <!-- CHART COMPARE -->
+  <section id="tab-compare" hidden>
+    <div class="card">
+      <h2>Chart Compare</h2>
+      <p class="hint">The same stock, now and earlier, side by side — a day, two days, or a week back — so you can compare how price and the moving averages actually looked without flipping back and forth. Candles and MAs only, no trade plan overlay, to keep the comparison clean.</p>
+      <div class="row-actions" style="margin-bottom:10px;flex-wrap:wrap">
+        <label class="chk" style="margin-left:0">Symbol
+          <input id="cmpSearch" type="text" list="bookSyms" placeholder="symbol…" autocomplete="off" spellcheck="false"
+                 style="margin-left:6px;width:130px;padding:6px 8px;background:var(--bg);border:1px solid var(--line-strong);border-radius:6px;font-size:13px;text-transform:uppercase">
+        </label>
+        <div class="seg" id="cmpOffset" role="group" aria-label="Compare against">
+          <button data-v="1" aria-pressed="true">1 day ago</button>
+          <button data-v="2" aria-pressed="false">2 days ago</button>
+          <button data-v="5" aria-pressed="false">1 week ago</button>
+        </div>
+      </div>
+      <div class="cmp-grid">
+        <div class="cmp-pane">
+          <div class="cmp-label">Now</div>
+          <div id="cmpNowChart"><p class="empty">Type a symbol above (from your last scan) to compare.</p></div>
+        </div>
+        <div class="cmp-pane">
+          <div class="cmp-label" id="cmpPastLabel">Earlier</div>
+          <div id="cmpPastChart"></div>
+        </div>
+      </div>
     </div>
   </section>
 
@@ -3208,6 +3241,60 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
       $("#bookMeta").textContent = '“'+q+'” is not in this scan';
     }
   }
+  // ── Chart Compare tab — "now" and "N trading days ago" side by side ──────────────────────────
+  // Deliberately independent of Chart Book's own pool/index/scope state (`bookPool`/state.bookIdx)
+  // rather than sharing it — this tab only ever needs "the current row for one typed symbol", not
+  // pagination through a filtered list, so reusing the heavier Chart Book machinery would add
+  // coupling risk for no real benefit. Transient, not persisted, same as bookRewindBars.
+  var cmpSym = null, cmpOffset = 1;
+  function cmpSearchJump(){
+    var el = $("#cmpSearch"); if(!el) return;
+    var q = (el.value||"").trim().toUpperCase();
+    if(!q) return;
+    cmpSym = q; renderCompare(); el.blur();
+  }
+  function cmpPaintPanel(host, oFull, backBars, sym){
+    if(!host) return;
+    var o = backBars>0 ? truncateBars(oFull, backBars) : oFull;
+    if(!o.c || o.c.length<20){ host.innerHTML='<p class="empty">not enough history</p>'; return; }
+    var last = o.d[o.d.length-1];
+    var meta = '<div class="cx-asof">'+(backBars>0?'As of ':'Data through ')+esc(last)+(backBars>0?' — '+backBars+' trading day'+(backBars===1?'':'s')+' back':'')+'.</div>';
+    host.innerHTML = meta + buildChartSVG(o, {symbol:sym, weekly:false});
+  }
+  function cmpDrawPair(sym){
+    var labels = {1:"1 day ago", 2:"2 days ago", 5:"1 week ago"};
+    if($("#cmpPastLabel")) $("#cmpPastLabel").textContent = labels[cmpOffset] || (cmpOffset+"d ago");
+    var cached = chartCache[sym];
+    if(!cached){ var ex=getExtra(sym); if(ex && ex.chart && ex.chart.c && ex.chart.c.length>=30) cached = ex.chart; }
+    function paint(o){
+      chartCache[sym] = o;
+      cmpPaintPanel($("#cmpNowChart"), o, 0, sym);
+      cmpPaintPanel($("#cmpPastChart"), o, cmpOffset, sym);
+    }
+    if(cached){ paint(cached); return; }
+    $("#cmpNowChart").innerHTML = '<p class="empty">loading chart…</p>';
+    $("#cmpPastChart").innerHTML = "";
+    fetchCandles(sym).then(function(o){
+      var norm={o:o.open||o.close,h:o.high,l:o.low,c:o.close,v:o.volume,d:o.dates,liveLast:!!o.liveLast};
+      paint(norm);
+    }).catch(function(err){
+      $("#cmpNowChart").innerHTML = '<p class="empty">couldn’t load a chart for '+esc(sym)+': '+esc((err&&err.message)||"failed")+'. Run a scan first (top names keep their charts).</p>';
+      $("#cmpPastChart").innerHTML = "";
+    });
+  }
+  function renderCompare(){
+    if($("#tab-compare") && $("#tab-compare").hidden) return;
+    var rows = parseBatch($("#batchInput").value);
+    if(!cmpSym && rows.length) cmpSym = rows.slice().sort(function(a,b){ return scoreStock(b).total-scoreStock(a).total; })[0].symbol;
+    if($("#cmpSearch") && !$("#cmpSearch").value) $("#cmpSearch").value = cmpSym||"";
+    $$("#cmpOffset button").forEach(function(b){ b.setAttribute("aria-pressed", String(+b.getAttribute("data-v")===cmpOffset)); });
+    if(!cmpSym || !rows.some(function(r){ return r.symbol===cmpSym; })){
+      $("#cmpNowChart").innerHTML = '<p class="empty">'+(rows.length ? (cmpSym ? '“'+esc(cmpSym)+'” isn’t in the last scan.' : 'Type a symbol above.') : 'Run a scan first (Screener → Scan now).')+'</p>';
+      $("#cmpPastChart").innerHTML = "";
+      return;
+    }
+    cmpDrawPair(cmpSym);
+  }
   // add / remove the chart currently on screen from the watchlist
   function bookToggleWatch(){
     var d = bookPool[state.bookIdx]; if(!d) return;
@@ -4236,9 +4323,10 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
       if(!o || !o.c || o.c.length<20){ host.innerHTML='<p class="empty">No chart data for '+esc(sym)+' — press <b>↻ live</b>, or it wasn’t among the charts kept from the scan (only the top names are cached).</p>'; if($("#bookStretch")){ $("#bookStretch").hidden=true; } return; }
       var rewound = bookRewindBars>0;
       if(rewound){
-        var rcut = Math.max(20, o.c.length - bookRewindBars);
-        bookRewindBars = o.c.length - rcut;   // clamp — can't rewind further back than the cached history allows
-        o = { o:(o.o||o.c).slice(0,rcut), h:o.h.slice(0,rcut), l:o.l.slice(0,rcut), c:o.c.slice(0,rcut), v:o.v.slice(0,rcut), d:o.d.slice(0,rcut), liveLast:false };
+        var maxBack = Math.max(0, o.c.length-20);
+        if(bookRewindBars>maxBack) bookRewindBars = maxBack;   // clamp — can't rewind further back than the cached history allows
+        rewound = bookRewindBars>0;
+        o = truncateBars(o, bookRewindBars);
       }
       var series = tf==="weekly" ? toWeekly(o) : o;
       if(series.c.length<20){ host.innerHTML='<p class="empty">not enough history for a weekly chart</p>'; return; }
@@ -5067,6 +5155,14 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
       }
     }
     return w;
+  }
+  // Slices an {o,h,l,c,v,d} series down to its own last `backBars` fewer bars — i.e. "as it looked
+  // N trading days ago". Shared by Chart Book's rewind controls and the Chart Compare tab so the
+  // "go back in time" logic exists in exactly one place. Clamped to never drop below 20 bars.
+  function truncateBars(o, backBars){
+    if(!backBars || backBars<=0) return o;
+    var n=o.c.length, cut=Math.max(20, n-backBars);
+    return { o:(o.o||o.c).slice(0,cut), h:o.h.slice(0,cut), l:o.l.slice(0,cut), c:o.c.slice(0,cut), v:o.v.slice(0,cut), d:o.d.slice(0,cut), liveLast:false };
   }
   // Nifty 50's own 10-day SMA, rebased onto the stock's price scale so it's visually comparable
   // on the same panel — the raw Nifty index level (~25,000) would be meaningless plotted next to
@@ -9084,11 +9180,12 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
   /* ---------- tabs / theme / controls ---------- */
   function switchTab(name){
     $$("#tabs button").forEach(function(b){ b.classList.toggle("active", b.getAttribute("data-tab")===name); });
-    ["today","screener","golden","silver","darvas","hdf","coil","candles","mb","journal","book","analyzer","announce","playbook"].forEach(function(t){ $("#tab-"+t).hidden = (t!==name); });
+    ["today","screener","golden","silver","darvas","hdf","coil","candles","mb","journal","book","compare","analyzer","announce","playbook"].forEach(function(t){ $("#tab-"+t).hidden = (t!==name); });
     if(name==="today") renderToday();
     if(name==="candles") renderCandles();
     if(name==="mb") renderMultibagger();
     if(name==="book") renderBook();
+    if(name==="compare") renderCompare();
     if(name==="golden") renderGolden();
     if(name==="silver") renderSilver();
     if(name==="darvas") renderDarvas();
@@ -9219,6 +9316,17 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
       $("#bookSearch").addEventListener("change", bookSearchJump);
       $("#bookSearch").addEventListener("keydown", function(e){ if(e.key==="Enter"){ e.preventDefault(); bookSearchJump(); } });
     }
+    if($("#cmpSearch")){
+      $("#cmpSearch").addEventListener("change", cmpSearchJump);
+      $("#cmpSearch").addEventListener("keydown", function(e){ if(e.key==="Enter"){ e.preventDefault(); cmpSearchJump(); } });
+    }
+    $$("#cmpOffset button").forEach(function(b){
+      b.addEventListener("click", function(){
+        cmpOffset = +b.getAttribute("data-v")||1;
+        $$("#cmpOffset button").forEach(function(x){ x.setAttribute("aria-pressed", String(x===b)); });
+        renderCompare();
+      });
+    });
     if($("#bookRefreshLive")) $("#bookRefreshLive").addEventListener("click", function(){
       var d=bookPool[state.bookIdx]; if(!d) return;
       delete chartCache[d.symbol]; var ex=getExtra(d.symbol); if(ex) delete ex.chart;
