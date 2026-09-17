@@ -462,7 +462,7 @@ table.sc-setup td.num{font-family:"IBM Plex Mono",monospace;text-align:right}
     <span class="mark" aria-hidden="true">₹</span>
     <div>
       <h1>The 10% Ledger</h1>
-      <p>Momentum + pullback screener · NSE swing setups <span style="opacity:.5;font-size:11px">· build 2026-09-18b</span></p>
+      <p>Momentum + pullback screener · NSE swing setups <span style="opacity:.5;font-size:11px">· build 2026-09-18c</span></p>
     </div>
   </div>
   <div class="controls">
@@ -1187,17 +1187,18 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
   <section id="tab-compare" hidden>
     <div class="card">
       <h2>Chart Compare</h2>
-      <p class="hint">The same stock, now and earlier, side by side — a day, two days, or a week back — so you can compare how price and the moving averages actually looked without flipping back and forth. Candles and MAs only, no trade plan overlay, to keep the comparison clean.</p>
+      <p class="hint">The same stock, now and earlier, side by side — so you can compare how price and the moving averages actually looked without flipping back and forth. Candles and MAs only, no trade plan overlay, to keep the comparison clean.</p>
       <div class="row-actions" style="margin-bottom:10px;flex-wrap:wrap">
         <label class="chk" style="margin-left:0">Symbol
           <input id="cmpSearch" type="text" list="bookSyms" placeholder="symbol…" autocomplete="off" spellcheck="false"
                  style="margin-left:6px;width:130px;padding:6px 8px;background:var(--bg);border:1px solid var(--line-strong);border-radius:6px;font-size:13px;text-transform:uppercase">
         </label>
-        <div class="seg" id="cmpOffset" role="group" aria-label="Compare against">
-          <button data-v="1" aria-pressed="true">1 day ago</button>
-          <button data-v="2" aria-pressed="false">2 days ago</button>
-          <button data-v="5" aria-pressed="false">1 week ago</button>
-        </div>
+        <span class="chk" style="margin-left:0;gap:4px" title="Step the 'Earlier' panel back or forward, a day at a time, or jump a week at once — any number of trading days back, not just fixed presets.">
+          <button id="cmpBack1" class="ghost" title="Step the earlier panel back 1 more trading day">◀ 1d</button>
+          <button id="cmpBackW" class="ghost" title="Jump back ~1 week (5 trading days)">1w back</button>
+          <button id="cmpFwd1" class="ghost" title="Step the earlier panel forward 1 trading day">1d ▶</button>
+          <span id="cmpOffsetLabel" class="dim" style="font-size:12px"></span>
+        </span>
       </div>
       <div class="cmp-grid">
         <div class="cmp-pane">
@@ -3262,8 +3263,7 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
     host.innerHTML = meta + buildChartSVG(o, {symbol:sym, weekly:false});
   }
   function cmpDrawPair(sym){
-    var labels = {1:"1 day ago", 2:"2 days ago", 5:"1 week ago"};
-    if($("#cmpPastLabel")) $("#cmpPastLabel").textContent = labels[cmpOffset] || (cmpOffset+"d ago");
+    if($("#cmpOffsetLabel")) $("#cmpOffsetLabel").textContent = cmpOffset+" trading day"+(cmpOffset===1?"":"s")+" back";
     var cached = chartCache[sym];
     if(!cached){ var ex=getExtra(sym); if(ex && ex.chart && ex.chart.c && ex.chart.c.length>=30) cached = ex.chart; }
     function paint(o){
@@ -3287,7 +3287,7 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
     var rows = parseBatch($("#batchInput").value);
     if(!cmpSym && rows.length) cmpSym = rows.slice().sort(function(a,b){ return scoreStock(b).total-scoreStock(a).total; })[0].symbol;
     if($("#cmpSearch") && !$("#cmpSearch").value) $("#cmpSearch").value = cmpSym||"";
-    $$("#cmpOffset button").forEach(function(b){ b.setAttribute("aria-pressed", String(+b.getAttribute("data-v")===cmpOffset)); });
+    if($("#cmpOffsetLabel")) $("#cmpOffsetLabel").textContent = cmpOffset+" trading day"+(cmpOffset===1?"":"s")+" back";
     if(!cmpSym || !rows.some(function(r){ return r.symbol===cmpSym; })){
       $("#cmpNowChart").innerHTML = '<p class="empty">'+(rows.length ? (cmpSym ? '“'+esc(cmpSym)+'” isn’t in the last scan.' : 'Type a symbol above.') : 'Run a scan first (Screener → Scan now).')+'</p>';
       $("#cmpPastChart").innerHTML = "";
@@ -9320,13 +9320,9 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
       $("#cmpSearch").addEventListener("change", cmpSearchJump);
       $("#cmpSearch").addEventListener("keydown", function(e){ if(e.key==="Enter"){ e.preventDefault(); cmpSearchJump(); } });
     }
-    $$("#cmpOffset button").forEach(function(b){
-      b.addEventListener("click", function(){
-        cmpOffset = +b.getAttribute("data-v")||1;
-        $$("#cmpOffset button").forEach(function(x){ x.setAttribute("aria-pressed", String(x===b)); });
-        renderCompare();
-      });
-    });
+    if($("#cmpBack1")) $("#cmpBack1").addEventListener("click", function(){ cmpOffset += 1; renderCompare(); });
+    if($("#cmpBackW")) $("#cmpBackW").addEventListener("click", function(){ cmpOffset += 5; renderCompare(); });
+    if($("#cmpFwd1")) $("#cmpFwd1").addEventListener("click", function(){ cmpOffset = Math.max(1, cmpOffset-1); renderCompare(); });
     if($("#bookRefreshLive")) $("#bookRefreshLive").addEventListener("click", function(){
       var d=bookPool[state.bookIdx]; if(!d) return;
       delete chartCache[d.symbol]; var ex=getExtra(d.symbol); if(ex) delete ex.chart;
