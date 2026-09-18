@@ -467,7 +467,7 @@ table.sc-setup td.num{font-family:"IBM Plex Mono",monospace;text-align:right}
   <div class="wordmark">
     <span class="mark" aria-hidden="true">₹</span>
     <div>
-      <h1 title="Momentum + pullback screener · NSE swing setups · build 2026-09-18g">The 10% Ledger</h1>
+      <h1 title="Momentum + pullback screener · NSE swing setups · build 2026-09-19a">The 10% Ledger</h1>
     </div>
   </div>
   <div class="controls">
@@ -3185,12 +3185,12 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
                  c: (d.cm.n>=5 && d.cm.b5>=45) ? "pos" : "warn"});
     if(d.db){
       var dbExceptional = d.db.ratio<=0.5;
-      tags.push({t:(dbExceptional?"⭐ ":"")+"🌱 Quiet base → vol breakout · dried to "+Math.round(d.db.ratio*100)+"% then "+d.db.volMult+"×"+(d.db.ago===0?" today":" "+d.db.ago+"d ago")+
+      tags.push({s:(dbExceptional?"⭐ ":"")+"🌱 Quiet base → breakout", t:(dbExceptional?"⭐ ":"")+"🌱 Quiet base → vol breakout · dried to "+Math.round(d.db.ratio*100)+"% then "+d.db.volMult+"×"+(d.db.ago===0?" today":" "+d.db.ago+"d ago")+
         (dbExceptional?" · dramatic dry-up — hist 20d median +4.1%, 73% win (n=30)":" · hist 20d median +2.9%, 64% win"), c:"pos"});
     }
     if(d.bp) d.bp.forEach(function(x){
       var m=BASE_PATTERN[x.code]; if(!m) return;
-      tags.push({t:m.emoji+" "+m.name+" — "+basePatternTooltip(x).replace(/^O'Neil [a-z ]+— /,""), c: x.code==="TWT" ? "pos" : "warn"});
+      tags.push({s:m.emoji+" "+m.name, t:m.emoji+" "+m.name+" — "+basePatternTooltip(x).replace(/^O'Neil [a-z ]+— /,""), c: x.code==="TWT" ? "pos" : "warn"});
     });
     if(d.pb && (d.pb.riding || d.pb.brokeAgo>=0)){
       var pbHasEdge = parabolicHasEdge(d.pb);
@@ -4226,7 +4226,7 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
       '<span class="chip">RS <b>'+(d.rs!=null?Math.round(d.rs):"–")+'</b></span>'+
       '<span class="chip">'+esc(state.timeframe)+' swing</span>'+
       secChip+
-      tags.map(function(t){ return '<span class="chip '+(t.c||"")+'">'+esc(t.t)+'</span>'; }).join("");
+      tags.map(function(t){ return '<span class="chip '+(t.c||"")+'"'+(t.s?' title="'+esc(t.t)+'" style="cursor:help"':'')+'>'+esc(t.s||t.t)+'</span>'; }).join("");
 
     if($("#bookConf")){
       var cr = confidenceRead(d, e);
