@@ -467,7 +467,7 @@ table.sc-setup td.num{font-family:"IBM Plex Mono",monospace;text-align:right}
   <div class="wordmark">
     <span class="mark" aria-hidden="true">₹</span>
     <div>
-      <h1 title="Momentum + pullback screener · NSE swing setups · build 2026-09-19a">The 10% Ledger</h1>
+      <h1 title="Momentum + pullback screener · NSE swing setups · build 2026-09-19c">The 10% Ledger</h1>
     </div>
   </div>
   <div class="controls">
@@ -1070,22 +1070,6 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
         <span class="scan-meta" id="bookMeta"></span>
       </div>
       <p class="hint">Flip through your last scan one chart at a time — like a printed chart book. Each page shows the candlestick chart, <b>which screens the stock passes</b>, and the full trade plan: entry, stop-loss, exit target, reward:risk and position size. Use <b>‹ Prev / Next ›</b> or the ← → arrow keys, or type a symbol in <b>Find</b> to jump straight to it.</p>
-      <details class="sub" id="vsStudy">
-        <summary>Volume-shock follow-through — what they historically do <span class="hint" id="vsStudySum"></span></summary>
-        <div id="vsStudyOut" class="hint" style="margin-top:6px"></div>
-      </details>
-      <details class="sub" id="sxStudy">
-        <summary>Stretch from the 20-EMA — what happens after an over-extension <span class="hint" id="sxStudySum"></span></summary>
-        <div id="sxStudyOut" class="hint" style="margin-top:6px"></div>
-      </details>
-      <details class="sub" id="cmStudy">
-        <summary>Hammer / morning star at the 10-SMA — does a big move follow? <span class="hint" id="cmStudySum"></span></summary>
-        <div id="cmStudyOut" class="hint" style="margin-top:6px"></div>
-      </details>
-      <details class="sub" id="maAngleStudy">
-        <summary>MA angle — which angle finds multibaggers, which angle falls the hardest <span class="hint" id="maAngleStudySum"></span></summary>
-        <div id="maAngleStudyOut" class="hint" style="margin-top:6px"></div>
-      </details>
       <div class="scan-head" style="margin-top:2px;flex-wrap:wrap;gap:8px">
         <label class="chk" style="margin-left:0">Show
           <select id="bookScope" style="margin-left:6px">
@@ -3129,7 +3113,7 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
     else if(e.v.tier>=3) tags.push({t:"Screener · "+e.v.label, c:"warn"});
     else tags.push({t:"Screener · "+e.v.label, c:"neg"});
     if(entryLiveToday(d)) tags.push({t:"⦿ Entry live today · "+e.tr.rr.toFixed(1)+":1", c:"pos"});
-    if(bookInScope(d,"fast")) tags.push({t:"⚡ Fast mover · ADR "+d.adr.toFixed(1)+"%"+(d.probT1!=null?" · +5% "+Math.round(d.probT1*100)+"%":""), c:"warn"});
+    if(bookInScope(d,"fast")) tags.push({s:"⚡ Fast mover", t:"⚡ Fast mover · ADR "+d.adr.toFixed(1)+"%"+(d.probT1!=null?" · +5% "+Math.round(d.probT1*100)+"%":""), c:"warn"});
     if(d.setup && SETUP_LABEL[d.setup]){
       var g=setupGrade(d);
       tags.push({t:SETUP_LABEL[d.setup]+(g?" "+g:""), c:(d.setup==="COIL"||d.setup==="S2")?"warn":"pos"});
@@ -3151,21 +3135,22 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
     else if(d.vm) tags.push({t:"⚡ "+d.vm.mult+"× vol + 10>50 DMA"+(d.vm.ago===0?" today":" "+d.vm.ago+"d"), c:"pos"});
     if(d.adr!=null && d.adr>=3.5) tags.push({t:"ADR "+d.adr.toFixed(1)+"%", c: d.adr>=6?"pos":d.adr>=4?"warn":"dim"});
     if(d.nr && d.nr.ago<=2) tags.push({t:"NR"+d.nr.n+(d.nr.bull?" ↑":"")+(d.nr.inside?" ▫inside":"")+(d.nr.ago===0?" today":" "+d.nr.ago+"d"), c: d.nr.bull?"warn":"dim"});
-    if(d.gx && d.gxw) tags.push({t:"✕✕ 10/50 cross aligned — daily "+(d.gx.ago===0?"today":d.gx.ago+"d")+" + weekly "+(d.gxw.ago===0?"this wk":d.gxw.ago+"w"), c:"pos"});
+    if(d.gx && d.gxw) tags.push({s:"✕✕ 10/50 cross D+W", t:"✕✕ 10/50 cross aligned — daily "+(d.gx.ago===0?"today":d.gx.ago+"d")+" + weekly "+(d.gxw.ago===0?"this wk":d.gxw.ago+"w"), c:"pos"});
     else if(d.gx) tags.push({t:"✕ 10/50 SMA cross "+(d.gx.ago===0?"today":d.gx.ago+"d"), c:"pos"});
-    else if(d.gxw) tags.push({t:"✕ weekly 10/50 cross "+(d.gxw.ago===0?"this week":d.gxw.ago+"w")+" · +"+Math.round(d.gxw.from50*100)+"% vs 50w"+(d.gxw.from50>0.12?" (extended)":""), c: d.gxw.from50>0.12 ? "warn" : "pos"});
+    else if(d.gxw) tags.push({s:"✕ weekly 10/50 cross"+(d.gxw.from50>0.12?" (ext.)":""), t:"✕ weekly 10/50 cross "+(d.gxw.ago===0?"this week":d.gxw.ago+"w")+" · +"+Math.round(d.gxw.from50*100)+"% vs 50w"+(d.gxw.from50>0.12?" (extended)":""), c: d.gxw.from50>0.12 ? "warn" : "pos"});
     if(d.vsk && d.vsk.lvl)
-      tags.push({t:"📊 Vol shock · biggest in "+d.vsk.lvl+" · "+d.vsk.mult.toFixed(1)+"×"+(d.vsk.up?" ↑":" ↓")+(d.vsk.ago===0?" today":" "+d.vsk.ago+"d"),
+      tags.push({s:"📊 Vol shock "+d.vsk.mult.toFixed(1)+"×"+(d.vsk.up?" ↑":" ↓"), t:"📊 Vol shock · biggest in "+d.vsk.lvl+" · "+d.vsk.mult.toFixed(1)+"×"+(d.vsk.up?" ↑":" ↓")+(d.vsk.ago===0?" today":" "+d.vsk.ago+"d"),
                  c: d.vsk.up ? "pos" : "warn"});
     if(d.acc && d.acc.score)
-      tags.push({t:"Accum "+d.acc.label+(d.acc.bo?" · breaking out":"")+" · aVWAP "+nfmt(d.acc.vwap,0),
+      tags.push({s:"Accum "+d.acc.label+(d.acc.bo?" ↑":""), t:"Accum "+d.acc.label+(d.acc.bo?" · breaking out":"")+" · aVWAP "+nfmt(d.acc.vwap,0),
                  c: d.acc.label==="strong"?"pos" : d.acc.label==="distribution"?"neg" : "warn"});
     (function(){
       var shRec = shareholdingGet(d.symbol);
       if(!shRec) return;
       if(shRec.history && shRec.history.length>=3){
         var str = shareholdingTrend(shRec.history);
-        if(str) tags.push({t:"🏦 FII "+(str.netFii>=0?"+":"")+str.netFii.toFixed(1)+"pp over "+str.n+"q · "+
+        if(str) tags.push({s:"🏦 FII "+(str.netFii>=0?"+":"")+str.netFii.toFixed(1)+"pp · "+(str.verdict.code==="sustained"?"accum" : str.verdict.code==="placement_series"?"placements" : "mixed"),
+          t:"🏦 FII "+(str.netFii>=0?"+":"")+str.netFii.toFixed(1)+"pp over "+str.n+"q · "+
           (str.verdict.code==="sustained"?"sustained accum" : str.verdict.code==="placement_series"?"likely placement(s)" : "mixed"),
           c: str.verdict.cls==="pos"?"pos":str.verdict.cls==="neg"?"neg":"warn"});
         return;
@@ -3174,14 +3159,14 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
       var shv = shareholdingVerdict(shRec.q0.prom, shRec.q1.prom, shRec.q0.fii, shRec.q1.fii, shRec.q0.dii, shRec.q1.dii);
       var d2 = (shRec.q1.fii - shRec.q0.fii);
       var codeTxt = shv.code==="strong"?"genuine accum" : shv.code==="placement"?"likely placement" : shv.code==="mixed"?"mixed" : shv.code==="dii_accum"?"DII accum, FII flat" : "flat/reduced";
-      tags.push({t:"🏦 FII "+(d2>=0?"+":"")+d2.toFixed(1)+"pp · "+codeTxt,
+      tags.push({s:"🏦 FII "+(d2>=0?"+":"")+d2.toFixed(1)+"pp", t:"🏦 FII "+(d2>=0?"+":"")+d2.toFixed(1)+"pp · "+codeTxt,
         c: shv.cls==="pos"?"pos":shv.cls==="neg"?"neg":"warn"});
     })();
     if(d.sx && (d.sx.band==="ext-up" || d.sx.band==="ext-dn"))
-      tags.push({t:"↕ Stretched "+(d.sx.z>=0?"+":"")+d.sx.z.toFixed(1)+"σ "+(d.sx.band==="ext-up"?"above":"below")+" 20-EMA",
+      tags.push({s:"↕ Stretched "+(d.sx.z>=0?"+":"")+d.sx.z.toFixed(1)+"σ", t:"↕ Stretched "+(d.sx.z>=0?"+":"")+d.sx.z.toFixed(1)+"σ "+(d.sx.band==="ext-up"?"above":"below")+" 20-EMA",
                  c: d.sx.band==="ext-dn" ? "warn" : "warn"});
     if(d.cm && d.cm.live)
-      tags.push({t:"🔨 "+(d.cm.live==="mstar"?"Morning star":"Hammer")+" at 10-SMA"+(d.cm.n>=5?" · hist "+d.cm.b5+"% made +5% (uptrend)":""),
+      tags.push({s:"🔨 "+(d.cm.live==="mstar"?"Morning star":"Hammer")+" @ 10-SMA", t:"🔨 "+(d.cm.live==="mstar"?"Morning star":"Hammer")+" at 10-SMA"+(d.cm.n>=5?" · hist "+d.cm.b5+"% made +5% (uptrend)":""),
                  c: (d.cm.n>=5 && d.cm.b5>=45) ? "pos" : "warn"});
     if(d.db){
       var dbExceptional = d.db.ratio<=0.5;
@@ -3197,7 +3182,7 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
       var pbTxt = d.pb.brokeAgo>=0
         ? "📉 Parabolic break"+(d.pb.brokeAgo>0?" · "+d.pb.brokeAgo+"d ago":"")+(pbHasEdge?" · hist fell further "+d.pb.hitRate+"% of the time":" · no track record yet")
         : "📉 Parabolic run — still accelerating"+(pbHasEdge?" · past breaks here fell further "+d.pb.hitRate+"% of the time":" · no track record yet");
-      tags.push({t:pbTxt, c: (d.pb.brokeAgo>=0 && pbHasEdge) ? "neg" : "warn"});
+      tags.push({s: d.pb.brokeAgo>=0 ? "📉 Parabolic break" : "📉 Parabolic run", t:pbTxt, c: (d.pb.brokeAgo>=0 && pbHasEdge) ? "neg" : "warn"});
     }
     if(d.rdy){
       var rdyHasEdge = preBreakoutHasEdge(d.rdy);
@@ -3206,7 +3191,7 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
         rdyTxt += " · already "+(d.rdy.run6m>=0?"+":"")+d.rdy.run6m+"% over 6mo";
         if(d.rdy.cohortN>=4) rdyTxt += " (similarly-extended setups here: "+d.rdy.cohortB5+"% made +5%)";
       }
-      tags.push({t:rdyTxt, c: (rdyHasEdge && !d.rdy.extended) ? "pos" : "warn"});
+      tags.push({s:"🎯 Pre-breakout "+d.rdy.readyCount+"/5"+(d.rdy.extended?" (extended)":""), t:rdyTxt, c: (rdyHasEdge && !d.rdy.extended) ? "pos" : "warn"});
     }
     if(d.blueSky) tags.push({t:"All-time high", c:"pos"});
     var rt = resultTiming(d.qDate);
@@ -3216,10 +3201,10 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
     else if(rg.code==="weak") tags.push({t:"Results ▼ shrinking", c:"neg"});
     if(d.mb && d.mb.total!=null){
       var ac = d.mb.arch ? (MB_ARCH[d.mb.arch]||d.mb.arch) : "";
-      tags.push({t:"Multibagger "+d.mb.cls+" · "+d.mb.total+"/120"+(ac?" · "+ac:""), c: /^(A|B)$/.test(d.mb.cls) ? "pos" : d.mb.cls==="C" ? "warn" : "neg"});
+      tags.push({s:"Multibagger "+d.mb.cls+" · "+d.mb.total+"/120", t:"Multibagger "+d.mb.cls+" · "+d.mb.total+"/120"+(ac?" · "+ac:""), c: /^(A|B)$/.test(d.mb.cls) ? "pos" : d.mb.cls==="C" ? "warn" : "neg"});
       var eg = mbEarly(d);
       if(eg && (eg.tier==="early" || eg.tier==="ignition"))
-        tags.push({t:(MB_EARLY_ICON[eg.tier]||"")+" Early/Ignition "+eg.score+(eg.bits[0]?" · "+eg.bits[0]:""), c: eg.tier==="ignition"?"pos":"warn"});
+        tags.push({s:(MB_EARLY_ICON[eg.tier]||"")+" Early/Ignition "+eg.score, t:(MB_EARLY_ICON[eg.tier]||"")+" Early/Ignition "+eg.score+(eg.bits[0]?" · "+eg.bits[0]:""), c: eg.tier==="ignition"?"pos":"warn"});
     }
     return tags;
   }
@@ -3519,21 +3504,6 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
       down: ds ? { n:ds, stocks:stD, hit:Math.round(dEvHit/ds), med:Math.round(dEvMed/ds*10)/10 } : null
     };
   }
-  function renderVsStudy(rows){
-    var out=$("#vsStudyOut"), sum=$("#vsStudySum"); if(!out) return;
-    var s = volShockStudy(rows);
-    if(!s){ if(sum) sum.textContent="· no data"; out.innerHTML='<span class="empty">Run a scan (Screener → Scan now) — this reads every scanned stock’s 2-year history.</span>'; return; }
-    var u=s.up, dn=s.down;
-    if(sum) sum.textContent = u ? "· "+u.hit+"% higher after 20 days · median "+(u.med>=0?"+":"")+u.med+"%" : "";
-    out.innerHTML =
-      '<p style="margin:0 0 6px">Across this scan, at every historical bar that was the <b>highest volume in ~90+ sessions</b> and <b>≥ 2.5× the ~50-day average</b>, measured 20 sessions later:</p>'+
-      '<table class="oc-guide" style="max-width:560px">'+
-        '<tr><th>Shock bar</th><th>Events</th><th>Higher after 20d</th><th>Median move</th><th>Top-quartile move</th></tr>'+
-        (u ? '<tr><td><b class="pos">closed up</b></td><td class="num">'+u.n+' <span class="dim">('+u.stocks+' stocks)</span></td><td class="num"><b>'+u.hit+'%</b></td><td class="num">'+(u.med>=0?'+':'')+u.med+'%</td><td class="num pos">+'+u.p75+'%</td></tr>' : '')+
-        (dn ? '<tr><td><b class="neg">closed down</b></td><td class="num">'+dn.n+' <span class="dim">('+dn.stocks+' stocks)</span></td><td class="num">'+dn.hit+'%</td><td class="num">'+(dn.med>=0?'+':'')+dn.med+'%</td><td class="num dim">–</td></tr>' : '')+
-      '</table>'+
-      '<p style="margin:6px 0 0;color:var(--muted)">A ~50–52% base rate is a coin-flip for any NSE stock over 20 days. An <b>up-bar</b> shock with a hit rate meaningfully above that + a healthy median is the version worth acting on — best when it’s also at a base and the regime isn’t Red. Sample is your scanned universe, so it shifts with which stocks you scan.</p>';
-  }
 
   // aggregate the per-stock stretch-from-20-EMA follow-through across the whole scan
   function stretchStudy(rows){
@@ -3546,21 +3516,6 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
     if(!U.n && !D.n) return null;
     var mk=function(o){ return o.n ? { n:o.n, st:o.st, tag:Math.round(o.tag/o.n), fwd:Math.round(o.fwd/o.n*10)/10, adv:Math.round(o.adv/o.n*10)/10 } : null; };
     return { up:mk(U), down:mk(D) };
-  }
-  function renderSxStudy(rows){
-    var out=$("#sxStudyOut"), sum=$("#sxStudySum"); if(!out) return;
-    var s = stretchStudy(rows);
-    if(!s){ if(sum) sum.textContent="· no data"; out.innerHTML='<span class="empty">Run a scan — this reads every scanned stock’s history of over-extensions from its 20-EMA.</span>'; return; }
-    var u=s.up, dn=s.down;
-    if(sum) sum.textContent = u ? "· back to the 20-EMA within 10d "+u.tag+"% of the time" : (dn?"· bounce to the 20-EMA "+dn.tag+"% of the time":"");
-    out.innerHTML =
-      '<p style="margin:0 0 6px">Across this scan, at every historical bar where price was <b>≥ 2σ from its 20-EMA</b> (the disparity z-score), measured over the next <b>10 sessions</b>:</p>'+
-      '<table class="oc-guide" style="max-width:600px">'+
-        '<tr><th>Stretch</th><th>Events</th><th>Tagged the 20-EMA ≤ 10d</th><th>Median 10-day move</th><th>Median excursion the other way</th></tr>'+
-        (u ? '<tr><td><b class="warn">≥ +2σ above</b></td><td class="num">'+u.n+' <span class="dim">('+u.st+' stocks)</span></td><td class="num"><b>'+u.tag+'%</b></td><td class="num">'+(u.fwd>=0?'+':'')+u.fwd+'%</td><td class="num neg">−'+u.adv+'%</td></tr>' : '')+
-        (dn ? '<tr><td><b class="pos">≤ −2σ below</b></td><td class="num">'+dn.n+' <span class="dim">('+dn.st+' stocks)</span></td><td class="num"><b>'+dn.tag+'%</b></td><td class="num">'+(dn.fwd>=0?'+':'')+dn.fwd+'%</td><td class="num pos">+'+dn.adv+'%</td></tr>' : '')+
-      '</table>'+
-      '<p style="margin:6px 0 0;color:var(--muted)">Note what the median 10-day move usually shows: an over-extension <b>up</b> mostly <i>pauses and drifts</i>, it rarely collapses — the bigger studies (25-yr Nasdaq-100; Avramov-Kaplanski-Subrahmanyam 2021) find extension is a <b>momentum</b> signal over weeks/months. The tradable edge is the <b>oversold</b> side — stretched below the 20-EMA in an uptrend is a pullback-buy. Sample shifts with which stocks you scan.</p>';
   }
 
   // aggregate the "hammer / morning star at the 10-SMA → big move" backtest across the scan
@@ -3578,21 +3533,6 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
       dn: D.n?{ n:D.n, st:D.st, pUp:Math.round(D.up/D.n), fw:Math.round(D.fw/D.n*10)/10 }:null,
       live: liveN
     };
-  }
-  function renderCmStudy(rows){
-    var out=$("#cmStudyOut"), sum=$("#cmStudySum"); if(!out) return;
-    var s = candleMAStudy(rows);
-    if(!s){ if(sum) sum.textContent="· no data"; out.innerHTML='<span class="empty">Run a scan — this reads every scanned stock’s history of hammer / morning-star candles that tagged the 10-SMA.</span>'; return; }
-    var u=s.up, dn=s.dn;
-    if(sum) sum.textContent = u ? "· "+u.b5+"% made a ≥ 5% move · "+u.pUp+"% higher 10d later" : "";
-    out.innerHTML =
-      '<p style="margin:0 0 6px">Your claim, tested on every scanned stock: a <b>hammer or morning-star candle whose low tagged the 10-SMA</b>, then the next <b>10 sessions</b> — split by whether the <b>10-SMA was above the 50-SMA</b> (a pullback to support in an uptrend) or below it:</p>'+
-      '<table class="oc-guide" style="max-width:640px">'+
-        '<tr><th>Context</th><th>Events</th><th>Higher 10d later</th><th>Made ≥ +5%</th><th>Made ≥ +8%</th><th>Median peak (10d)</th></tr>'+
-        (u ? '<tr><td><b class="pos">10-SMA &gt; 50-SMA</b><br><span class="dim">pullback in an uptrend</span></td><td class="num">'+u.n+' <span class="dim">('+u.st+' stk)</span></td><td class="num"><b>'+u.pUp+'%</b></td><td class="num pos"><b>'+u.b5+'%</b></td><td class="num pos">'+u.b8+'%</td><td class="num">+'+u.mf+'%</td></tr>' : '')+
-        (dn ? '<tr><td><b class="neg">10-SMA &lt; 50-SMA</b><br><span class="dim">countertrend catch</span></td><td class="num">'+dn.n+' <span class="dim">('+dn.st+' stk)</span></td><td class="num">'+dn.pUp+'%</td><td class="num dim">–</td><td class="num dim">–</td><td class="num">'+(dn.fw>=0?'+':'')+dn.fw+'%</td></tr>' : '')+
-      '</table>'+
-      '<p style="margin:6px 0 0;color:var(--muted)">Base rate for reference: any NSE stock over 10 sessions is up ~52% of the time and makes a ≥ 5% peak roughly ~30–35% of the time. So the pattern is worth trading only if the <b>uptrend row</b> beats that by a clear margin. The literature agrees on the direction: Bulkowski rates the <b>hammer</b> a weak reversal (~59%) on its own but the <b>morning star</b> ~78%, and both improve sharply when they form <i>at support in an uptrend</i> — which is exactly the 10-SMA-above-50 row. '+(s.live?('<b>'+s.live+'</b> scanned stock'+(s.live===1?' has':'s have')+' this setup live now — Chart Book → "Hammer / morning star at the 10-SMA".'):'')+' Sample shifts with which stocks you scan.</p>';
   }
 
   // MA-angle backtest — buckets the SAME degree-deviation the "MA angle" chart gauge shows
@@ -3732,34 +3672,6 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
         longN: x.longN });
     });
     return { rows:out, totalStocks:totalStocks };
-  }
-  function renderMaAngleStudy(rows){
-    var out=$("#maAngleStudyOut"), sum=$("#maAngleStudySum"); if(!out) return;
-    var s = maAngleStudy(rows);
-    if(!s || !s.rows.length){
-      if(sum) sum.textContent="· no data";
-      out.innerHTML='<span class="empty">Needs stocks with a cached chart — run a scan first (Chart Book keeps full history for the top-scored names), or open a few charts here to cache them, then reopen this.</span>';
-      return;
-    }
-    var best = s.rows.filter(function(r){return r.mbRate!=null;}).slice().sort(function(a,b){return b.mbRate-a.mbRate;})[0];
-    var worst = s.rows.slice().sort(function(a,b){return a.avgDD-b.avgDD;})[0];
-    if(sum) sum.textContent = best ? "· "+best.bucket+" found the most multibaggers · "+worst.bucket+" fell the hardest" : "";
-    out.innerHTML =
-      '<p style="margin:0 0 6px">Every 5th bar of every cached stock\'s history, bucketed by the <b>same 10-SMA vs 50-SMA degree deviation the chart gauge shows</b> (fixed units: atan2(%-change over 10 bars, 10 bars) — comparable across stocks). For each bucket: how far price fell at worst over the <b>next month</b>, and — for bars with at least ~5 months of runway left in the cached history — whether price at least <b>doubled</b> at some point afterward (a rough multibagger track, not a strict definition).</p>'+
-      '<table class="oc-guide" style="max-width:720px">'+
-        '<tr><th>10-SMA vs 50-SMA angle</th><th>Events</th><th>Worst drawdown (next 20d, avg)</th><th>Went on to 2×+ at some point</th><th>Median longer-run return</th></tr>'+
-        s.rows.map(function(r){
-          var isBest = best && r.bucket===best.bucket, isWorst = r.bucket===worst.bucket;
-          return '<tr'+(isBest?' style="background:var(--surface-2)"':'')+'>'+
-            '<td><b'+(isBest?' class="pos"':isWorst?' class="neg"':'')+'>'+esc(r.bucket)+'</b></td>'+
-            '<td class="num">'+r.n+' <span class="dim">('+r.stocks+' stk)</span></td>'+
-            '<td class="num'+(isWorst?' neg':'')+'">'+r.avgDD+'%</td>'+
-            '<td class="num'+(isBest?' pos':'')+'">'+(r.mbRate!=null?r.mbRate+'% <span class="dim">(n='+r.longN+')</span>':'<span class="dim">– not enough runway</span>')+'</td>'+
-            '<td class="num">'+(r.avgLongRet!=null?(r.avgLongRet>=0?'+':'')+r.avgLongRet+'%':'<span class="dim">–</span>')+'</td>'+
-          '</tr>';
-        }).join("")+
-      '</table>'+
-      '<p style="margin:6px 0 0;color:var(--muted)">Across <b>'+s.totalStocks+'</b> cached stock'+(s.totalStocks===1?'':'s')+' — Chart Book only keeps full history for the top-scored names from your scan, so this widens (and gets more reliable) the more of them you\'ve opened. Bars 5 apart, not every single day, to avoid one long trend dominating the count. "2×+ at some point" checks the highest price reached in the runway, not just where it closed — a real 2× move counts even if it later gave some back. This describes what already happened on THESE stocks\' own charts, not a forecast for any specific stock today.</p>';
   }
 
   // live "stretch from the mean" read for the chart on screen (uses fresh candles)
@@ -4131,10 +4043,6 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
     $$("#bookMA button").forEach(function(x){ x.setAttribute("aria-pressed", String(x.getAttribute("data-v")===(state.chartMA||"ema"))); });
     $$("#bookOverlay button").forEach(function(x){ var v=x.getAttribute("data-v"); x.setAttribute("aria-pressed", String(v==="sr" ? state.bookSR!==false : v==="vwap" ? state.bookVwap!==false : v==="trend" ? state.bookTrend!==false : v==="stretch" ? state.bookStretchBand===true : v==="fii" ? state.bookFiiWindow!==false : v==="vap" ? state.bookVap===true : v==="nifty" ? state.bookNifty===true : state.bookPat!==false)); });
     var rows = parseBatch($("#batchInput").value);
-    renderVsStudy(rows);
-    renderSxStudy(rows);
-    renderCmStudy(rows);
-    renderMaAngleStudy(rows);
     var pool = rows.filter(function(d){ return bookInScope(d, scope); });
     if(scope==="mb" || scope==="mba" || scope==="mbtop")
       pool.sort(function(a,b){ return (b.mb?b.mb.total:0) - (a.mb?a.mb.total:0); });
