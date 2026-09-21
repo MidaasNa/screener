@@ -470,7 +470,7 @@ table.sc-setup td.num{font-family:"IBM Plex Mono",monospace;text-align:right}
   <div class="wordmark">
     <span class="mark" aria-hidden="true">₹</span>
     <div>
-      <h1 title="Momentum + pullback screener · NSE swing setups · build 2026-09-20b">The 10% Ledger</h1>
+      <h1 title="Momentum + pullback screener · NSE swing setups · build 2026-09-21b">The 10% Ledger</h1>
     </div>
   </div>
   <div class="controls">
@@ -634,6 +634,7 @@ table.sc-setup td.num{font-family:"IBM Plex Mono",monospace;text-align:right}
         <label class="chk" style="margin-left:0" title="Only stocks whose sector currently scores the full 20 on the Sector filter — set manually in Screener → Leading sectors, or automatically via its Auto button."><input type="checkbox" id="onlySectorLead"> Leading sector</label>
         <label class="chk" style="margin-left:0" title="O'Neil cup-with-handle volume signature: volume dried up before the breakout, then surged on the breakout bar (a fresh 40-bar high on ≥1.5× 50-day-avg volume). Backtested: this exact shape went on to a 20-day median +2.94% / 64% win-rate, vs. 50% for a breakout NOT preceded by a dry-up."><input type="checkbox" id="onlyDryUp"> 🌱 Quiet base → volume breakout</label>
         <label class="chk" style="margin-left:0" title="Any of O'Neil's 4 named base shapes: 🍽 flat base, 📶 ascending base, 🎯 three-weeks-tight, 🚩 high tight flag. Shown as structural classification, not a backed standalone signal — backtested separately, see each badge's tooltip for its own numbers."><input type="checkbox" id="onlyBaseNamed"> O'Neil named base pattern</label>
+        <label class="chk" style="margin-left:0" title="Trend-following structure: daily AND weekly higher highs + higher lows, with RSI holding ≥50 (never under 40 in 20 days). Backtested 20-day: +2.00% median / 59% win vs +1.50% / 57% for any bar — small but steady, consistent before and after 2021."><input type="checkbox" id="onlyTrendFollow"> 📈 Trend structure (HH+HL D+W, RSI ≥50)</label>
         <label class="chk" style="margin-left:0"><input type="checkbox" id="onlyActionable"> Actionable</label>
       </div>
       <div class="summary" id="summary" aria-live="polite"></div>
@@ -1114,6 +1115,7 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
             <option value="mbearly">Multibagger + early / volume ignition</option>
             <option value="dryup">🌱 Quiet base → volume breakout</option>
             <option value="basepattern">O'Neil named base pattern</option>
+            <option value="trendfollow">📈 Trend structure (HH+HL daily + weekly, RSI ≥50)</option>
             <option value="watchlist">Watchlist</option>
           </select>
         </label>
@@ -1179,7 +1181,7 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
   <section id="tab-compare" hidden>
     <div class="card">
       <h2>Chart Compare</h2>
-      <p class="hint">The same stock, now and earlier, side by side — so you can compare how price and the moving averages actually looked without flipping back and forth. No trade-plan lines (entry/stop/target) on either panel, to keep the comparison clean — but chart overlays below are shared with Chart Book and apply to both.</p>
+      <p class="hint"><b>Practice:</b> press <b>🎲 Random date</b> — it hides the current chart and shows the stock as of a random earlier day; guess the next candle, then press <b>1d ▶</b> to reveal it. The same stock, now and earlier, side by side — so you can compare how price and the moving averages actually looked without flipping back and forth. No trade-plan lines (entry/stop/target) on either panel, to keep the comparison clean — but chart overlays below are shared with Chart Book and apply to both.</p>
       <div class="row-actions" style="margin-bottom:6px;flex-wrap:wrap">
         <label class="chk" style="margin-left:0">Symbol
           <input id="cmpSearch" type="text" list="bookSyms" placeholder="symbol…" autocomplete="off" spellcheck="false"
@@ -1188,8 +1190,14 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
         <span class="chk" style="margin-left:0;gap:4px" title="Step the 'Earlier' panel back or forward, a day at a time, or jump a week at once — any number of trading days back, not just fixed presets.">
           <button id="cmpBack1" class="ghost" title="Step the earlier panel back 1 more trading day">◀ 1d</button>
           <button id="cmpBackW" class="ghost" title="Jump back ~1 week (5 trading days)">1w back</button>
-          <button id="cmpFwd1" class="ghost" title="Step the earlier panel forward 1 trading day">1d ▶</button>
+          <button id="cmpFwd1" class="ghost" title="Reveal the next candle — step the earlier panel forward 1 trading day (0 = the latest bar)">1d ▶</button>
+          <button id="cmpFwdW" class="ghost" title="Reveal the next ~week — step the earlier panel forward 5 trading days">1w ▶</button>
           <span id="cmpOffsetLabel" class="dim" style="font-size:12px"></span>
+        </span>
+        <span class="chk" style="margin-left:0;gap:8px;flex-wrap:wrap" title="Practice mode: jump to a random date in this stock's history, hide the current chart so you can't peek, then guess the next candle / move and press 1d ▶ to reveal it.">
+          <button id="cmpRandom" class="ghost">🎲 Random date</button>
+          <label class="chk" style="margin-left:0" title="Also switch to a different random stock from your last scan each time you press Random"><input type="checkbox" id="cmpRandStock"> new stock too</label>
+          <label class="chk" style="margin-left:0" title="Hide the 'Now' chart so the earlier chart fills the width and the latest prices don't give the answer away"><input type="checkbox" id="cmpHideNow"> Hide current chart</label>
         </span>
       </div>
       <div class="seg" id="cmpOverlay" role="group" aria-label="Chart overlays" style="margin-bottom:10px">
@@ -1205,7 +1213,7 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
       </div>
       <div id="cmpLegend"></div>
       <div class="cmp-grid">
-        <div class="cmp-pane">
+        <div class="cmp-pane" id="cmpNowPane">
           <div class="cmp-label">Now</div>
           <div id="cmpNowChart"><p class="empty">Type a symbol above (from your last scan) to compare.</p></div>
         </div>
@@ -1787,7 +1795,7 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
   };
 
   var SAMPLE = [
-    "# cols: SYM,price,EMA20,EMA50,EMA200,RSI,volR,breakout,support,sector,macd,hhhl,resist,probT1,probT10,basePct,baseBars,stage2,RS,setup,trigger,trigWR,athPct,blueSky,revYoY,profYoY,epsYoY,qDate,profYoYPrev,ttmYoY,coil,mvt,gg,sg,dx,hdf,cdl,mb,vm,adr,nr,gx,acc,vsk,vfh,gxw,sx,cm,pb,rdy,db,bp",
+    "# cols: SYM,price,EMA20,EMA50,EMA200,RSI,volR,breakout,support,sector,macd,hhhl,resist,probT1,probT10,basePct,baseBars,stage2,RS,setup,trigger,trigWR,athPct,blueSky,revYoY,profYoY,epsYoY,qDate,profYoYPrev,ttmYoY,coil,mvt,gg,sg,dx,hdf,cdl,mb,vm,adr,nr,gx,acc,vsk,vfh,gxw,sx,cm,pb,rdy,db,bp,tf",
     "HINDZINC, 627, 598, 560, 505, 69, 2.3, 620, 606, L, 1, 1, 0, 0.58, 0.33, 0.06, 22, 6, 88, HDF, inside-bar@0, 0.61, 0.01, 1, 0.19, 0.34, 0.31, 2026-06-30, 0.26, 0.3, , , , , 624|590|12|0.055|0.005|2.4|1|1|1, 0.42|0.16|0.028|1.8|12|624|560, hammer~0~3.4|inside~1~0.62, 72|10|82|C|compounder|15|16|11|7|10|8|5|24.5|13|100|0||0.14|0.18|0.19|1|1.1|0.35|0.09|280000|0|28~0.19~0.16~0.19~0.18|rev-accel+sector-tailwind, 3.4|1|1|1, 4.6, 7|0|1|0.018|1, 2|0.06, 74|strong|590|1.87|3|0.28|1, 310|8.2|1|1, 6|67|9.4|21|2|0|-4.1, 3|0.12, 2.3|3.1|0.3|ext-up|9|67|1.2|5.1|5|60|-0.4|4.4, 11|64|45|27|3.1|6.8|4|38|-1.2|, 8|63|-4.2|-9.5|1|-1",
     "BEL, 415, 402, 395, 360, 66, 1.9, 409, 391, L, 1, 1, 0, 0.55, 0.31, 0.07, 18, 6, 84, BOB, hammer@1, 0.62, 0.03, 1, 0.21, 0.28, 0.27, 2026-06-30, 0.33, 0.24, 14|coil|0.022|0.71|0.006|411||||0.09, , 12|0.06|1|3.6|0.04|420, , , , ldbng~2~2.1|kicker~2~0.004, 80|16|96|B|inflection|16|16|10|8|12|8|6|38|22|100|1|cfdiv|0.16|0.22|0.24|1|0.9|0.05|0.11|95000|0|28~0.17~0.15~0.18~0.22|rev-accel+margin-up+roce-inflect+sector-tailwind, 4.1|0|1|1, 2.2, 4|1|0|0.026|1, , 60|mild|398|1.33|2|0.11|0, 150|4.4|0|1, 4|75|11.2|24|1|0|-6.0, 5|0.07, 1.4|1.9|0.18|warm-up|7|71|2.2|3.8|6|64|1.9|4.6, 8|63|38|19|2.4|5.5|3|33|-0.8|hammer, 6|58|-6.1|-11.2|0|1",
     "JINDALSTEL, 1175, 1120, 1090, 1010, 60, 1.4, 1160, 1120, L, 1, 1, 1240, 0.5, 0.27, 0.11, 26, 5, 76, LBB, , , 0.11, 0, 0.08, 0.12, 0.1, 2026-03-31, 0.21, 0.1, , 4.2|50|0.014|1|1|0.03|12|78",
@@ -2056,6 +2064,8 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
       d.db = (dbp[0]!=null && dbp[0]!=="" && isFinite(+dbp[0])) ? { ratio:+dbp[0]||0, ago:+dbp[1]||0, volMult:+dbp[2]||0 } : null;
       var bpArr = (p[51]||"").split("|").filter(Boolean).map(function(s){ var q=s.split("~"); return {code:(q[0]||"").trim(), a:+q[1]||0, b:+q[2]||0, cc:+q[3]||0}; }).filter(function(x){ return BASE_PATTERN[x.code]; });
       d.bp = bpArr.length ? bpArr : null;
+      var tfp = (p[52]||"").split("|");
+      d.tf = (tfp[0]!=="" && tfp[0]!=null && isFinite(+tfp[0])) ? { ds:+tfp[0], ws:+tfp[1], rsi:+tfp[2], rmin:+tfp[3], pass:(+tfp[0]===1 && +tfp[1]===1 && +tfp[2]>=50 && +tfp[3]>=40) } : null;
       var st = deriveStructure(d.price, d.breakout, d.basePct, d.baseBars, d.volRatio);
       d.structurePts=st.pts; d.structureLbl=st.label;
       rows.push(d);
@@ -2318,6 +2328,7 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
     var onlySL = $("#onlySectorLead") && $("#onlySectorLead").checked;
     var onlyDU = $("#onlyDryUp") && $("#onlyDryUp").checked;
     var onlyBP = $("#onlyBaseNamed") && $("#onlyBaseNamed").checked;
+    var onlyTF = $("#onlyTrendFollow") && $("#onlyTrendFollow").checked;
     var shown = evals;
     if(onlyS2) shown = shown.filter(function(e){ return !!e.d.setup; });
     if(onlyTrg) shown = shown.filter(function(e){ var t=trigParts(e.d); return t && t.ago<=2; });
@@ -2333,6 +2344,7 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
     if(onlySL) shown = shown.filter(function(e){ return e.d.sectorLbl==="leading"; });
     if(onlyDU) shown = shown.filter(function(e){ return !!e.d.db; });
     if(onlyBP) shown = shown.filter(function(e){ return !!(e.d.bp && e.d.bp.length); });
+    if(onlyTF) shown = shown.filter(function(e){ return !!(e.d.tf && e.d.tf.pass); });
     if(onlyAct) shown = shown.filter(function(e){ return e.actionable; });
 
     if(!shown.length){
@@ -2358,7 +2370,8 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
                 : "Backtested: this exact shape (quiet base then a real volume breakout) went on to a 20-day median +2.94% / 64% win-rate — vs. 50% when the breakout wasn't preceded by a dry-up.";
               return ' <span class="pos" title="O\'Neil cup-with-handle volume signature: volume dried up to '+Math.round(e.d.db.ratio*100)+'% of normal right before the breakout, then surged '+e.d.db.volMult+'× on the breakout bar ('+(e.d.db.ago===0?'today':e.d.db.ago+' session'+(e.d.db.ago>1?'s':'')+' ago')+'). '+hist+'" style="font-size:9px">'+(exceptional?'⭐🌱quiet→brk':'🌱quiet→brk')+'</span>';
             })():'')+
-            (e.d.bp?e.d.bp.map(function(x){ var m=BASE_PATTERN[x.code]; return m?' <span class="warn" title="'+esc(basePatternTooltip(x))+'" style="font-size:9px">'+m.emoji+x.code+'</span>':''; }).join(""):'')+'</td>'+
+            (e.d.bp?e.d.bp.map(function(x){ var m=BASE_PATTERN[x.code]; return m?' <span class="warn" title="'+esc(basePatternTooltip(x))+'" style="font-size:9px">'+m.emoji+x.code+'</span>':''; }).join(""):'')+
+            (e.d.tf && e.d.tf.pass?' <span class="pos" title="'+esc(TF_TIP(e.d.tf))+'" style="font-size:9px">📈HH/HL</span>':'')+'</td>'+
           '<td class="num">'+e.sc.total+'</td>'+
           '<td class="num">'+rsCell(e.d.rs)+'</td>'+
           '<td><span class="pill '+e.v.cls+'">'+esc(e.v.label.replace(/ —.*/,""))+'</span></td>'+
@@ -2399,6 +2412,7 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
     var cmN = evals.filter(function(e){ return e.d.cm && e.d.cm.live; }).length;
     var dbN = evals.filter(function(e){ return !!e.d.db; }).length;
     var bpN = evals.filter(function(e){ return !!(e.d.bp && e.d.bp.length); }).length;
+    var tfN = evals.filter(function(e){ return !!(e.d.tf && e.d.tf.pass); }).length;
     var aplus = evals.filter(function(e){ return setupGrade(e.d)==="A+"; }).length;
     var secLeadN = evals.filter(function(e){ return e.d.sectorLbl==="leading"; }).length;
     var topRs = evals.slice().filter(function(e){return e.d.rs!=null;}).sort(function(a,b){return b.d.rs-a.d.rs;})[0];
@@ -2417,6 +2431,7 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
       (cmN?'<span class="chip"><b>'+cmN+'</b> 🔨 hammer/M-star @ 10-SMA</span>':'')+
       (dbN?'<span class="chip"><b>'+dbN+'</b> 🌱 quiet base → vol breakout</span>':'')+
       (bpN?'<span class="chip"><b>'+bpN+'</b> O\'Neil named base pattern</span>':'')+
+      (tfN?'<span class="chip"><b>'+tfN+'</b> 📈 trend structure HH+HL</span>':'')+
       (secLeadN?'<span class="chip"><b>'+secLeadN+'</b> in leading sectors</span>':'')+
       '<span class="chip"><b>'+act+'</b> actionable</span>'+
       (topRs?'<span class="chip">strongest: <b>'+esc(topRs.d.symbol)+'</b> RS '+topRs.d.rs+'</span>':'')+
@@ -3102,6 +3117,7 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
       case "sectorlead":   return d.sectorLbl==="leading";
       case "dryup":        return !!d.db;
       case "basepattern":  return !!(d.bp && d.bp.length);
+      case "trendfollow":  return !!(d.tf && d.tf.pass);
       case "mb":         return d.mb && /^(A|B)$/.test(d.mb.cls);
       case "mba":        return d.mb && d.mb.cls==="A";
       case "mbearly":   { var eg=mbEarly(d); return !!(d.mb && d.mb.total!=null && eg && (eg.tier==="early"||eg.tier==="ignition")); }
@@ -3178,6 +3194,7 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
       tags.push({s:(dbExceptional?"⭐ ":"")+"🌱 Quiet base → breakout", t:(dbExceptional?"⭐ ":"")+"🌱 Quiet base → vol breakout · dried to "+Math.round(d.db.ratio*100)+"% then "+d.db.volMult+"×"+(d.db.ago===0?" today":" "+d.db.ago+"d ago")+
         (dbExceptional?" · dramatic dry-up — hist 20d median +4.1%, 73% win (n=30)":" · hist 20d median +2.9%, 64% win"), c:"pos"});
     }
+    if(d.tf && d.tf.pass) tags.push({s:"📈 Trend structure HH+HL", t:TF_TIP(d.tf), c:"pos"});
     if(d.bp) d.bp.forEach(function(x){
       var m=BASE_PATTERN[x.code]; if(!m) return;
       tags.push({s:m.emoji+" "+m.name, t:m.emoji+" "+m.name+" — "+basePatternTooltip(x).replace(/^O'Neil [a-z ]+— /,""), c: x.code==="TWT" ? "pos" : "warn"});
@@ -3252,7 +3269,24 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
   // rather than sharing it — this tab only ever needs "the current row for one typed symbol", not
   // pagination through a filtered list, so reusing the heavier Chart Book machinery would add
   // coupling risk for no real benefit. Transient, not persisted, same as bookRewindBars.
-  var cmpSym = null, cmpOffset = 1;
+  var cmpSym = null, cmpOffset = 1, cmpHideNow = false, cmpRandPending = false;
+  // Practice mode: random earlier date for the typed stock. Keeps >=220 bars of history behind the cut
+  // (so the 200-EMA etc. still draw) when the series is long enough, and at least 5 bars of "future" to reveal.
+  function cmpRandomOffset(o){
+    var n = o.c.length, maxBack = n-220;
+    if(maxBack<20) maxBack = n-60;
+    if(maxBack<5) return 1;
+    return 5 + Math.floor(Math.random()*(maxBack-5+1));
+  }
+  function cmpOffsetText(){
+    var t = cmpOffset===0 ? "latest bar (today)" : cmpOffset+" trading day"+(cmpOffset===1?"":"s")+" back";
+    if($("#cmpOffsetLabel")) $("#cmpOffsetLabel").textContent = t;
+    if($("#cmpPastLabel")) $("#cmpPastLabel").textContent = (cmpHideNow && cmpOffset>0) ? "Earlier — what happens next?" : "Earlier";
+  }
+  function cmpApplyHide(){
+    if($("#cmpNowPane")) $("#cmpNowPane").hidden = cmpHideNow;
+    if($("#cmpHideNow")) $("#cmpHideNow").checked = cmpHideNow;
+  }
   function cmpSearchJump(){
     var el = $("#cmpSearch"); if(!el) return;
     var q = (el.value||"").trim().toUpperCase();
@@ -3269,11 +3303,12 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
     host.innerHTML = meta + buildChartSVG(o, opts);
   }
   function cmpDrawPair(sym){
-    if($("#cmpOffsetLabel")) $("#cmpOffsetLabel").textContent = cmpOffset+" trading day"+(cmpOffset===1?"":"s")+" back";
+    cmpOffsetText();
     var cached = chartCache[sym];
     if(!cached){ var ex=getExtra(sym); if(ex && ex.chart && ex.chart.c && ex.chart.c.length>=30) cached = ex.chart; }
     function paint(o){
       chartCache[sym] = o;
+      if(cmpRandPending){ cmpRandPending = false; cmpOffset = cmpRandomOffset(o); cmpOffsetText(); }
       cmpPaintPanel($("#cmpNowChart"), o, 0, sym);
       cmpPaintPanel($("#cmpPastChart"), o, cmpOffset, sym);
     }
@@ -3293,12 +3328,13 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
     var rows = parseBatch($("#batchInput").value);
     if(!cmpSym && rows.length) cmpSym = rows.slice().sort(function(a,b){ return scoreStock(b).total-scoreStock(a).total; })[0].symbol;
     if($("#cmpSearch") && !$("#cmpSearch").value) $("#cmpSearch").value = cmpSym||"";
-    if($("#cmpOffsetLabel")) $("#cmpOffsetLabel").textContent = cmpOffset+" trading day"+(cmpOffset===1?"":"s")+" back";
+    cmpOffsetText(); cmpApplyHide();
     $$("#cmpOverlay button").forEach(function(x){ var v=x.getAttribute("data-v"); x.setAttribute("aria-pressed", String(v==="sr" ? state.bookSR!==false : v==="vwap" ? state.bookVwap!==false : v==="trend" ? state.bookTrend!==false : v==="stretch" ? state.bookStretchBand===true : v==="fii" ? state.bookFiiWindow!==false : v==="vap" ? state.bookVap===true : v==="nifty" ? state.bookNifty===true : v==="sd" ? state.bookSD===true : state.bookPat!==false)); });
     if($("#cmpLegend")) $("#cmpLegend").innerHTML = chartLegend(false);
     if(!cmpSym || !rows.some(function(r){ return r.symbol===cmpSym; })){
       $("#cmpNowChart").innerHTML = '<p class="empty">'+(rows.length ? (cmpSym ? '“'+esc(cmpSym)+'” isn’t in the last scan.' : 'Type a symbol above.') : 'Run a scan first (Screener → Scan now).')+'</p>';
       $("#cmpPastChart").innerHTML = "";
+      cmpRandPending = false;
       return;
     }
     cmpDrawPair(cmpSym);
@@ -7196,6 +7232,45 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
     }
     return best;
   }
+  // -- Trend-following structure filter (from a trader's checklist: structure -> trend -> momentum,
+  // higher timeframe first) -- Daily AND weekly swing structure both making higher highs + higher
+  // lows, with RSI(14) holding >=50 now and never dipping under 40 in the last 20 bars (RSI as a
+  // momentum regime, not "30 = buy"). Swing pivots = local extremes over +-3 daily / +-2 weekly bars,
+  // usable only once confirmed; the weekly read uses the last COMPLETED week. Backtested on the
+  // real 26-stock/10y set (20-day fwd; baseline any-bar +1.50% median / 57% win, n=17,691): daily
+  // HH+HL alone +1.54%/57% (no real edge); the full filter +2.00%/59% (n=2,082; +1.91% pre-2021,
+  // +1.93% after - consistent) and +1.04%/57% at 10 days vs +0.66%/55%. A small, steady edge -
+  // used as a screening filter, not a proven signal. NOT built: a "lower highs + lower lows =
+  // weakness" warning (those bars did BETTER, +1.80%/58%, on this survivorship-biased basket) and a
+  // breakout-retest badge (retest held ~ baseline, +1.72%/58% with daily HH+HL; with >=1.5x breakout volume it was worse).
+  function swingPivotsTF(h,l,w){
+    var H=[],L=[],k,j;
+    for(k=w;k<h.length-w;k++){
+      var ih=true, il=true;
+      for(j=k-w;j<=k+w;j++){ if(j===k) continue; if(j<k ? h[j]>=h[k] : h[j]>h[k]) ih=false; if(j<k ? l[j]<=l[k] : l[j]<l[k]) il=false; }
+      if(ih) H.push({i:k,v:h[k],conf:k+w}); if(il) L.push({i:k,v:l[k],conf:k+w});
+    }
+    return {H:H,L:L};
+  }
+  function structAtTF(P,q,maxAge){
+    var hs=P.H.filter(function(p){return p.conf<=q;}).slice(-2), ls=P.L.filter(function(p){return p.conf<=q;}).slice(-2);
+    if(hs.length<2||ls.length<2) return 0;
+    if(q-hs[1].i>maxAge || q-ls[1].i>maxAge) return 0;
+    if(hs[1].v>hs[0].v && ls[1].v>ls[0].v) return 1;
+    if(hs[1].v<hs[0].v && ls[1].v<ls[0].v) return -1;
+    return 0;
+  }
+  function trendFollowRead(o){
+    var h=o.h,l=o.l,c=o.c,n=c.length; if(n<260) return null;
+    var ds=structAtTF(swingPivotsTF(h,l,3), n-1, 80);
+    var w=toWeekly(o), wn=w.c.length; if(wn<14) return null;
+    var wi=wn-2;   // last completed week
+    var ws=structAtTF(swingPivotsTF(w.h,w.l,2), wi, 30);
+    var r=rsiArr(c,14), rn=r[n-1], mn=1e9, k;
+    for(k=n-20;k<n;k++) if(r[k]!=null && r[k]<mn) mn=r[k];
+    if(rn==null) return null;
+    return { ds:ds, ws:ws, rsi:Math.round(rn), rmin:Math.round(mn), pass: ds===1 && ws===1 && rn>=50 && mn>=40 };
+  }
   // ── "quiet base, then breaks out on volume" (William O'Neil cup-with-handle volume signature) ──
   // O'Neil's classic teaching (the annotated 1944 Condé Nast chart in his book): the handle/base
   // should go quiet — volume drying up — right before a real breakout, which then comes on a
@@ -7323,6 +7398,7 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
     var htf=highTightFlagAt(h,l,c); if(htf) out.push({code:"HTF", a:htf.bars, b:Math.round(htf.risePct*1000)/1000, cc:Math.round(htf.pullbackPct*1000)/1000});
     return out;
   }
+  function TF_TIP(t){ return "Trend-following structure: daily AND weekly swing highs + lows both rising (higher highs + higher lows), RSI "+t.rsi+" (holding ≥50, 20-day low "+t.rmin+" ≥40). Backtested (26 stocks, 10y, 20d): +2.00% median / 59% higher vs +1.50% / 57% for any bar — a small, steady edge (+1.04%/57% vs +0.66%/55% at 10 days), not a standalone signal."; }
   function basePatternTooltip(x){
     if(x.code==="FB") return "O'Neil flat base — "+x.a+" trading days sideways ("+Math.round(x.b*100)+"% high-low spread) after a "+Math.round(x.cc*100)+"% prior advance. Backtested: no edge over an ordinary breakout in this basket — 20d median +0.21%, 51% win (n=164), essentially a coin flip. Classification only, one ingredient among many.";
     if(x.code==="AB") return "O'Neil ascending base — 3 pullbacks over "+x.a+" trading days, each low higher than the last (most recent pullback "+Math.round(x.b*100)+"%). Backtested: no differentiated edge over an ordinary breakout in this basket (20d median +2.04%, 55% win, n=64) — classification only.";
@@ -7841,6 +7917,8 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
     var db = dryUpBreakout(op,h,l,c,vol);
     var dbStr = (db && db.quiet) ? [db.ratio, db.ago, db.volMult].join("|") : "";
     // O'Neil named base patterns — flat base / ascending base / three-weeks-tight / high tight flag
+    var tfr = trendFollowRead({h:h, l:l, c:c, o:op, v:vol, d:ds});
+    var tfStr = tfr ? [tfr.ds, tfr.ws, tfr.rsi, tfr.rmin].join("|") : "";
     var bpArr = basePatternsRead({h:h, l:l, c:c, o:op, v:vol, d:ds});
     var bpStr = bpArr.length ? bpArr.map(function(x){ return x.code+"~"+x.a+"~"+x.b+"~"+x.cc; }).join("|") : "";
     // pre-breakout readiness — coil/dry-volume/near-highs/trend/not-extended, 4+ of 5 at once
@@ -7883,7 +7961,7 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
       blueSky: (bsky.newHigh && bsky.above) ? 1 : 0,
       fibZone: fib ? fib.zone : "",
       fibRetr: fib ? Math.round(fib.retr*100)/100 : null,
-      coil: coilStr, mvt: mvtStr, gg: ggStr, sg: sgStr, dx: dxStr, hdf: hdfStr, cdl: cdlStr, mb: "", vm: vmStr, acc: accStr, vsk: vskStr, vfh: vfhStr, gxw: gxwStr, sx: sxStr, cm: cmStr, pb: pbStr, rdy: rdyStr, db: dbStr, bp: bpStr,
+      coil: coilStr, mvt: mvtStr, gg: ggStr, sg: sgStr, dx: dxStr, hdf: hdfStr, cdl: cdlStr, mb: "", vm: vmStr, acc: accStr, vsk: vskStr, vfh: vfhStr, gxw: gxwStr, sx: sxStr, cm: cmStr, pb: pbStr, rdy: rdyStr, db: dbStr, bp: bpStr, tf: tfStr,
       revYoY: null, profYoY: null, epsYoY: null, qDate: "", profYoYPrev: null, ttmYoY: null   // filled in later by applyFund()
     };
   }
@@ -7894,7 +7972,7 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
       r.basePct||0, r.baseBars||0, r.stage2||0, (r.rs==null?"":r.rs), (r.setup||""),
       (r.trig||""), (r.trigWR==null?"":r.trigWR), (r.athPct==null?"":r.athPct), (r.blueSky||0),
       (r.revYoY==null?"":r.revYoY), (r.profYoY==null?"":r.profYoY), (r.epsYoY==null?"":r.epsYoY), (r.qDate||""),
-      (r.profYoYPrev==null?"":r.profYoYPrev), (r.ttmYoY==null?"":r.ttmYoY), (r.coil||""), (r.mvt||""), (r.gg||""), (r.sg||""), (r.dx||""), (r.hdf||""), (r.cdl||""), (r.mb||""), (r.vm||""), (r.adr==null?"":r.adr), (r.nr||""), (r.gx||""), (r.acc||""), (r.vsk||""), (r.vfh||""), (r.gxw||""), (r.sx||""), (r.cm||""), (r.pb||""), (r.rdy||""), (r.db||""), (r.bp||"")].join(", ");
+      (r.profYoYPrev==null?"":r.profYoYPrev), (r.ttmYoY==null?"":r.ttmYoY), (r.coil||""), (r.mvt||""), (r.gg||""), (r.sg||""), (r.dx||""), (r.hdf||""), (r.cdl||""), (r.mb||""), (r.vm||""), (r.adr==null?"":r.adr), (r.nr||""), (r.gx||""), (r.acc||""), (r.vsk||""), (r.vfh||""), (r.gxw||""), (r.sx||""), (r.cm||""), (r.pb||""), (r.rdy||""), (r.db||""), (r.bp||""), (r.tf||"")].join(", ");
   }
 
   /* ---------- auto-screen: fetch adapters ---------- */
@@ -9293,6 +9371,7 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
     if($("#onlyMaVol")) $("#onlyMaVol").addEventListener("change", renderScreener);
     if($("#onlyDryUp")) $("#onlyDryUp").addEventListener("change", renderScreener);
     if($("#onlyBaseNamed")) $("#onlyBaseNamed").addEventListener("change", renderScreener);
+    if($("#onlyTrendFollow")) $("#onlyTrendFollow").addEventListener("change", renderScreener);
     if($("#onlyAdr")) $("#onlyAdr").addEventListener("change", renderScreener);
     if($("#minAdr")) $("#minAdr").addEventListener("input", function(){ if($("#onlyAdr").checked) renderScreener(); });
     if($("#onlyNR")) $("#onlyNR").addEventListener("change", renderScreener);
@@ -9342,7 +9421,19 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
     }
     if($("#cmpBack1")) $("#cmpBack1").addEventListener("click", function(){ cmpOffset += 1; renderCompare(); });
     if($("#cmpBackW")) $("#cmpBackW").addEventListener("click", function(){ cmpOffset += 5; renderCompare(); });
-    if($("#cmpFwd1")) $("#cmpFwd1").addEventListener("click", function(){ cmpOffset = Math.max(1, cmpOffset-1); renderCompare(); });
+    if($("#cmpFwd1")) $("#cmpFwd1").addEventListener("click", function(){ cmpOffset = Math.max(0, cmpOffset-1); renderCompare(); });
+    if($("#cmpFwdW")) $("#cmpFwdW").addEventListener("click", function(){ cmpOffset = Math.max(0, cmpOffset-5); renderCompare(); });
+    if($("#cmpHideNow")) $("#cmpHideNow").addEventListener("change", function(){ cmpHideNow = this.checked; renderCompare(); });
+    if($("#cmpRandom")) $("#cmpRandom").addEventListener("click", function(){
+      var rows = parseBatch($("#batchInput").value);
+      if($("#cmpRandStock") && $("#cmpRandStock").checked && rows.length>1){
+        var pool = rows.filter(function(r){ return r.symbol!==cmpSym; });
+        cmpSym = pool[Math.floor(Math.random()*pool.length)].symbol;
+        if($("#cmpSearch")) $("#cmpSearch").value = cmpSym;
+      }
+      cmpRandPending = true; cmpHideNow = true;
+      renderCompare();
+    });
     $$("#cmpOverlay button").forEach(function(b){
       var v=b.getAttribute("data-v");
       b.addEventListener("click", function(){
