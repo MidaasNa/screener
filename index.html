@@ -470,7 +470,7 @@ table.sc-setup td.num{font-family:"IBM Plex Mono",monospace;text-align:right}
   <div class="wordmark">
     <span class="mark" aria-hidden="true">₹</span>
     <div>
-      <h1 title="Momentum + pullback screener · NSE swing setups · build 2026-09-22c">The 10% Ledger</h1>
+      <h1 title="Momentum + pullback screener · NSE swing setups · build 2026-09-22d">The 10% Ledger</h1>
     </div>
   </div>
   <div class="controls">
@@ -636,6 +636,7 @@ table.sc-setup td.num{font-family:"IBM Plex Mono",monospace;text-align:right}
         <label class="chk" style="margin-left:0" title="Only stocks whose sector currently scores the full 20 on the Sector filter — set manually in Screener → Leading sectors, or automatically via its Auto button."><input type="checkbox" id="onlySectorLead"> Leading sector</label>
         <label class="chk" style="margin-left:0" title="O'Neil cup-with-handle volume signature: volume dried up before the breakout, then surged on the breakout bar (a fresh 40-bar high on ≥1.5× 50-day-avg volume). Backtested: this exact shape went on to a 20-day median +2.94% / 64% win-rate, vs. 50% for a breakout NOT preceded by a dry-up."><input type="checkbox" id="onlyDryUp"> 🌱 Quiet base → volume breakout</label>
         <label class="chk" style="margin-left:0" title="Any of O'Neil's 5 named base shapes: 🍽 flat base, 📶 ascending base, 🎯 three-weeks-tight, 🚩 high tight flag, ☕ cup and handle. Shown as structural classification, not a backed standalone signal — backtested separately, see each badge's tooltip for its own numbers."><input type="checkbox" id="onlyBaseNamed"> O'Neil named base pattern</label>
+        <label class="chk" style="margin-left:0" title="Just the cup-and-handle shape on its own — a rounded U-shaped base, 10-50% deep, recovered to a fresh high, THEN a shallow handle pullback in the upper half of the cup, breaking out above the rim in the last ~3 sessions on volume. Backtested on 750 NSE stocks / 10 years (8,617 breakouts): 20-day median +0.9%, 54% win — essentially no edge over an ordinary breakout (+0.6%/53% baseline). Classification only, not a backed signal."><input type="checkbox" id="onlyCupHandle"> ☕ Cup and handle</label>
         <label class="chk" style="margin-left:0" title="Trend-following structure: daily AND weekly higher highs + higher lows, with RSI holding ≥50 (never under 40 in 20 days). Backtested 20-day: +2.00% median / 59% win vs +1.50% / 57% for any bar — small but steady, consistent before and after 2021."><input type="checkbox" id="onlyTrendFollow"> 📈 Trend structure (HH+HL D+W, RSI ≥50)</label>
         <label class="chk" style="margin-left:0"><input type="checkbox" id="onlyActionable"> Actionable</label>
       </div>
@@ -1119,6 +1120,7 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
             <option value="mbearly">Multibagger + early / volume ignition</option>
             <option value="dryup">🌱 Quiet base → volume breakout</option>
             <option value="basepattern">O'Neil named base pattern</option>
+            <option value="cuphandle">☕ Cup and handle only</option>
             <option value="trendfollow">📈 Trend structure (HH+HL daily + weekly, RSI ≥50)</option>
             <option value="watchlist">Watchlist</option>
           </select>
@@ -2334,6 +2336,7 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
     var onlySL = $("#onlySectorLead") && $("#onlySectorLead").checked;
     var onlyDU = $("#onlyDryUp") && $("#onlyDryUp").checked;
     var onlyBP = $("#onlyBaseNamed") && $("#onlyBaseNamed").checked;
+    var onlyCH = $("#onlyCupHandle") && $("#onlyCupHandle").checked;
     var onlyTF = $("#onlyTrendFollow") && $("#onlyTrendFollow").checked;
     var shown = evals;
     if(onlyS2) shown = shown.filter(function(e){ return !!e.d.setup; });
@@ -2352,6 +2355,7 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
     if(onlySL) shown = shown.filter(function(e){ return e.d.sectorLbl==="leading"; });
     if(onlyDU) shown = shown.filter(function(e){ return !!e.d.db; });
     if(onlyBP) shown = shown.filter(function(e){ return !!(e.d.bp && e.d.bp.length); });
+    if(onlyCH) shown = shown.filter(function(e){ return !!(e.d.bp && e.d.bp.some(function(x){ return x.code==="CH"; })); });
     if(onlyTF) shown = shown.filter(function(e){ return !!(e.d.tf && e.d.tf.pass); });
     if(onlyAct) shown = shown.filter(function(e){ return e.actionable; });
 
@@ -2421,6 +2425,7 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
     var cmN = evals.filter(function(e){ return e.d.cm && e.d.cm.live; }).length;
     var dbN = evals.filter(function(e){ return !!e.d.db; }).length;
     var bpN = evals.filter(function(e){ return !!(e.d.bp && e.d.bp.length); }).length;
+    var chN = evals.filter(function(e){ return !!(e.d.bp && e.d.bp.some(function(x){ return x.code==="CH"; })); }).length;
     var tfN = evals.filter(function(e){ return !!(e.d.tf && e.d.tf.pass); }).length;
     var aplus = evals.filter(function(e){ return setupGrade(e.d)==="A+"; }).length;
     var secLeadN = evals.filter(function(e){ return e.d.sectorLbl==="leading"; }).length;
@@ -2441,6 +2446,7 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
       (cmN?'<span class="chip"><b>'+cmN+'</b> 🔨 hammer/M-star @ 10-SMA</span>':'')+
       (dbN?'<span class="chip"><b>'+dbN+'</b> 🌱 quiet base → vol breakout</span>':'')+
       (bpN?'<span class="chip"><b>'+bpN+'</b> O\'Neil named base pattern</span>':'')+
+      (chN?'<span class="chip"><b>'+chN+'</b> ☕ cup and handle</span>':'')+
       (tfN?'<span class="chip"><b>'+tfN+'</b> 📈 trend structure HH+HL</span>':'')+
       (secLeadN?'<span class="chip"><b>'+secLeadN+'</b> in leading sectors</span>':'')+
       '<span class="chip"><b>'+act+'</b> actionable</span>'+
@@ -3129,6 +3135,7 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
       case "sectorlead":   return d.sectorLbl==="leading";
       case "dryup":        return !!d.db;
       case "basepattern":  return !!(d.bp && d.bp.length);
+      case "cuphandle":    return !!(d.bp && d.bp.some(function(x){ return x.code==="CH"; }));
       case "trendfollow":  return !!(d.tf && d.tf.pass);
       case "mb":         return d.mb && /^(A|B)$/.test(d.mb.cls);
       case "mba":        return d.mb && d.mb.cls==="A";
@@ -9451,6 +9458,7 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
     if($("#onlyMaVol")) $("#onlyMaVol").addEventListener("change", renderScreener);
     if($("#onlyDryUp")) $("#onlyDryUp").addEventListener("change", renderScreener);
     if($("#onlyBaseNamed")) $("#onlyBaseNamed").addEventListener("change", renderScreener);
+    if($("#onlyCupHandle")) $("#onlyCupHandle").addEventListener("change", renderScreener);
     if($("#onlyTrendFollow")) $("#onlyTrendFollow").addEventListener("change", renderScreener);
     if($("#onlyAdr")) $("#onlyAdr").addEventListener("change", renderScreener);
     if($("#minAdr")) $("#minAdr").addEventListener("input", function(){ if($("#onlyAdr").checked) renderScreener(); });
