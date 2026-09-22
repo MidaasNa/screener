@@ -470,7 +470,7 @@ table.sc-setup td.num{font-family:"IBM Plex Mono",monospace;text-align:right}
   <div class="wordmark">
     <span class="mark" aria-hidden="true">₹</span>
     <div>
-      <h1 title="Momentum + pullback screener · NSE swing setups · build 2026-09-22b">The 10% Ledger</h1>
+      <h1 title="Momentum + pullback screener · NSE swing setups · build 2026-09-22c">The 10% Ledger</h1>
     </div>
   </div>
   <div class="controls">
@@ -635,7 +635,7 @@ table.sc-setup td.num{font-family:"IBM Plex Mono",monospace;text-align:right}
         <label class="chk" style="margin-left:0" title="Also require the candle's OWN bar to have traded above its trailing 6-month average volume — the idea being a reversal bar on real volume is more trustworthy than a quiet one. Backtested (26 stocks/10y): requiring it shrinks the sample a lot (1,165→297 cases) and the 10-day median forward return roughly HALVES (+0.91%→+0.42%), while the ≥5%/≥8% peak hit-rates only tick up slightly (44%→45%, 23%→28%). No clear edge from requiring it — this is exposed for you to test, not a rule the tool endorses."><input type="checkbox" id="onlyCMVol"> + vol &gt; 6-mo avg</label>
         <label class="chk" style="margin-left:0" title="Only stocks whose sector currently scores the full 20 on the Sector filter — set manually in Screener → Leading sectors, or automatically via its Auto button."><input type="checkbox" id="onlySectorLead"> Leading sector</label>
         <label class="chk" style="margin-left:0" title="O'Neil cup-with-handle volume signature: volume dried up before the breakout, then surged on the breakout bar (a fresh 40-bar high on ≥1.5× 50-day-avg volume). Backtested: this exact shape went on to a 20-day median +2.94% / 64% win-rate, vs. 50% for a breakout NOT preceded by a dry-up."><input type="checkbox" id="onlyDryUp"> 🌱 Quiet base → volume breakout</label>
-        <label class="chk" style="margin-left:0" title="Any of O'Neil's 4 named base shapes: 🍽 flat base, 📶 ascending base, 🎯 three-weeks-tight, 🚩 high tight flag. Shown as structural classification, not a backed standalone signal — backtested separately, see each badge's tooltip for its own numbers."><input type="checkbox" id="onlyBaseNamed"> O'Neil named base pattern</label>
+        <label class="chk" style="margin-left:0" title="Any of O'Neil's 5 named base shapes: 🍽 flat base, 📶 ascending base, 🎯 three-weeks-tight, 🚩 high tight flag, ☕ cup and handle. Shown as structural classification, not a backed standalone signal — backtested separately, see each badge's tooltip for its own numbers."><input type="checkbox" id="onlyBaseNamed"> O'Neil named base pattern</label>
         <label class="chk" style="margin-left:0" title="Trend-following structure: daily AND weekly higher highs + higher lows, with RSI holding ≥50 (never under 40 in 20 days). Backtested 20-day: +2.00% median / 59% win vs +1.50% / 57% for any bar — small but steady, consistent before and after 2021."><input type="checkbox" id="onlyTrendFollow"> 📈 Trend structure (HH+HL D+W, RSI ≥50)</label>
         <label class="chk" style="margin-left:0"><input type="checkbox" id="onlyActionable"> Actionable</label>
       </div>
@@ -7345,7 +7345,8 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
     FB:  { name:"Flat base",          emoji:"🍽" },
     AB:  { name:"Ascending base",     emoji:"📶" },
     TWT: { name:"Three weeks tight",  emoji:"🎯" },
-    HTF: { name:"High tight flag",    emoji:"🚩" }
+    HTF: { name:"High tight flag",    emoji:"🚩" },
+    CH:  { name:"Cup and handle",     emoji:"☕" }
   };
   function flatBaseAt(h,l,c){
     var n=c.length;
@@ -7415,12 +7416,65 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
     }
     return null;
   }
+  // O'Neil cup-and-handle: a rounded U-shaped decline-and-recovery (the "cup", 10-50% deep,
+  // 40-240 trading days, a genuine bowl not a V-spike — checked with the same quadratic-fit
+  // curvature test used for parabolicRead), recovering to within 5% of the old high, followed by
+  // a shallow pullback (the "handle", staying in the UPPER HALF of the cup, <=~35% deep) and a
+  // fresh breakout above the cup's rim on >=1.3x 50-day-avg volume. Tried several cup lengths and
+  // handle lengths per stock and kept the tightest-fitting (highest-R²) match. Backtested on 750
+  // NSE stocks / 10 years (8,617 breakouts found): 20-day median +0.9%/54% vs a +0.6%/53% any-bar
+  // baseline on the same universe — essentially NO edge (also tried requiring the handle's own
+  // volume to dry up below the cup's average, and a tighter curve fit — neither improved it).
+  // Shown as classification only, exactly like the other four named base patterns above.
+  function cupHandleAt(h,l,c,v){
+    var n=c.length, CUP_LENS=[40,55,75,100,130,165,200,240], RIM_FRAC=0.15, HANDLE_MIN=4, HANDLE_MAX=30;
+    var best=null, t;
+    for(t=n-3; t<n; t++){
+      if(t<261) continue;
+      var recentHi=-1e9, k; for(k=t-35;k<t;k++) if(h[k]>recentHi) recentHi=h[k];
+      if(!(c[t]>recentHi)) continue;
+      var vs=0; for(k=t-50;k<t;k++) vs+=v[k]; var av50=vs/50;
+      if(!(av50>0 && v[t]>=1.3*av50)) continue;
+      for(var li=0; li<CUP_LENS.length; li++){
+        var L=CUP_LENS[li];
+        for(var handleLen=HANDLE_MIN; handleLen<=HANDLE_MAX; handleLen+=2){
+          var rimIdx=t-handleLen, cupStart=rimIdx-L;
+          if(cupStart<0) continue;
+          var lrEnd=cupStart+Math.max(3,Math.floor(L*RIM_FRAC));
+          var leftRim=-1e9; for(k=cupStart;k<lrEnd;k++) if(h[k]>leftRim) leftRim=h[k];
+          var rrStart=rimIdx-Math.max(3,Math.floor(L*RIM_FRAC));
+          var rightRim=-1e9, rightRimIdx=rimIdx;
+          for(k=rrStart;k<=rimIdx;k++) if(h[k]>rightRim){ rightRim=h[k]; rightRimIdx=k; }
+          var cupBottom=1e9; for(k=cupStart;k<=rimIdx;k++) if(l[k]<cupBottom) cupBottom=l[k];
+          if(leftRim<=0 || cupBottom<=0) continue;
+          var depth=(leftRim-cupBottom)/leftRim;
+          if(!(depth>=0.10 && depth<=0.50)) continue;
+          if(!(rightRim>=leftRim*0.95)) continue;
+          var win=c.slice(cupStart, rimIdx+1).map(Math.log);
+          var fit=fitQuadratic(win);
+          if(!fit || fit.a<=0 || fit.r2<0.5) continue;
+          var vertex=-fit.b/(2*fit.a), vfrac=vertex/win.length;
+          if(!(vfrac>=0.2 && vfrac<=0.8)) continue;
+          var midline=cupBottom+(leftRim-cupBottom)*0.5;
+          var handleLow=1e9; for(k=rightRimIdx;k<=t;k++) if(l[k]<handleLow) handleLow=l[k];
+          if(!(handleLow>midline)) continue;
+          var handleDepth=(rightRim-handleLow)/rightRim;
+          if(!(handleDepth<=0.5*depth+0.02 && handleDepth<=0.35)) continue;
+          if(!(c[t]>rightRim && c[t-1]<=rightRim)) continue;
+          var cand={ bars:t-cupStart, ago:n-1-t, depth:depth, handleDepth:handleDepth, r2:fit.r2 };
+          if(!best || cand.r2>best.r2) best=cand;
+        }
+      }
+    }
+    return best;
+  }
   function basePatternsRead(o){
-    var h=o.h, l=o.l, c=o.c, out=[];
+    var h=o.h, l=o.l, c=o.c, v=o.v, out=[];
     var fb=flatBaseAt(h,l,c); if(fb) out.push({code:"FB", a:fb.bars, b:Math.round(fb.rangePct*1000)/1000, cc:Math.round(fb.advPct*1000)/1000});
     var ab=ascendingBaseAt(h,l,c); if(ab) out.push({code:"AB", a:ab.spanBars, b:Math.round(ab.lastPullback*1000)/1000, cc:0});
     var twt=threeWeeksTightAt(o); if(twt) out.push({code:"TWT", a:twt.weeks, b:Math.round(twt.tightPct*10000)/10000, cc:0});
     var htf=highTightFlagAt(h,l,c); if(htf) out.push({code:"HTF", a:htf.bars, b:Math.round(htf.risePct*1000)/1000, cc:Math.round(htf.pullbackPct*1000)/1000});
+    if(v){ var ch=cupHandleAt(h,l,c,v); if(ch) out.push({code:"CH", a:ch.bars, b:Math.round(ch.depth*1000)/1000, cc:Math.round(ch.handleDepth*1000)/1000}); }
     return out;
   }
   function TF_TIP(t){ return "Trend-following structure: daily AND weekly swing highs + lows both rising (higher highs + higher lows), RSI "+t.rsi+" (holding ≥50, 20-day low "+t.rmin+" ≥40). Backtested (26 stocks, 10y, 20d): +2.00% median / 59% higher vs +1.50% / 57% for any bar — a small, steady edge (+1.04%/57% vs +0.66%/55% at 10 days), not a standalone signal."; }
@@ -7429,6 +7483,7 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
     if(x.code==="AB") return "O'Neil ascending base — 3 pullbacks over "+x.a+" trading days, each low higher than the last (most recent pullback "+Math.round(x.b*100)+"%). Backtested: no differentiated edge over an ordinary breakout in this basket (20d median +2.04%, 55% win, n=64) — classification only.";
     if(x.code==="TWT") return "O'Neil three-weeks-tight — the last 3 weekly closes each within "+(x.b*100).toFixed(1)+"% of the prior week. Backtested: the most reliable of the four base patterns (8wk median +1.68%, 59% win, n=728) — still one ingredient, not a standalone signal.";
     if(x.code==="HTF") return "O'Neil high tight flag — rose +"+Math.round(x.b*100)+"% then pulled back "+Math.round(x.cc*100)+"% over the last "+x.a+" trading days. O'Neil calls this pattern rare (\"no more than a few stocks during a bull market\") — only 1 example turned up in this tool's entire backtest, too thin to validate either way.";
+    if(x.code==="CH") return "O'Neil cup and handle — a "+x.a+"-trading-day rounded base, "+Math.round(x.b*100)+"% deep, recovering to a fresh high, then a "+Math.round(x.cc*100)+"% handle pullback staying in the upper half of the cup, now breaking out on volume. Backtested on 750 NSE stocks / 10 years (8,617 breakouts): 20-day median +0.9%, 54% win — essentially NO edge over an ordinary breakout (+0.6%/53% baseline on the same universe). One of the most widely-watched textbook patterns, and it didn't show a real edge here. Classification only.";
     return BASE_PATTERN[x.code].name;
   }
   // Lighter volume+MA confirmation than maVolThrust: 10-DMA (SMA) is above the 50-DMA now,
@@ -7941,7 +7996,7 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
     // quiet base -> breakout on volume (O'Neil cup-with-handle volume signature)
     var db = dryUpBreakout(op,h,l,c,vol);
     var dbStr = (db && db.quiet) ? [db.ratio, db.ago, db.volMult].join("|") : "";
-    // O'Neil named base patterns — flat base / ascending base / three-weeks-tight / high tight flag
+    // O'Neil named base patterns — flat base / ascending base / three-weeks-tight / high tight flag / cup and handle
     var tfr = trendFollowRead({h:h, l:l, c:c, o:op, v:vol, d:ds});
     var tfStr = tfr ? [tfr.ds, tfr.ws, tfr.rsi, tfr.rmin].join("|") : "";
     var bpArr = basePatternsRead({h:h, l:l, c:c, o:op, v:vol, d:ds});
