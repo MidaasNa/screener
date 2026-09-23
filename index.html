@@ -470,7 +470,7 @@ table.sc-setup td.num{font-family:"IBM Plex Mono",monospace;text-align:right}
   <div class="wordmark">
     <span class="mark" aria-hidden="true">₹</span>
     <div>
-      <h1 title="Momentum + pullback screener · NSE swing setups · build 2026-09-23f">The 10% Ledger</h1>
+      <h1 title="Momentum + pullback screener · NSE swing setups · build 2026-09-24b">The 10% Ledger</h1>
     </div>
   </div>
   <div class="controls">
@@ -480,7 +480,7 @@ table.sc-setup td.num{font-family:"IBM Plex Mono",monospace;text-align:right}
     </div>
     <div class="field">
       <label for="riskpct">Risk % / trade</label>
-      <input id="riskpct" type="text" inputmode="decimal" value="1">
+      <input id="riskpct" type="text" inputmode="decimal" value="0.25">
     </div>
     <div class="field">
       <label>Timeframe</label>
@@ -492,9 +492,9 @@ table.sc-setup td.num{font-family:"IBM Plex Mono",monospace;text-align:right}
     <div class="field">
       <label>Market regime</label>
       <div class="seg regime" id="regime" role="group" aria-label="Market regime">
-        <button data-v="auto" aria-pressed="false" title="Auto — set the regime from the Nifty 50 trend + your scan's breadth after each scan.">Auto</button>
+        <button data-v="auto" aria-pressed="true" title="Auto — set the regime from the Nifty 50 trend + your scan's breadth after each scan.">Auto</button>
         <button data-v="green" aria-pressed="false">Green</button>
-        <button data-v="yellow" aria-pressed="true">Yellow</button>
+        <button data-v="yellow" aria-pressed="false">Yellow</button>
         <button data-v="red" aria-pressed="false">Red</button>
       </div>
     </div>
@@ -1084,6 +1084,7 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
         <label class="chk" style="margin-left:0">Show
           <select id="bookScope" style="margin-left:6px">
             <option value="all">All scanned — by score</option>
+            <option value="holdings">📒 My open holdings — exit/stop from your entry</option>
             <option value="actionable">Buy setups only (score ≥ 80, R:R ≥ 2)</option>
             <option value="entrynow">Entry live today — at the trigger, R:R ≥ 2</option>
             <option value="fast">Fast movers — best odds of a quick pop (ADR ≥ 5% + trigger firing)</option>
@@ -1793,7 +1794,7 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
   var KEY = "the10ledger.v1";
 
   var state = {
-    capital: 100000, riskpct: 1, timeframe: "daily", regime: "yellow", regimeMode: "manual", regimeAutoInfo: null,
+    capital: 100000, riskpct: 0.25, timeframe: "daily", regime: "yellow", regimeMode: "auto", regimeAutoInfo: null,
     theme: null, batchInput: "", watchlist: [], sort:{k:"total",dir:-1},
     scanSource: "proxy",
     proxyChoice: "custom",
@@ -3107,6 +3108,7 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
   }
   function bookInScope(d, scope){
     switch(scope){
+      case "holdings":   return jList().some(function(p){ return p.status==="open" && p.symbol===d.symbol; });
       case "actionable": return evaluateRow(d).actionable;
       case "entrynow":   return entryLiveToday(d);
       case "fast":     { // best odds of a fast pop: high volatility + a trigger firing now + a valid trade + not Red
@@ -4131,7 +4133,16 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
     $$("#bookOverlay button").forEach(function(x){ var v=x.getAttribute("data-v"); x.setAttribute("aria-pressed", String(v==="sr" ? state.bookSR!==false : v==="vwap" ? state.bookVwap!==false : v==="trend" ? state.bookTrend!==false : v==="stretch" ? state.bookStretchBand===true : v==="fii" ? state.bookFiiWindow!==false : v==="vap" ? state.bookVap===true : v==="nifty" ? state.bookNifty===true : v==="sd" ? state.bookSD===true : state.bookPat!==false)); });
     var rows = parseBatch($("#batchInput").value);
     var pool = rows.filter(function(d){ return bookInScope(d, scope); });
-    if(scope==="mb" || scope==="mba" || scope==="mbtop")
+    if(scope==="holdings"){
+      var urgency={EXIT:0, "TRIM / TIGHTEN":1, "HOLD — cut size":2, "HOLD & RIDE":3};
+      var openBySym={}; jList().forEach(function(p){ if(p.status==="open") openBySym[p.symbol]=p; });
+      pool.sort(function(a,b){
+        var ha=holdRide(openBySym[a.symbol], a), hb=holdRide(openBySym[b.symbol], b);
+        var ua=ha.has?(urgency[ha.verdict]!=null?urgency[ha.verdict]:4):5, ub=hb.has?(urgency[hb.verdict]!=null?urgency[hb.verdict]:4):5;
+        return ua-ub;
+      });
+    }
+    else if(scope==="mb" || scope==="mba" || scope==="mbtop")
       pool.sort(function(a,b){ return (b.mb?b.mb.total:0) - (a.mb?a.mb.total:0); });
     else if(scope==="confhi" || scope==="confmod" || scope==="leanbull"){
       var cs={};
@@ -4270,7 +4281,7 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
       '<div class="posgrid">'+
         '<div><div class="k">Scale-out +5% / +7.5%</div><div class="v pos">'+inr(tr.t5)+' / '+inr(tr.t75)+'</div></div>'+
         '<div><div class="k">Risk / share</div><div class="v">'+inr(tr.risk)+'</div></div>'+
-        '<div><div class="k">Size · 1% of capital</div><div class="v">'+nfmt(ps.qty,0)+' sh · '+inr(ps.deploy)+'</div></div>'+
+        '<div><div class="k">Size · '+nfmt(state.riskpct,2)+'% of capital</div><div class="v">'+nfmt(ps.qty,0)+' sh · '+inr(ps.deploy)+'</div></div>'+
         '<div><div class="k">Verdict</div><div class="v '+v.cls+'">'+esc(v.label)+'</div></div>'+
       '</div>'+
       (function(){
@@ -4327,6 +4338,17 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
       if(chTag) opts.minBarsBack = chTag.a + 20;
     }
     if(d.chg) opts.cupHandle = d.chg;
+    // an open holding on this symbol overrides the generic setup's entry/stop/target with YOUR
+    // real numbers, and adds a suggested trailing stop + ride ceiling from holdRide() (the same
+    // read already used by the Trading Journal's open-positions table).
+    var holdPos = jList().filter(function(p){ return p.status==="open" && p.symbol===sym; })[0];
+    var holdReadResult = holdPos ? holdRide(holdPos, d) : null;
+    if(holdPos && holdPos.entryPrice>0){
+      opts.entry = holdPos.entryPrice;
+      opts.stop = holdPos.stop>0 ? holdPos.stop : e.tr.stop;
+      opts.t10 = holdPos.entryPrice*1.10;
+      opts.holdRide = holdReadResult;
+    }
     var _oc = readOC();
     if(sym===(($("#a_sym").value||"").toUpperCase()) && ocHasSignal(_oc)){
       opts.ocCall=_oc.call; opts.ocPut=_oc.put; opts.ocMaxpain=_oc.maxpain;
@@ -4375,6 +4397,14 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
       }
       $("#bookRewLabel").textContent = rewound ? ("viewing "+last) : "";
       $("#bookRewLive").hidden = !rewound;
+      if(holdPos && holdReadResult && holdReadResult.has){
+        var hr = holdReadResult;
+        meta += '<div class="cx-asof '+(hr.vcls==="neg"?"warn":"")+'">'+
+          '📒 Your entry '+nfmt(holdPos.entryPrice)+' on '+esc(holdPos.entryDate||"—")+
+          (hr.pnl!=null?' — '+(hr.pnl>=0?'+':'')+(hr.pnl*100).toFixed(1)+'%':'')+
+          (hr.R!=null?' ('+(hr.R>=0?'+':'')+hr.R.toFixed(1)+'R)':'')+
+          '. <b>'+esc(hr.verdict)+'</b> — '+hr.ride+'</div>';
+      }
       meta += maAngleReadoutLine(series, state.chartMA==="sma");
       meta += effortResultReadLine(series);
       meta += hangingManReadLine(series);
@@ -4838,7 +4868,7 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
       notes.push({c:"neg", t:"Earnings in "+ex.eDays+" days ("+ex.eDate+"). A swing here holds through a binary event — wait until after, or cut size hard."});
     if(state.regime==="yellow" && ps.qty>0) notes.push({c:"warn", t:"Regime is Yellow — half size. Regime-adjusted position: "+nfmt(ps.regimeQty,0)+" shares (≈"+inr(ps.regimeQty*tr.entry)+"). Only act if score ≥80 and R:R ≥2."});
     if(state.regime==="red") notes.push({c:"neg", t:"Regime is Red — no new longs. Sizing is informational only."});
-    if(ps.capped) notes.push({c:"warn", t:"Capital-capped: full 1% risk would need more than your capital. Actual risk on "+nfmt(ps.qty,0)+" shares is "+ps.actualRiskPct.toFixed(2)+"%."});
+    if(ps.capped) notes.push({c:"warn", t:"Capital-capped: full "+nfmt(state.riskpct,2)+"% risk would need more than your capital. Actual risk on "+nfmt(ps.qty,0)+" shares is "+ps.actualRiskPct.toFixed(2)+"%."});
     if(d.rsi>75) notes.push({c:"warn", t:"RSI "+d.rsi+" is hot — momentum is strong but the entry is chasing. Prefer a retest."});
     if(d.volRatio<1.5) notes.push({c:"warn", t:"Volume ratio "+d.volRatio+"× is light for a breakout — ideally ≥1.5×, better ≥2×."});
     var trigDrag = d.trigWR!=null && d.trig && d.trigWR < 0.45;
@@ -5620,6 +5650,19 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
     g.push(hline(opts.entry,"cx-ent","Entry"));
     g.push(hline(opts.stop,"cx-stp","Stop"));
     g.push(hline(opts.t10,"cx-tgt","+10%"));
+    // an open holding's own numbers: the ENTRY/STOP/+10% lines above already carry your real
+    // entry price and initial stop (bookDrawChart swaps them in) — these two extra lines are new
+    // information: where the tool now suggests trailing the stop to, and how far the trend can
+    // still run, both computed fresh from today's scan (holdRide()), not frozen at entry.
+    if(opts.holdRide && opts.holdRide.has){
+      var hrd = opts.holdRide;
+      if(hrd.trail && hrd.trail.v>0)
+        g.push('<line x1="'+PL+'" y1="'+f1(Y(hrd.trail.v))+'" x2="'+(W-PR)+'" y2="'+f1(Y(hrd.trail.v))+'" style="stroke:var(--warn);stroke-width:1.3;stroke-dasharray:2,3"/>'+
+               '<text x="'+PL+'" y="'+f1(placeY(Y(hrd.trail.v)-2))+'" style="fill:var(--warn);font-size:9px;font-weight:600">Trail to '+nfmt(hrd.trail.v,0)+' ('+esc(hrd.trail.why)+')</text>');
+      if(hrd.ceil && hrd.ceil.v>0)
+        g.push('<line x1="'+PL+'" y1="'+f1(Y(hrd.ceil.v))+'" x2="'+(W-PR)+'" y2="'+f1(Y(hrd.ceil.v))+'" style="stroke:var(--pos);stroke-width:1.3;stroke-dasharray:2,3"/>'+
+               '<text x="'+(W-PR-2)+'" y="'+f1(placeY(Y(hrd.ceil.v)-2))+'" text-anchor="end" style="fill:var(--pos);font-size:9px;font-weight:600">Ceiling '+nfmt(hrd.ceil.v,0)+' ('+esc(hrd.ceil.why)+')</text>');
+    }
     if(opts.liveLast && opts.livePrice>0) g.push(hline(opts.livePrice,"cx-now","now"));
     // option-chain overlays (manual input, Analyzer)
     g.push(hline(opts.ocPut,"cx-ocput","Put wall"));
