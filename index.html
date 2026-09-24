@@ -462,6 +462,7 @@ table.sc-setup td.num{font-family:"IBM Plex Mono",monospace;text-align:right}
 .disclaimer{max-width:1180px;margin:0 auto;padding:6px 24px 46px;color:var(--muted);font-size:11px;line-height:1.65}
 .disclaimer b{color:var(--ink-soft)}
 </style>
+<script src="https://cdn.jsdelivr.net/npm/astronomy-engine@2.1.19/astronomy.browser.min.js"></script>
 </head>
 <body>
 <h1 class="sr-only">The 10% Ledger — a rules-based momentum and pullback screener for NSE swing trades that ranks setups you feed it and sizes each position.</h1>
@@ -1045,6 +1046,7 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
       <div class="summary" id="jSummary" aria-live="polite" style="margin-top:14px"></div>
 
       <div id="jScorecard"></div>
+      <div id="jAstro"></div>
 
       <h3 style="margin:14px 0 4px">Open positions</h3>
       <div class="table-wrap">
@@ -1804,7 +1806,8 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
     oc: {}, journal: [], journalUrl: "", bookIdx: 0, bookScope: "all",
     bookSR: true, bookPat: true, bookVwap: true, bookTrend: true, bookStretchBand: false, bookFiiWindow: true, bookVap: false, bookNifty: false, bookSD: false, niftySeries: null,
     todaySetup: "golden", todayLead: false, todayRisk: "0.25",
-    mbMinScore: 55, mbNoFlags: false, mbOpen: {}
+    mbMinScore: 55, mbNoFlags: false, mbOpen: {},
+    astroBirth: null
   };
 
   var SAMPLE = [
@@ -4684,6 +4687,179 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
       spark + stbl +
       '<div class="sc-diag">'+sc.diag.map(function(x){ return '<p class="snote '+x.sev+'">'+x.t+'</p>'; }).join("")+'</div>';
   }
+
+  /* ---------- Astro test (experimental) ----------
+     Question: do astrological conditions on the ENTRY date separate your winners from your losers?
+     Factors come from P.V.R. Narasimha Rao, "Vedic Astrology: An Integrated Approach" (muhurta Table 79,
+     tara bala ch.36, transit Tables 54/57, functional nature Table 30) plus one popular folk rule
+     (Mercury retrograde). Birth details live only in localStorage (state.astroBirth), never in this file.
+     Significance: permutation test on mean return, Bonferroni-corrected for the number of factors. */
+  var AST = (function(){
+    var AE = function(){ return window.Astronomy; };
+    function norm(x){ x %= 360; return x < 0 ? x + 360 : x; }
+    function ayan(tt){ var T = tt/36525; return 23.857092 + (5028.796195*T + 1.1054348*T*T)/3600; }
+    function meanNode(T){ return norm(125.0445479 - 1934.1362891*T + 0.0020754*T*T + T*T*T/467441); }
+    function trop(b, t){ var A = AE(); return b === "Moon" ? A.EclipticGeoMoon(t).lon : A.Ecliptic(A.GeoVector(b, t, true)).elon; }
+    var memo = {};
+    function pos(ms){
+      if(memo[ms]) return memo[ms];
+      var A = AE(), t = A.MakeTime(new Date(ms)), ay = ayan(t.tt), o = {};
+      ["Sun","Moon","Mercury","Venus","Mars","Jupiter","Saturn"].forEach(function(b){
+        var a = trop(b, t.AddDays(-0.5)), c = trop(b, t.AddDays(0.5)), sp = norm(c - a + 180) - 180;
+        o[b] = { lon: norm(trop(b, t) - ay), retro: b !== "Sun" && b !== "Moon" && sp < 0 };
+      });
+      var r = norm(meanNode(t.tt/36525) - ay); o.Rahu = {lon:r}; o.Ketu = {lon:norm(r + 180)};
+      for(var k in o){ o[k].sign = Math.floor(o[k].lon/30); o[k].nak = Math.floor(o[k].lon/(360/27)); }
+      o._t = t; memo[ms] = o; return o;
+    }
+    function ascSid(t, lat, lon){
+      var A = AE(), R = Math.PI/180, lst = norm(A.SiderealTime(t)*15 + lon)*R, eps = A.e_tilt(t).tobl*R, phi = lat*R;
+      return norm(Math.atan2(Math.cos(lst), -(Math.sin(lst)*Math.cos(eps) + Math.tan(phi)*Math.sin(eps)))/R - ayan(t.tt));
+    }
+    var VO = ["Ketu","Venus","Sun","Moon","Mars","Rahu","Jupiter","Saturn","Mercury"];
+    var VY = {Ketu:7,Venus:20,Sun:6,Moon:10,Mars:7,Rahu:18,Jupiter:16,Saturn:19,Mercury:17};
+    // Table 30: functional benefics (yogakaraka included) for each lagna, Aries..Pisces
+    var FB = [["Sun","Mars","Jupiter"],["Sun","Mercury","Saturn"],["Venus"],["Moon","Mars","Jupiter"],["Sun","Mars","Jupiter"],["Mercury","Venus"],
+              ["Mercury","Venus","Saturn"],["Moon","Jupiter"],["Sun","Mars"],["Venus","Mercury","Saturn"],["Venus","Saturn"],["Moon","Mars"]];
+    var MOON_GOOD = [1,3,6,7,10,11], JUP_GOOD = [2,5,7,9,11];   // Tables 54 and 57 (houses from natal Moon)
+    var GOOD_TITHI = [2,3,5,7,10,11,13];                          // Table 79: tithis common to every task listed
+    var GOOD_TARA = [2,4,6,8,9];                                  // Sampat, Kshema, Sadhana, Mitra, Parama mitra
+    function hf(a, b){ return ((b - a + 12) % 12) + 1; }
+    function natal(b){
+      if(!b || !b.date) return null;
+      var d = b.date.split("-").map(Number), tm = String(b.time || "12:00").split(":").map(Number);
+      var tz = isFinite(parseFloat(b.tz)) ? parseFloat(b.tz) : 5.5;
+      var utc = Date.UTC(d[0], d[1]-1, d[2], tm[0]||0, tm[1]||0) - tz*3600e3;
+      var p = pos(utc), span = 360/27, n = Math.floor(p.Moon.lon/span), done = (p.Moon.lon % span)/span;
+      var first = VO[n % 9], yd = 365.2425*864e5, start = utc - done*VY[first]*yd, i0 = VO.indexOf(first), md = [];
+      for(var i = 0; i < 18; i++){ var L = VO[(i0 + i) % 9], len = VY[L]*yd; md.push({lord:L, s:start, e:start + len}); start += len; }
+      var hasPlace = String(b.lat).trim() !== "" && String(b.lon).trim() !== "" && isFinite(+b.lat) && isFinite(+b.lon);
+      return { moonSign: p.Moon.sign, nak: n, lagna: hasPlace ? Math.floor(ascSid(p._t, +b.lat, +b.lon)/30) : null, md: md };
+    }
+    function dasaAt(N, t){
+      for(var i = 0; i < N.md.length; i++){ var m = N.md[i]; if(t >= m.s && t < m.e){
+        var len = m.e - m.s, s = m.s, k0 = VO.indexOf(m.lord);
+        for(var k = 0; k < 9; k++){ var a = VO[(k0 + k) % 9], l = len*VY[a]/120; if(t >= s && t < s + l) return {md:m.lord, ad:a}; s += l; }
+      } }
+      return null;
+    }
+    var TITHI = ["Pratipat","Dwitiya","Tritiya","Chaturthi","Panchami","Shashti","Saptami","Ashtami","Navami","Dasami","Ekadasi","Dwadasi","Trayodasi","Chaturdasi"];
+    var NAKS = ["Aswini","Bharani","Krittika","Rohini","Mrigasira","Aardra","Punarvasu","Pushyami","Aasresha","Makha","P.Phalguni","U.Phalguni","Hasta","Chitra","Swaati","Visaakha","Anooraadha","Jyeshtha","Moola","P.Ashadha","U.Ashadha","Sravanam","Dhanishtha","Satabhishak","P.Bhadra","U.Bhadra","Revati"];
+    function factorsAtMs(t, N){
+      var p = pos(t), diff = norm(p.Moon.lon - p.Sun.lon), ti = Math.floor(diff/12), tIn = (ti % 15) + 1;
+      var tname = ti === 14 ? "Purnima" : ti === 29 ? "Amavasya" : (ti < 15 ? "Sukla " : "Krishna ") + TITHI[ti % 15];
+      var f = { waxing: ti < 15, goodTithi: GOOD_TITHI.indexOf(tIn) >= 0 && ti !== 14 && ti !== 29, mercDirect: !p.Mercury.retro,
+                _tithi: tname, _nak: NAKS[p.Moon.nak] };
+      if(N){
+        var cnt = ((p.Moon.nak - N.nak + 27) % 27) + 1, tara = ((cnt - 1) % 9) + 1;
+        f.taraGood = GOOD_TARA.indexOf(tara) >= 0; f._tara = tara;
+        f.moonGood = MOON_GOOD.indexOf(hf(N.moonSign, p.Moon.sign)) >= 0;
+        f.jupGood = JUP_GOOD.indexOf(hf(N.moonSign, p.Jupiter.sign)) >= 0;
+        if(N.lagna !== null){ var da = dasaAt(N, t); if(da){ f.adGood = FB[N.lagna].indexOf(da.ad) >= 0; f._dasa = da.md + "–" + da.ad; } }
+      }
+      return f;
+    }
+    function factorsForDate(dateStr, N){ // entry date, assumed 10:00 IST (market hours)
+      var d = String(dateStr).split("-").map(Number); if(d.length < 3 || !d[0]) return null;
+      return factorsAtMs(Date.UTC(d[0], d[1]-1, d[2], 4, 30), N);
+    }
+    return { natal: natal, factorsForDate: factorsForDate, factorsAtMs: factorsAtMs, ready: function(){ return !!AE(); } };
+  })();
+
+  var ASTRO_FACTORS = [
+    {k:"waxing",     label:"Moon phase",                    a:"Waxing (Sukla paksha)",       b:"Waning (Krishna paksha)", src:"book ch.3 — natural benefics are strong in Sukla paksha"},
+    {k:"goodTithi",  label:"Tithi",                         a:"Favoured tithi (2,3,5,7,10,11,13)", b:"Other tithis",        src:"book Table 79 (muhurta)"},
+    {k:"mercDirect", label:"Mercury",                       a:"Direct",                      b:"Retrograde",              src:"popular folk rule — not in the book"},
+    {k:"taraGood",   label:"Tara bala (Moon's star vs yours)", a:"Good tara",                b:"Janma / bad tara",        src:"book ch.36", personal:true},
+    {k:"moonGood",   label:"Moon transit from your Moon",   a:"Good (Table 54)",             b:"Difficult",               src:"book ch.25", personal:true},
+    {k:"jupGood",    label:"Jupiter transit from your Moon", a:"Good (Table 57)",            b:"Difficult",               src:"book ch.25", personal:true},
+    {k:"adGood",     label:"Your dasa sub-period lord",     a:"Functional benefic for you",  b:"Not a benefic for you",   src:"book Table 30 (needs birth place)", personal:true}
+  ];
+  function astroRng(seed){ var s = seed >>> 0; return function(){ s = (s*1664525 + 1013904223) >>> 0; return s/4294967296; }; }
+  function astroMean(a){ return a.length ? a.reduce(function(t,x){ return t + x; }, 0)/a.length : 0; }
+  function astroPermP(a, b, iters){
+    var all = a.concat(b), na = a.length, obs = Math.abs(astroMean(a) - astroMean(b)), c = 0, rnd = astroRng(1234567);
+    for(var i = 0; i < iters; i++){
+      for(var j = all.length - 1; j > 0; j--){ var r = Math.floor(rnd()*(j + 1)), tmp = all[j]; all[j] = all[r]; all[r] = tmp; }
+      if(Math.abs(astroMean(all.slice(0, na)) - astroMean(all.slice(na))) >= obs - 1e-12) c++;
+    }
+    return (c + 1)/(iters + 1);
+  }
+  function renderAstroTest(){
+    var host = $("#jAstro"); if(!host) return;
+    var b = state.astroBirth || {};
+    var form =
+      '<details class="sub" id="astroBirthBox"'+(b.date?'':' open')+'><summary>Your birth details '+(b.date?'<span class="dim">('+esc(b.date)+' '+esc(b.time||"")+' saved in this browser)</span>':'<span class="dim">(needed for the 4 personal factors)</span>')+'</summary>'+
+      '<div class="form-grid" style="margin-top:8px">'+
+        '<label>Birth date <input id="ab_date" type="date" value="'+esc(b.date||"")+'"></label>'+
+        '<label>Birth time <input id="ab_time" type="time" value="'+esc(b.time||"")+'"></label>'+
+        '<label>UTC offset (h) <input id="ab_tz" type="text" inputmode="decimal" value="'+esc(b.tz!=null&&b.tz!==""?b.tz:"5.5")+'"></label>'+
+        '<label>Latitude °N <input id="ab_lat" type="text" inputmode="decimal" value="'+esc(b.lat||"")+'" placeholder="e.g. 13.08"></label>'+
+        '<label>Longitude °E <input id="ab_lon" type="text" inputmode="decimal" value="'+esc(b.lon||"")+'" placeholder="e.g. 80.27"></label>'+
+      '</div>'+
+      '<div class="row-actions"><button id="ab_save">Save birth details</button><button id="ab_clear" class="ghost">Clear</button>'+
+      '<span class="hint">Stored only in this browser (like your Sheet URL) — never written into this file, so it stays private even though the tool is public.</span></div></details>';
+    var hd = '<h3 style="margin-top:18px">Astro test <span class="dim" style="font-weight:400;font-size:13px">— does astrology actually separate your winners from your losers?</span></h3>'+
+      '<p class="hint">For every <b>closed</b> trade this looks up the astrological conditions on its <b>entry date</b> (10:00 IST) and compares trades entered in "favourable" conditions against the rest. If a factor has a real effect on <i>your</i> results it will show up here as a consistent, statistically significant gap. If it doesn’t, rely on your system’s rules instead. Factors from P.V.R. Narasimha Rao’s <i>Vedic Astrology</i> (muhurta, tara bala, transit tables, functional benefics) plus Mercury retrograde as a popular folk rule.</p>';
+    if(!AST.ready()){ host.innerHTML = hd + '<p class="snote warn">The astronomy library didn’t load (it comes from cdn.jsdelivr.net) — check your internet connection and reload.</p>' + form; wireAstroForm(); return; }
+    var N = null; try{ N = AST.natal(b); }catch(e){ N = null; }
+    var today = new Date(), tf = AST.factorsAtMs(Date.UTC(today.getFullYear(), today.getMonth(), today.getDate(), 4, 30), N);
+    var chipsToday = ASTRO_FACTORS.filter(function(F){ return tf[F.k] !== undefined; }).map(function(F){
+      return '<span class="chip '+(tf[F.k]?'pos':'dim')+'" title="'+esc(F.src)+'">'+esc(F.label)+': <b>'+esc(tf[F.k]?F.a:F.b)+'</b></span>';
+    }).join("");
+    var closed = jList().filter(function(x){ return x.status==="closed" && x.entryPrice>0 && x.exitPrice>0 && /^\d{4}-\d{2}-\d{2}/.test(x.entryDate||""); });
+    var recs = closed.map(function(x){
+      var f = AST.factorsForDate(String(x.entryDate).slice(0,10), N) || {};
+      var ret = (x.exitPrice - x.entryPrice)/x.entryPrice;
+      var R = (x.stop>0 && x.entryPrice>x.stop) ? (x.exitPrice - x.entryPrice)/(x.entryPrice - x.stop) : null;
+      return { x:x, f:f, ret:ret, R:R, win: ret > 0 };
+    });
+    var tested = ASTRO_FACTORS.filter(function(F){ return recs.some(function(r){ return r.f[F.k] !== undefined; }); });
+    var alpha = 0.05, bonf = alpha/Math.max(1, tested.length), MIN = 8, strong = 0, weak = 0;
+    var rowsHtml = tested.map(function(F){
+      var A = recs.filter(function(r){ return r.f[F.k] === true; }), B = recs.filter(function(r){ return r.f[F.k] === false; });
+      var ra = A.map(function(r){ return r.ret; }), rb = B.map(function(r){ return r.ret; });
+      var wa = A.length ? Math.round(100*A.filter(function(r){ return r.win; }).length/A.length) : null;
+      var wb = B.length ? Math.round(100*B.filter(function(r){ return r.win; }).length/B.length) : null;
+      var enough = A.length >= MIN && B.length >= MIN, p = enough ? astroPermP(ra, rb, 2000) : null;
+      var verdict, vcls;
+      if(!enough){ verdict = 'Too few trades yet (need '+MIN+'+ on each side)'; vcls = 'dim'; }
+      else if(p < bonf){ verdict = 'Strong difference — keep logging to confirm'; vcls = 'pos'; strong++; }
+      else if(p < alpha){ verdict = 'Weak signal — could easily be chance ('+tested.length+' factors tested)'; vcls = 'warn'; weak++; }
+      else { verdict = 'No real difference — treat as noise'; vcls = 'neg'; }
+      var diff = (A.length && B.length) ? astroMean(ra) - astroMean(rb) : null;
+      return '<tr><td><b>'+esc(F.label)+'</b><div class="dim" style="font-size:10.5px">'+esc(F.src)+'</div></td>'+
+        '<td>'+esc(F.a)+'<div class="dim" style="font-size:11px">'+A.length+' trades'+(wa!=null?' · '+wa+'% win · avg '+(astroMean(ra)*100).toFixed(1)+'%':'')+'</div></td>'+
+        '<td>'+esc(F.b)+'<div class="dim" style="font-size:11px">'+B.length+' trades'+(wb!=null?' · '+wb+'% win · avg '+(astroMean(rb)*100).toFixed(1)+'%':'')+'</div></td>'+
+        '<td class="num">'+(diff!=null?pctSpan(diff):'–')+'</td>'+
+        '<td class="num">'+(p!=null?p.toFixed(3):'–')+'</td>'+
+        '<td class="'+vcls+'" style="white-space:normal;max-width:240px">'+verdict+'</td></tr>';
+    }).join("");
+    var head;
+    if(recs.length < 2*MIN) head = '<p class="snote warn"><b>'+recs.length+'</b> closed trades so far. Each factor needs at least '+MIN+' trades on both sides before the comparison means anything — realistically 50–100 closed trades. Keep logging; the table fills in as you go.</p>';
+    else if(strong) head = '<p class="snote pos"><b>'+strong+'</b> factor'+(strong>1?'s show':' shows')+' a statistically strong difference in your trades. Treat it as a hypothesis: keep logging, and act on it only if it still holds after another 30+ trades.</p>';
+    else head = '<p class="snote">So far <b>none</b> of the astrological factors reliably separate your winners from your losers'+(weak?' ('+weak+' weak signal'+(weak>1?'s':'')+' that could easily be chance)':'')+'. The evidence says: rely on your system’s rules, not the calendar.</p>';
+    var perTrade = recs.length ? '<details class="sub" style="margin-top:8px"><summary>Factors for each closed trade ('+recs.length+')</summary><div class="table-wrap"><table><thead><tr><th>Symbol</th><th>Entry</th><th>Return</th><th>Tithi</th><th>Moon star</th>'+tested.map(function(F){ return '<th title="'+esc(F.src)+'">'+esc(F.label)+'</th>'; }).join("")+'</tr></thead><tbody>'+
+      recs.map(function(r){ return '<tr><td class="sym">'+esc(r.x.symbol)+'</td><td>'+esc(r.x.entryDate)+'</td><td class="num">'+pctSpan(r.ret)+'</td><td>'+esc(r.f._tithi||"–")+'</td><td>'+esc(r.f._nak||"–")+'</td>'+
+        tested.map(function(F){ var v = r.f[F.k]; return '<td class="'+(v===true?'pos':v===false?'neg':'dim')+'">'+(v===true?'✓':v===false?'✗':'–')+'</td>'; }).join("")+'</tr>'; }).join("")+
+      '</tbody></table></div></details>' : '';
+    host.innerHTML = hd + form +
+      '<div class="summary" style="margin-top:10px"><span class="chip">Today'+(tf._tithi?': <b>'+esc(tf._tithi)+'</b> · '+esc(tf._nak):'')+(tf._dasa?' · dasa '+esc(tf._dasa):'')+'</span>'+chipsToday+'</div>'+
+      head +
+      (tested.length ? '<div class="table-wrap"><table><thead><tr><th>Factor</th><th>"Favourable" side</th><th>Other side</th><th title="difference in average return per trade">Gap</th><th title="permutation-test p-value on average return (2,000 shuffles); lower = less likely to be chance">p</th><th>Verdict</th></tr></thead><tbody>'+rowsHtml+'</tbody></table></div>' : '')+
+      perTrade +
+      '<p class="hint" style="margin-top:8px">How to read it: <b>p</b> is the chance of seeing a gap this big if the factor had no effect at all. Because '+tested.length+' factors are tested, a factor only counts as <b>strong</b> below p = '+bonf.toFixed(3)+' (Bonferroni). Entry date only — the tool assumes 10:00 IST. A strong result is still a correlation in your own trades, not proof that planets move prices. Not financial advice.</p>';
+    wireAstroForm();
+  }
+  function wireAstroForm(){
+    var s = $("#ab_save"), c = $("#ab_clear");
+    if(s) s.addEventListener("click", function(){
+      state.astroBirth = { date: $("#ab_date").value, time: $("#ab_time").value, tz: ($("#ab_tz").value||"").trim(), lat: ($("#ab_lat").value||"").trim(), lon: ($("#ab_lon").value||"").trim() };
+      save(); renderAstroTest();
+    });
+    if(c) c.addEventListener("click", function(){ state.astroBirth = null; save(); renderAstroTest(); });
+  }
+
   function renderJournal(){
     var openBody=$("#jOpenBody"), closedBody=$("#jClosedBody"); if(!openBody) return;
     if($("#jUrl") && !$("#jUrl").value) $("#jUrl").value = state.journalUrl||"";
@@ -4777,6 +4953,7 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
     });
 
     renderScorecard();
+    renderAstroTest();
   }
 
   function renderRegimeBanner(){
