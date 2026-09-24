@@ -1788,7 +1788,9 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
      it's saved in your browser, not in the file.
   ═══════════════════════════════════════════════════════════════════════ */
   var CONFIG = {
-    corsProxy: ""   // e.g. "https://<your-worker>.workers.dev/?url={url}"
+    corsProxy: "",  // e.g. "https://<your-worker>.workers.dev/?url={url}"
+    // Birth details for the Astro test (Trading Journal). PRIVATE: blank this line before pushing to GitHub.
+    astroBirth: { date: "1990-08-11", time: "23:40", tz: "5.5", lat: "13.0827", lon: "80.2707" }
   };
 
   var $ = function(s,r){return (r||document).querySelector(s);};
@@ -1834,6 +1836,7 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
     // optional local override for the proxy / Worker URL
     if(CONFIG.corsProxy && !state.proxyCustom){ state.proxyChoice = "custom"; state.proxyCustom = String(CONFIG.corsProxy).trim(); }
     state.scanSource = "proxy";   // only data source now
+    if(!state.astroBirth && CONFIG.astroBirth && CONFIG.astroBirth.date) state.astroBirth = CONFIG.astroBirth;
   }
   function save(){
     try{ localStorage.setItem(KEY, JSON.stringify(state)); }catch(e){}
@@ -4692,7 +4695,7 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
      Question: do astrological conditions on the ENTRY date separate your winners from your losers?
      Factors come from P.V.R. Narasimha Rao, "Vedic Astrology: An Integrated Approach" (muhurta Table 79,
      tara bala ch.36, transit Tables 54/57, functional nature Table 30) plus one popular folk rule
-     (Mercury retrograde). Birth details live only in localStorage (state.astroBirth), never in this file.
+     (Mercury retrograde). Birth details: CONFIG.astroBirth (top of script) pre-fills state.astroBirth; in-app edits are kept in localStorage.
      Significance: permutation test on mean return, Bonferroni-corrected for the number of factors. */
   var AST = (function(){
     var AE = function(){ return window.Astronomy; };
@@ -4798,7 +4801,7 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
         '<label>Longitude °E <input id="ab_lon" type="text" inputmode="decimal" value="'+esc(b.lon||"")+'" placeholder="e.g. 80.27"></label>'+
       '</div>'+
       '<div class="row-actions"><button id="ab_save">Save birth details</button><button id="ab_clear" class="ghost">Clear</button>'+
-      '<span class="hint">Stored only in this browser (like your Sheet URL) — never written into this file, so it stays private even though the tool is public.</span></div></details>';
+      '<span class="hint">Pre-filled from the <code>CONFIG.astroBirth</code> line at the top of this file’s script (blank it before sharing the file publicly). Edits here are saved in this browser and take priority.</span></div></details>';
     var hd = '<h3 style="margin-top:18px">Astro test <span class="dim" style="font-weight:400;font-size:13px">— does astrology actually separate your winners from your losers?</span></h3>'+
       '<p class="hint">For every <b>closed</b> trade this looks up the astrological conditions on its <b>entry date</b> (10:00 IST) and compares trades entered in "favourable" conditions against the rest. If a factor has a real effect on <i>your</i> results it will show up here as a consistent, statistically significant gap. If it doesn’t, rely on your system’s rules instead. Factors from P.V.R. Narasimha Rao’s <i>Vedic Astrology</i> (muhurta, tara bala, transit tables, functional benefics) plus Mercury retrograde as a popular folk rule.</p>';
     if(!AST.ready()){ host.innerHTML = hd + '<p class="snote warn">The astronomy library didn’t load (it comes from cdn.jsdelivr.net) — check your internet connection and reload.</p>' + form; wireAstroForm(); return; }
