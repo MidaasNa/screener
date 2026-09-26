@@ -130,6 +130,34 @@ button.ghost.pos:hover{background:var(--pos);color:#fff}
 
 /* table */
 .table-wrap{overflow-x:auto;border:1px solid var(--line);border-radius:8px}
+#tab-astrocal .chip{display:inline-block;font-size:11.5px;padding:2px 9px;border:1px solid var(--line-strong);border-radius:999px;color:var(--ink-soft);margin:2px 4px 2px 0;white-space:nowrap}
+#tab-astrocal .chip.pos{background:var(--pos-bg);color:var(--pos);border-color:var(--pos)}
+#tab-astrocal .chip.warn{background:var(--warn-bg);color:var(--warn);border-color:var(--warn)}
+#tab-astrocal .chip.neg{background:var(--neg-bg);color:var(--neg);border-color:var(--neg)}
+.acToday{display:flex;flex-wrap:wrap;align-items:center;gap:4px;margin:12px 0 8px;font-size:13px}
+.acNext{display:flex;flex-wrap:wrap;gap:6px 18px;font-size:13px;color:var(--ink-soft);margin:4px 0 10px}
+.acTable{min-width:760px}
+.acTable td,.acTable th{vertical-align:top;text-align:left !important;white-space:normal}
+.acTable td:first-child{white-space:nowrap}
+.acTable .dim{font-size:12px}
+.acTech{margin-top:14px}
+.trackTable tr.trBest td{background:var(--pos-bg)}
+.trackTable td.num.dim{color:var(--muted)}
+.trackTable td.num.warn{color:var(--warn);font-weight:600}
+.trackTable td.num.pos{color:var(--pos);font-weight:600}
+.trackTable td.num.neg{color:var(--neg)}
+#trackPanel .snote{font-size:13px;margin:10px 0 4px}
+.trackTable td:nth-child(-n+2),.trackTable th:nth-child(-n+2){text-align:left}
+.trackTable td:first-child{font-weight:600;white-space:nowrap}
+.momTable{min-width:620px}
+.momTable td.num.pos{color:var(--pos);font-weight:600}
+.momTable td.num.neg{color:var(--neg)}
+#momTestPanel .snote{font-size:13px;margin:10px 0 4px}
+.acTech summary{cursor:pointer;font-size:13px;margin-bottom:8px}
+.acTable tr.ac-gann td:first-child{border-left:3px solid var(--warn)}
+.acTable tr.acMonth td{background:var(--surface);font-weight:600;font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.acTable td.acEvid{color:var(--ink-soft);font-size:12px;max-width:460px}
+.acTable tr.ac-personal td:first-child,.acTable tr.ac-pd td:first-child{border-left:3px solid var(--pos)}
 table{border-collapse:collapse;width:100%;font-size:12.5px;min-width:1020px}
 thead th{text-align:right;padding:9px 10px;background:var(--surface-2);border-bottom:1px solid var(--line-strong);
   font-size:10px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);cursor:pointer;white-space:nowrap;user-select:none}
@@ -514,6 +542,7 @@ table.sc-setup td.num{font-family:"IBM Plex Mono",monospace;text-align:right}
   <button data-tab="candles">DarvaX Candles</button>
   <button data-tab="mb">Multibagger Radar</button>
   <button data-tab="journal">Trading Journal</button>
+  <button data-tab="astrocal">Astro Calendar</button>
   <button data-tab="book">Chart Book</button>
   <button data-tab="compare">Chart Compare</button>
   <button data-tab="analyzer">Analyzer</button>
@@ -1406,7 +1435,97 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
   </section>
 
   <!-- PLAYBOOK -->
+  <!-- ASTRO CALENDAR -->
+  <section id="tab-astrocal" hidden>
+    <div class="panel">
+      <div class="scan-head"><h2>Astro Calendar</h2><span class="scan-meta">upcoming events · Lahiri sidereal · times in IST</span></div>
+      <p class="hint">Every astrological event coming up, so you know it in advance, with what that kind of event <b>actually did to Nifty, Sensex and Bank Nifty</b> in the past. Nifty and Bank Nifty data run from 2007 and Sensex from 1997, to Sep 2026. <b>None of these events predicted market direction reliably</b>, so this calendar gives no buy or sell signals. Use it for awareness and discipline, and let your system’s rules make the trades. Your personal events (dasa, transits from your Moon) are about you, not the market. The Astro test in the Trading Journal checks whether they matter for your own trades.</p>
+      <div class="scan-head" style="flex-wrap:wrap;gap:10px;margin-top:4px">
+        <div class="seg" role="group" aria-label="Range"><button type="button" data-acm="3">3 months</button><button type="button" data-acm="6">6 months</button><button type="button" data-acm="12">12 months</button></div>
+        <div class="seg" role="group" aria-label="Show"><button type="button" data-acv="all">All</button><button type="button" data-acv="market">Sky events</button><button type="button" data-acv="personal">Personal</button></div>
+        <label class="chk" style="margin-left:0"><input type="checkbox" id="acMoon"> Moon events (New/Full Moon, perigee, Moon with Ketu)</label>
+        <label class="chk" style="margin-left:0"><input type="checkbox" id="acPd"> Dasa sub-sub-periods</label>
+      </div>
+      <div id="astroCalBody"></div>
+    </div>
+  </section>
+
   <section id="tab-playbook" hidden>
+    <div class="panel" id="momTestPanel">
+      <div class="scan-head"><h2>Momentum test: does “copy yesterday” pay?</h2><span class="scan-meta">daily close-to-close · full Yahoo history</span></div>
+      <p class="hint">Tests the simplest momentum rule: <b>be in the market today only if yesterday closed up</b> (long/flat), or <b>long if yesterday was up, short if down</b> (long/short). It reports how often yesterday’s direction repeated, and whether the rule beat simply buying and holding <b>after trading costs</b>. It is scored on real closes, not on an averaged price (averaging makes any series look predictable). This is a test, not a trading signal.</p>
+      <div class="scan-head" style="flex-wrap:wrap;gap:10px;margin-top:2px">
+        <label class="chk" style="margin-left:0">Symbol <input id="momSym" type="text" value="^NSEI" style="width:110px;margin-left:6px" title="^NSEI = Nifty 50, ^NSEBANK = Bank Nifty, ^BSESN = Sensex, or an NSE stock such as RELIANCE"></label>
+        <label class="chk" style="margin-left:0">Cost per switch % <input id="momCost" type="text" inputmode="decimal" value="0.05" style="width:60px;margin-left:6px" title="Brokerage + STT + slippage each time the rule enters or exits"></label>
+        <button id="momRun" type="button">Run test</button>
+        <span class="hint" id="momStatus" style="margin:0"></span>
+      </div>
+      <div id="momOut"></div>
+    </div>
+    <div class="panel" id="trackPanel">
+      <div class="scan-head"><h2>Setup track record: which ledger setups actually worked?</h2><span class="scan-meta">backtest of this ledger’s own setup code · tested Sep 2026</span></div>
+      <p class="hint">Every setup below was detected by <b>this file’s own code</b> (goldenGuru, silverGuru, darvasBox, highDryFry, dmaCoil, continuationSetup), replayed day by day on each stock’s trailing 2-year window, just as a scan sees it. Each signal was traded with the ledger’s own plan (<code>computeTrade</code>): buy-stop at the breakout level (valid 3 sessions), the ledger’s stop, a <b>+10% target</b>, and a 22-session time limit, after 0.2% costs. The “Green regime” and “RS ≥ 80” filters use the ledger’s own <code>regimeFrom</code> (Nifty health + breadth of the whole universe) and a 6-month RS rank against the universe. <b>Universe:</b> 706 stocks from this ledger’s 500 list, 2014 to Sep 2026. <b>Random</b> = every stock-day under the same filter traded with the same plan. A setup only has an edge if it beats random.</p>
+      <div class="table-wrap"><table class="momTable trackTable"><thead><tr><th>Setup</th><th>Filter</th><th>Signals</th><th>Up 20 days later</th><th>Avg per trade</th><th>Win rate</th><th>Avg 2014–19 / 2020–26</th><th>Nifty 50 only (up 20d · n)</th><th>Verdict</th></tr></thead><tbody>
+<tr><td>Golden Guru</td><td>No filter</td><td class="num">1,652</td><td class="num">53.4%<div class="dim">random 52.3%</div></td><td class="num">-0.04%<div class="dim">random 0.13%</div></td><td class="num">36.9%</td><td class="num">-0.18% / 0.05%</td><td class="num">59.1% · 115</td><td class="num dim">No clear edge</td></tr>
+<tr><td></td><td>Green regime</td><td class="num">1,010</td><td class="num">55%<div class="dim">random 52.2%</div></td><td class="num">0.22%<div class="dim">random 0.21%</div></td><td class="num">38.6%</td><td class="num">0.31% / 0.16%</td><td class="num">63.1% · 65</td><td class="num dim">No clear edge</td></tr>
+<tr><td></td><td>RS ≥ 80</td><td class="num">357</td><td class="num">55.2%<div class="dim">random 53.8%</div></td><td class="num">0.43%<div class="dim">random 0.22%</div></td><td class="num">41.5%</td><td class="num">0.28% / 0.55%</td><td class="num">59.5% · 37</td><td class="num pos">Small edge, both periods</td></tr>
+<tr class="trBest"><td></td><td>Green + RS ≥ 80</td><td class="num">175</td><td class="num">60%<div class="dim">random 54.5%</div></td><td class="num">1.11%<div class="dim">random 0.32%</div></td><td class="num">45.1%</td><td class="num">1.6% / 0.67%</td><td class="num">57.9% · 19</td><td class="num pos">Small edge, both periods</td></tr>
+<tr><td>Silver Guru</td><td>No filter</td><td class="num">459</td><td class="num">47.9%<div class="dim">random 52.3%</div></td><td class="num">-2.95%<div class="dim">random 0.13%</div></td><td class="num">17.9%</td><td class="num">-2.46% / -3.34%</td><td class="num">50% · 12</td><td class="num neg">Worse than random</td></tr>
+<tr class="trBest"><td></td><td>Green regime</td><td class="num">196</td><td class="num">53.6%<div class="dim">random 52.2%</div></td><td class="num">-2.64%<div class="dim">random 0.21%</div></td><td class="num">18.4%</td><td class="num">-2.03% / -3.25%</td><td class="num">100% · 2</td><td class="num neg">Worse than random</td></tr>
+<tr><td></td><td>RS ≥ 80</td><td class="num">95</td><td class="num">43.2%<div class="dim">random 53.8%</div></td><td class="num">-2.93%<div class="dim">random 0.22%</div></td><td class="num">16.8%</td><td class="num">-1.87% / -3.64%</td><td class="num">66.7% · 3</td><td class="num neg">Worse than random</td></tr>
+<tr><td></td><td>Green + RS ≥ 80</td><td class="num">38</td><td class="num">47.4%<div class="dim">random 54.5%</div></td><td class="num">-3.2%<div class="dim">random 0.32%</div></td><td class="num">13.2%</td><td class="num">-1.87% / -4.27%</td><td class="num">—</td><td class="num neg">Worse than random</td></tr>
+<tr><td>Darvas Box</td><td>No filter</td><td class="num">11,157</td><td class="num">54.6%<div class="dim">random 52.3%</div></td><td class="num">0.45%<div class="dim">random 0.13%</div></td><td class="num">43.6%</td><td class="num">0.42% / 0.47%</td><td class="num">55% · 1527</td><td class="num pos">Edge (significant, both periods)</td></tr>
+<tr class="trBest"><td></td><td>Green regime</td><td class="num">7,470</td><td class="num">56.3%<div class="dim">random 52.2%</div></td><td class="num">0.68%<div class="dim">random 0.21%</div></td><td class="num">45.3%</td><td class="num">0.56% / 0.77%</td><td class="num">57.3% · 1049</td><td class="num pos">Edge (significant, both periods)</td></tr>
+<tr><td></td><td>RS ≥ 80</td><td class="num">5,461</td><td class="num">53.7%<div class="dim">random 53.8%</div></td><td class="num">0.41%<div class="dim">random 0.22%</div></td><td class="num">43.5%</td><td class="num">0.49% / 0.36%</td><td class="num">53.8% · 731</td><td class="num dim">No clear edge</td></tr>
+<tr><td></td><td>Green + RS ≥ 80</td><td class="num">3,251</td><td class="num">55.2%<div class="dim">random 54.5%</div></td><td class="num">0.63%<div class="dim">random 0.32%</div></td><td class="num">44.9%</td><td class="num">0.63% / 0.64%</td><td class="num">57.3% · 440</td><td class="num pos">Small edge, both periods</td></tr>
+<tr><td>High Dry Fry</td><td>No filter</td><td class="num">9,025</td><td class="num">52.7%<div class="dim">random 52.3%</div></td><td class="num">-0.06%<div class="dim">random 0.13%</div></td><td class="num">35.6%</td><td class="num">-0.14% / -0.02%</td><td class="num">50.9% · 481</td><td class="num dim">No clear edge</td></tr>
+<tr><td></td><td>Green regime</td><td class="num">5,613</td><td class="num">52.9%<div class="dim">random 52.2%</div></td><td class="num">0.02%<div class="dim">random 0.21%</div></td><td class="num">36.6%</td><td class="num">0.03% / 0.01%</td><td class="num">50.2% · 289</td><td class="num dim">No clear edge</td></tr>
+<tr><td></td><td>RS ≥ 80</td><td class="num">3,290</td><td class="num">53.9%<div class="dim">random 53.8%</div></td><td class="num">0.11%<div class="dim">random 0.22%</div></td><td class="num">37.4%</td><td class="num">0.15% / 0.09%</td><td class="num">50.2% · 217</td><td class="num dim">No clear edge</td></tr>
+<tr class="trBest"><td></td><td>Green + RS ≥ 80</td><td class="num">1,851</td><td class="num">55.2%<div class="dim">random 54.5%</div></td><td class="num">0.38%<div class="dim">random 0.32%</div></td><td class="num">39.5%</td><td class="num">0.41% / 0.36%</td><td class="num">52.3% · 128</td><td class="num dim">No clear edge</td></tr>
+<tr><td>10-DMA Coil (just popped)</td><td>No filter</td><td class="num">15,609</td><td class="num">52.1%<div class="dim">random 52.3%</div></td><td class="num">-0.32%<div class="dim">random 0.13%</div></td><td class="num">35.9%</td><td class="num">-0.58% / -0.17%</td><td class="num">52% · 1560</td><td class="num neg">Worse than random</td></tr>
+<tr><td></td><td>Green regime</td><td class="num">9,989</td><td class="num">53.3%<div class="dim">random 52.2%</div></td><td class="num">-0.07%<div class="dim">random 0.21%</div></td><td class="num">37.7%</td><td class="num">-0.39% / 0.14%</td><td class="num">53.5% · 1023</td><td class="num warn">Picks risers, but the stop loses money</td></tr>
+<tr><td></td><td>RS ≥ 80</td><td class="num">4,644</td><td class="num">53.3%<div class="dim">random 53.8%</div></td><td class="num">-0.03%<div class="dim">random 0.22%</div></td><td class="num">38.4%</td><td class="num">-0.24% / 0.11%</td><td class="num">51.9% · 541</td><td class="num neg">Worse than random</td></tr>
+<tr class="trBest"><td></td><td>Green + RS ≥ 80</td><td class="num">2,655</td><td class="num">55.9%<div class="dim">random 54.5%</div></td><td class="num">0.32%<div class="dim">random 0.32%</div></td><td class="num">40.8%</td><td class="num">-0.09% / 0.61%</td><td class="num">53.4% · 313</td><td class="num dim">No clear edge</td></tr>
+<tr><td>Stage-2: base-on-base (BOB)</td><td>No filter</td><td class="num">6,244</td><td class="num">55.5%<div class="dim">random 52.3%</div></td><td class="num">-0.28%<div class="dim">random 0.13%</div></td><td class="num">33.4%</td><td class="num">-0.51% / -0.13%</td><td class="num">52.9% · 1049</td><td class="num warn">Picks risers, but the stop loses money</td></tr>
+<tr class="trBest"><td></td><td>Green regime</td><td class="num">4,263</td><td class="num">57.2%<div class="dim">random 52.2%</div></td><td class="num">-0.07%<div class="dim">random 0.21%</div></td><td class="num">35%</td><td class="num">-0.42% / 0.18%</td><td class="num">54.4% · 728</td><td class="num warn">Picks risers, but the stop loses money</td></tr>
+<tr><td></td><td>RS ≥ 80</td><td class="num">1,697</td><td class="num">54.2%<div class="dim">random 53.8%</div></td><td class="num">-0.44%<div class="dim">random 0.22%</div></td><td class="num">31.8%</td><td class="num">-0.62% / -0.3%</td><td class="num">52.1% · 366</td><td class="num dim">No clear edge</td></tr>
+<tr><td></td><td>Green + RS ≥ 80</td><td class="num">938</td><td class="num">56.5%<div class="dim">random 54.5%</div></td><td class="num">-0.27%<div class="dim">random 0.32%</div></td><td class="num">32.9%</td><td class="num">-0.66% / 0.07%</td><td class="num">58.5% · 224</td><td class="num dim">No clear edge</td></tr>
+<tr class="trBest"><td>Stage-2: pullback to EMA (S2P)</td><td>No filter</td><td class="num">3,015</td><td class="num">54.9%<div class="dim">random 52.3%</div></td><td class="num">-1.36%<div class="dim">random 0.13%</div></td><td class="num">23.9%</td><td class="num">-1.51% / -1.27%</td><td class="num">55.6% · 284</td><td class="num warn">Picks risers, but the stop loses money</td></tr>
+<tr><td></td><td>Green regime</td><td class="num">1,862</td><td class="num">54.7%<div class="dim">random 52.2%</div></td><td class="num">-1.33%<div class="dim">random 0.21%</div></td><td class="num">24%</td><td class="num">-1.47% / -1.23%</td><td class="num">53.5% · 170</td><td class="num warn">Picks risers, but the stop loses money</td></tr>
+<tr><td></td><td>RS ≥ 80</td><td class="num">1,248</td><td class="num">55.1%<div class="dim">random 53.8%</div></td><td class="num">-1.47%<div class="dim">random 0.22%</div></td><td class="num">22.7%</td><td class="num">-1.55% / -1.42%</td><td class="num">48.9% · 94</td><td class="num neg">Worse than random</td></tr>
+<tr><td></td><td>Green + RS ≥ 80</td><td class="num">679</td><td class="num">55.2%<div class="dim">random 54.5%</div></td><td class="num">-1.29%<div class="dim">random 0.32%</div></td><td class="num">24%</td><td class="num">-1.45% / -1.17%</td><td class="num">42.3% · 52</td><td class="num neg">Worse than random</td></tr>
+<tr><td>Stage-2: long-base breakout (LBB)</td><td>No filter</td><td class="num">1,700</td><td class="num">52.6%<div class="dim">random 52.3%</div></td><td class="num">0.25%<div class="dim">random 0.13%</div></td><td class="num">38%</td><td class="num">0.32% / 0.2%</td><td class="num">56% · 411</td><td class="num dim">No clear edge</td></tr>
+<tr class="trBest"><td></td><td>Green regime</td><td class="num">1,086</td><td class="num">54.8%<div class="dim">random 52.2%</div></td><td class="num">0.49%<div class="dim">random 0.21%</div></td><td class="num">39.5%</td><td class="num">0.74% / 0.31%</td><td class="num">57.3% · 267</td><td class="num pos">Small edge, both periods</td></tr>
+<tr><td></td><td>RS ≥ 80</td><td class="num">322</td><td class="num">49.8%<div class="dim">random 53.8%</div></td><td class="num">-0.31%<div class="dim">random 0.22%</div></td><td class="num">33.9%</td><td class="num">-0.5% / -0.18%</td><td class="num">46.2% · 93</td><td class="num neg">Worse than random</td></tr>
+<tr><td></td><td>Green + RS ≥ 80</td><td class="num">156</td><td class="num">55.1%<div class="dim">random 54.5%</div></td><td class="num">0.29%<div class="dim">random 0.32%</div></td><td class="num">37.2%</td><td class="num">-0.1% / 0.53%</td><td class="num">41.3% · 46</td><td class="num dim">No clear edge</td></tr>
+<tr><td>Stage-2: VCP breakout</td><td>No filter</td><td class="num">85</td><td class="num">41.2%<div class="dim">random 52.3%</div></td><td class="num">-1.13%<div class="dim">random 0.13%</div></td><td class="num">31.8%</td><td class="num">0.28% / -2.11%</td><td class="num">16.7% · 6</td><td class="num neg">Worse than random</td></tr>
+<tr class="trBest"><td></td><td>Green regime</td><td class="num">55</td><td class="num">41.8%<div class="dim">random 52.2%</div></td><td class="num">-0.3%<div class="dim">random 0.21%</div></td><td class="num">36.4%</td><td class="num">1.66% / -1.94%</td><td class="num">25% · 4</td><td class="num neg">Worse than random</td></tr>
+<tr><td></td><td>RS ≥ 80</td><td class="num">21</td><td class="num">52.4%<div class="dim">random 53.8%</div></td><td class="num">-0.65%<div class="dim">random 0.22%</div></td><td class="num">42.9%</td><td class="num">1.39% / -1.67%</td><td class="num">0% · 2</td><td class="num dim">Too few trades</td></tr>
+<tr><td></td><td>Green + RS ≥ 80</td><td class="num">9</td><td class="num">44.4%<div class="dim">random 54.5%</div></td><td class="num">-2.8%<div class="dim">random 0.32%</div></td><td class="num">33.3%</td><td class="num">-1.36% / -3.95%</td><td class="num">—</td><td class="num dim">Too few trades</td></tr>
+<tr><td>Any Stage-2 breakout (BOB/VCP/S2P/LBB/HDF) - Today tab &quot;brk&quot;</td><td>No filter</td><td class="num">10,729</td><td class="num">53.9%<div class="dim">random 52.3%</div></td><td class="num">-0.47%<div class="dim">random 0.13%</div></td><td class="num">31.8%</td><td class="num">-0.63% / -0.37%</td><td class="num">54.5% · 1096</td><td class="num warn">Picks risers, but the stop loses money</td></tr>
+<tr class="trBest"><td></td><td>Green regime</td><td class="num">6,804</td><td class="num">55.2%<div class="dim">random 52.2%</div></td><td class="num">-0.33%<div class="dim">random 0.21%</div></td><td class="num">33%</td><td class="num">-0.46% / -0.24%</td><td class="num">56.9% · 717</td><td class="num warn">Picks risers, but the stop loses money</td></tr>
+<tr><td></td><td>RS ≥ 80</td><td class="num">3,612</td><td class="num">53.7%<div class="dim">random 53.8%</div></td><td class="num">-0.52%<div class="dim">random 0.22%</div></td><td class="num">31.6%</td><td class="num">-0.55% / -0.51%</td><td class="num">52.5% · 378</td><td class="num neg">Worse than random</td></tr>
+<tr><td></td><td>Green + RS ≥ 80</td><td class="num">1,941</td><td class="num">55.4%<div class="dim">random 54.5%</div></td><td class="num">-0.22%<div class="dim">random 0.32%</div></td><td class="num">33.7%</td><td class="num">-0.35% / -0.13%</td><td class="num">57.7% · 222</td><td class="num dim">No clear edge</td></tr>
+      </tbody></table></div>
+      <p class="snote"><b>Verdict.</b> <b>Darvas Box is the one setup with a statistically clear edge:</b> in a Green market it was up 20 days later 56.3% of the time vs 52.2% for random entries (7,470 trades), and made +0.68% per trade vs +0.21%, in both 2014–19 and 2020–26. <b>Golden Guru with Green + RS ≥ 80</b> looks stronger (60% up, +1.11% per trade, positive in both periods) but has only 175 trades, so treat it as promising, not proven. <b>Base-on-base, pullback-to-EMA and the Today tab’s Stage-2 funnel pick stocks that rise more often than random</b> (55–57%), but the ledger’s tight 3–4% stop gets hit on normal wiggles and turns that into a loss per trade; a wider stop may fix this (not yet tested). <b>Silver Guru, VCP and 10-DMA coil pops show no edge or lose</b>, and High Dry Fry is no better than random. The Green-regime filter improves almost every setup.</p>
+      <p class="hint">Highlighted row = the filter with the best average per trade (at least 30 trades). “Significant” means the up-after-20-days rate beats random by more than 2 standard errors <i>and</i> the average beats random in both periods. Caveats: the universe is today’s list (stocks that dropped out are missing, which flatters everything, including “random”); fills assume you get the breakout level or the next open; 0.2% cost per round trip. This is research on past data, not a forecast or investment advice. Re-run by asking Claude to refresh the setup track record.</p>
+    </div>
+    <div class="panel" id="ghmlPanel">
+      <div class="scan-head"><h2>GitHub astrology ML strategy: does it pass?</h2><span class="scan-meta">financial-astrology-machine-learning · tested on Nifty 50</span></div>
+      <p class="hint">The open-source project <b>financial-astrology-research/financial-astrology-machine-learning</b> claims 56–60% accuracy predicting the daily direction from planetary aspects. Its method was rebuilt here: aspects of the Moon, Mercury, Venus and Sun to Venus through Pluto (0°–180°, 2° orb), with KNN (its main model), logistic regression, gradient boosting and a feature search like its genetic algorithm. It was trained on 2007–2018, tuned on 2019–2021, and tested once on <b>2022–2026 (1,169 days)</b> on the real close-to-close direction. The pass marks: <b>more than 55% right</b>, and <b>positive returns that beat random signals and buy &amp; hold</b>, after 0.05% cost per switch.</p>
+      <div class="table-wrap"><table class="momTable"><thead><tr><th>Model</th><th>Right direction</th><th>&gt; 55%?</th><th>Return (long/flat)</th><th>Beat random signals*</th><th>Beat buy &amp; hold (+33.3%)?</th></tr></thead><tbody>
+        <tr><td>KNN, k = 7 (the project’s main model)</td><td class="num">51.2%</td><td class="num neg">No</td><td class="num">+2.1%</td><td class="num">91% of them (not significant)</td><td class="num neg">No</td></tr>
+        <tr><td>Logistic regression (17 aspect counts)</td><td class="num">51.6%</td><td class="num neg">No</td><td class="num">+2.7%</td><td class="num">60%</td><td class="num neg">No</td></tr>
+        <tr><td>Logistic regression (280 aspect features)</td><td class="num">50.5%</td><td class="num neg">No</td><td class="num">+1.0%</td><td class="num">62%</td><td class="num neg">No</td></tr>
+        <tr><td>Gradient-boosted stumps</td><td class="num">51.4%</td><td class="num neg">No</td><td class="num">+12.1%</td><td class="num">49% (same as random)</td><td class="num neg">No</td></tr>
+        <tr><td>Feature search + KNN (like the project’s genetic algorithm)</td><td class="num">50.6–54.4%</td><td class="num neg">No</td><td class="num">—</td><td class="num">Fake astrology (features moved to random dates) scored the same: 48.5–52.9%</td><td class="num neg">No</td></tr>
+        <tr><td><i>No astrology: always say “up”</i></td><td class="num">52.5%</td><td class="num neg">No</td><td class="num">+33.3%</td><td class="num">—</td><td class="num">—</td></tr>
+        <tr><td><i>No astrology: copy yesterday’s direction</i></td><td class="num">54.5%</td><td class="num neg">No</td><td class="num">see Momentum test</td><td class="num">—</td><td class="num">—</td></tr>
+      </tbody></table></div>
+      <p class="snote"><b>Verdict: it does not pass.</b> No model reached 55%; none beat simply saying “up” every day (52.5%, all p &gt; 0.7). The small positive returns (+1% to +12%) came from being in a rising market part of the time. They are within what random signals switching as often produce, and far below buy &amp; hold. The project’s own 56–60% comes from scoring the (Open+High+Low+Close)/4 average price with a random train/test split. On that target a no-astrology “copy yesterday” rule scores <b>63%</b> on Nifty, while the astrology KNN scored only 52%.</p>
+      <p class="hint">* Random long/flat signals that switch the same number of times as the model, 3,000 runs each. Beating 95% of them would be needed to call a result significant. Tested Sep 2026 on Yahoo daily data. This is research, not investment advice.</p>
+    </div>
+
     <div class="panel prose">
       <h2>The 10% Momentum + Pullback system</h2>
       <p>The goal is not “10% every week.” The goal is to <b>only take a trade when trend, momentum, volume, structure and sector all line up and the reward is at least twice the risk</b>. When nothing qualifies, the correct output is “no trade.”</p>
@@ -1809,7 +1928,8 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
     bookSR: true, bookPat: true, bookVwap: true, bookTrend: true, bookStretchBand: false, bookFiiWindow: true, bookVap: false, bookNifty: false, bookSD: false, niftySeries: null,
     todaySetup: "golden", todayLead: false, todayRisk: "0.25",
     mbMinScore: 55, mbNoFlags: false, mbOpen: {},
-    astroBirth: null
+    astroBirth: null,
+    astroCalMonths: 6, astroCalView: "all", astroCalMoon: true, astroCalPd: false
   };
 
   var SAMPLE = [
@@ -4766,7 +4886,7 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
       var d = String(dateStr).split("-").map(Number); if(d.length < 3 || !d[0]) return null;
       return factorsAtMs(Date.UTC(d[0], d[1]-1, d[2], 4, 30), N);
     }
-    return { natal: natal, factorsForDate: factorsForDate, factorsAtMs: factorsAtMs, ready: function(){ return !!AE(); } };
+    return { natal: natal, factorsForDate: factorsForDate, factorsAtMs: factorsAtMs, ready: function(){ return !!AE(); }, pos: pos, VO: VO, VY: VY, FB: FB };
   })();
 
   var ASTRO_FACTORS = [
@@ -4778,6 +4898,246 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
     {k:"jupGood",    label:"Jupiter transit from your Moon", a:"Good (Table 57)",            b:"Difficult",               src:"book ch.25", personal:true},
     {k:"adGood",     label:"Your dasa sub-period lord",     a:"Functional benefic for you",  b:"Not a benefic for you",   src:"book Table 30 (needs birth place)", personal:true}
   ];
+
+  /* ---------- Astro calendar: upcoming astrological events, each with what it actually did to Indian markets ----------
+     Evidence: daily closes of Nifty 50 / Bank Nifty (2007-2026) and Sensex (1997-2026), tested Sep 2026.
+     "p" = chance of a gap at least this large by luck alone (random time-shifts / random days). No rule passed a
+     multiple-testing check, so nothing here is a buy or sell signal. */
+  var AC_EVID = {
+    mercRx:  {v:"none", t:"During Mercury retrograde Nifty returned 8.5%/yr vs 8.9% otherwise (p 0.98). Sensex and Bank Nifty: no effect either."},
+    venRx:   {v:"none", t:"Nifty 26.3%/yr during Venus retrograde vs 7.6% otherwise, but p 0.37 (few, short periods). Noise, not an edge."},
+    marsRx:  {v:"none", t:"Nifty 11.2%/yr during Mars retrograde vs 8.6% otherwise (p 0.87). No effect."},
+    jupRx:   {v:"none", t:"The book says markets fall while Jupiter is retrograde. Nifty actually did 14.2%/yr vs 6.6% (p 0.43): no reliable effect."},
+    satRx:   {v:"none", t:"Nifty 11.5%/yr during Saturn retrograde vs 7.3% (p 0.69). No reliable effect."},
+    station: {v:"weak", t:"The week after Mercury turns: Nifty −0.16% vs +0.22% for any week (120 cases, p 0.16; Sensex p 0.07). Slightly soft on all indices, but too small and uncertain to trade on."},
+    station2:{v:"none", t:"The week after Venus, Mars, Jupiter or Saturn turns: no difference from any other week."},
+    solar:   {v:"none", t:"20 trading days after a solar eclipse Nifty was higher 52% of the time vs 60% normally (42 eclipses, p 0.44). The book's \"market falls\" claim also failed on the S&P 500 (63% up after 169 eclipses)."},
+    lunar:   {v:"none", t:"20 trading days after a lunar eclipse Nifty was higher 57% vs 60% normally (42 eclipses, p 0.58)."},
+    newm:    {v:"none", t:"Amavasya days and the New-Moon half of the month showed no reliable edge on Nifty (New-Moon half 8.0%/yr vs Full-Moon half 9.7%, p 0.85)."},
+    fullm:   {v:"none", t:"Purnima days showed no reliable effect on Nifty (p 0.75)."},
+    jupIn:   {v:"weak", t:"20 days after Jupiter changes sign Nifty was up 72% of the time vs 60% normally (32 cases, p 0.29); Sensex 59% vs 60%. Not significant."},
+    satIn:   {v:"none", t:"20 days after Saturn changes sign: Nifty up 62% vs 60% (13 cases, p 0.55). No effect."},
+    rahuIn:  {v:"none", t:"20 days after Rahu/Ketu change sign: Nifty up 67% vs 60% (12 cases, p 0.82). No effect."},
+    gannSeason:{v:"none", t:"Gann seasonal date. Nifty turning points fell within ±3 days of these dates 15.7% of the time, exactly the 15.9% expected by chance (Sensex 13.2%, S&P 500 since 1950 14.2%). No edge."},
+    perigee: {v:"weak", t:"Moon closest to Earth (Pesavento). Nifty averaged +10 bps a day around perigee vs +3 normally, in the same direction in both halves of the data and on Sensex and Bank Nifty. But it is shrinking (Sensex +19.7 → +2.7 bps) and far below trading costs. Watch, don't trade."},
+    moonKetu:{v:"weak", t:"Moon with Ketu (Vedic intraday rule). Nifty averaged −7 bps a day vs +4 otherwise, negative in both halves on Nifty and Bank Nifty; the Sensex was mixed. Consistent but tiny (about 0.1%, against a normal daily swing of about 1.1%). Watch, don't trade."},
+    mercComb:{v:"weak", t:"Sarvatobhadra Chakra book: Mercury combust means Teji (rise). This was the only rule from that book that was right on Nifty, Bank Nifty and Sensex in both halves of the data (Nifty +7 bps a day, Bank Nifty +12, p 0.03–0.2). But it is fading: Nifty +13.6 bps in 2007–16, +1.3 in 2017–26. Watch, don't trade."},
+    personal:{v:"personal", t:"About you, not the market. Its effect on your trading is checked by the Astro test in the Trading Journal, once you have enough closed trades."}
+  };
+  var AC_TECH = '<details class="acTech"><summary><b>Techniques tested (Gann, Banerjee-style Vedic, Pesavento)</b>: what worked and what did not</summary><div class="table-wrap"><table class="acTable"><thead><tr><th>Technique</th><th>Result</th><th>Details</th></tr></thead><tbody>' +
+    [["Gann seasonal dates","none","Turning points near these dates: Nifty 15.7% vs 15.9% by chance; Sensex 13.2% vs 15.8%; S&P 500 (since 1950) 14.2% vs 15.8%."],
+     ["Gann time counts (30, 45, 60, 90, 120, 180, 270, 360 days from a major top or bottom)","none","Next major turn landed on a Gann count 13.7% of the time on Nifty vs 11.6% for other counts (p 0.07); Sensex 11.7% vs 11.5%, Bank Nifty 11.8% vs 11.6%, S&P 500 12.1% vs 11.5%. Not significant."],
+     ["Gann Square of 9 price levels (45° steps)","none","Tops and bottoms on a Sq9 level: Nifty 27.0% vs 24.3% by chance (p 0.21); Sensex 23.8% vs 24.4%; Bank Nifty 23.4% vs 23.5%; S&P 500 24.9% vs 23.6%."],
+     ["Gann planetary price lines (price in degrees meets Sun, Jupiter or Saturn)","none","12 combinations tested; one (Nifty and Saturn, p 0.05) looked interesting, as luck alone would produce, and it did not repeat on Sensex, Bank Nifty or S&P 500."],
+     ["Moon’s nakshatra of the day (best and worst stars)","none","Learned the 5 best and 5 worst nakshatras on the first half of the data and tested them on the second half. They reversed on every index (Nifty +47 bps → −15 bps). This is what an overfitted pattern looks like."],
+     ["Moon with Saturn, Rahu, Ketu or Mars","weak","Slightly weaker days overall (Nifty −0.7 vs +5.3 bps, p 0.15). Moon with Ketu is negative in both halves on Nifty and Bank Nifty. Too small to trade."],
+     ["Moon declination extremes; apogee","none","No effect on any index."],
+     ["Moon at perigee","weak","Positive in both halves on all three indices but shrinking; below trading costs."],
+     ["Sarvatobhadra Chakra book: fast planet behind a slow planet in the same nakshatra = Teji","none","The book’s central rule came out <b>reversed</b>: those days were weaker on all three indices, in both halves of the data (Nifty −7.8, Bank Nifty −15, Sensex −7.1 bps a day). The mirror Mandi rule showed nothing."],
+     ["Sarvatobhadra Chakra book: Moon nakshatras for buying and selling","none","Wrong way round: 5 days after ‘buy’ days Nifty averaged +0.13% vs +0.22% normally, and after ‘sell’ days +0.26%. The same on Bank Nifty and Sensex."],
+     ["Sarvatobhadra Chakra book: 43 planet-in-sign gold rules","none","Days the book says gold should rise were slightly worse for gold than other days, and ‘fall’ days slightly better, in rupees and in dollars (all p > 0.3)."],
+     ["Sarvatobhadra Chakra book: sign rules for shares (Sun in Leo or Virgo falls, Saturn in Aquarius, Mars in Taurus, Venus in Capricorn rises)","none","Mostly wrong or no effect. Venus in Capricorn leaned the right way (p 0.3–0.5): not significant."],
+     ["Sarvatobhadra Chakra book: Mercury combust = Teji","weak","Right on all three indices in both halves, but fading (Nifty +13.6 bps in 2007–16, +1.3 in 2017–26). Watch only."],
+     ["Sarvatobhadra Chakra book: Jupiter and Saturn both retrograde = Teji","weak","Right direction everywhere (+3 to +6 bps a day) but p 0.36–0.44. Not significant."],
+     ["Sarvatobhadra Chakra full vedha grid (front, right and left vedha from the book’s p.33 table; speed, retrograde and dignity weights from pp.30 and 48)","none","Gold nakshatras (Krittika, Pushya, Chitra, Dhanishta): the right direction but not significant (gold in INR +4.9 bps on malefic-vedha days, p 0.32). Shares (Vrishabha): +2 bps on Nifty (p 0.68), nothing on Sensex. India as a country (Bharat → Moola, India → Krittika): no effect or the wrong way (Krittika malefic days were stronger, p 0.16–0.37). Every p-value was above 0.15 except one wrong-way result, as expected among about 40 tests."]].map(function(r){ var L = r[1] === "none" ? ["No edge found","neg"] : r[1] === "weak" ? ["Weak, watch only","warn"] : ["Not tested",""]; return '<tr><td><b>' + r[0] + '</b></td><td><span class="chip ' + L[1] + '">' + L[0] + '</span></td><td class="acEvid">' + r[2] + '</td></tr>'; }).join("") +
+    '</tbody></table></div><p class="hint">Data: daily closes of Nifty 50 and Bank Nifty (2007–2026), Sensex (1997–2026) and S&P 500 (1950–2026). Turning points are closes that were the highest or lowest within ±10–30 trading days. Each technique is compared with what chance alone would give. More than 150 comparisons were run, so a few p-values near 0.05 are expected by luck; none passed the multiple-testing threshold.</p></details>';
+  var AC_VLABEL = {none:["No edge found", "neg"], weak:["Weak, not significant", "warn"], personal:["Personal", "pos"]};
+  var AC_JUP = ["Loss of money and focus, wandering","Happiness, domestic harmony, success","Obstacles, loss of position, travels","Troubles, defeat, losses","Intelligence, prosperity, wealth","Mental uneasiness, enemies, worries","Health, happiness, well-being","Disease, illness, grief","Success, wealth, religiousness","Loss of position and money, ill-health","Recovery of health and position, happiness","Fall from grace, grief"];
+  var AC_SAT = ["Worries, fear of confinement","Physical weakness, unhappiness","Wealth, health, happiness, all-round success","Stomach problems, separation from family","Uneasiness, quarrels","Freedom from disease and enemies, success","Wandering, trouble from authorities","Suffering, loss of status","Diseases, loss of status","Loss of money, bad name, career changes","Wealth, success, gains","Grief, losses, frustration"];
+  var AC_SIGNS = ["Aries","Taurus","Gemini","Cancer","Leo","Virgo","Libra","Scorpio","Sagittarius","Capricorn","Aquarius","Pisces"];
+  var AC_RASI = ["Mesha","Vrishabha","Mithuna","Karka","Simha","Kanya","Tula","Vrischika","Dhanu","Makara","Kumbha","Meena"];
+  function acOrd(n){ return n + (["th","st","nd","rd"][((n%100)-20)%10] || ["th","st","nd","rd"][n%100] || "th"); }
+  function acDate(ms){ return new Date(ms).toLocaleDateString("en-IN", {timeZone:"Asia/Kolkata", day:"2-digit", month:"short", year:"numeric"}); }
+  function acDay(ms){ return new Date(ms).toLocaleDateString("en-IN", {timeZone:"Asia/Kolkata", weekday:"short"}); }
+
+  function astroCalEvents(from, to, N){
+    var A = window.Astronomy, ev = [], day = 864e5, t0 = Date.UTC(new Date(from).getUTCFullYear(), new Date(from).getUTCMonth(), new Date(from).getUTCDate(), 4, 30);
+    // stations and slow-planet sign changes, scanned day by day at 10:00 IST
+    var prev = AST.pos(t0 - day), open = {};
+    ["Mercury","Venus","Mars","Jupiter","Saturn"].forEach(function(b){ if(prev[b].retro) open[b] = t0; });
+    for(var t = t0; t <= to; t += day){
+      var p = AST.pos(t);
+      ["Mercury","Venus","Mars","Jupiter","Saturn"].forEach(function(b){
+        if(p[b].retro !== prev[b].retro){
+          var key = {Mercury:"mercRx",Venus:"venRx",Mars:"marsRx",Jupiter:"jupRx",Saturn:"satRx"}[b];
+          if(p[b].retro){ open[b] = t; ev.push({t:t, kind:"market", k:key, title:b + " turns retrograde", det:"in " + AC_SIGNS[p[b].sign] + " (" + AC_RASI[p[b].sign] + ")", ev2: b === "Mercury" ? "station" : "station2"}); }
+          else { ev.push({t:t, kind:"market", k: b === "Mercury" ? "station" : "station2", title:b + " turns direct", det:"retrograde since " + (open[b] ? acDate(open[b]) : "before this range") + " · in " + AC_SIGNS[p[b].sign]}); delete open[b]; }
+        }
+      });
+      ["Jupiter","Saturn","Rahu"].forEach(function(b){
+        if(p[b].sign !== prev[b].sign){
+          var det = "enters " + AC_SIGNS[p[b].sign] + " (" + AC_RASI[p[b].sign] + ", sidereal)" + (b === "Rahu" ? " · Ketu enters " + AC_SIGNS[p.Ketu.sign] : "");
+          ev.push({t:t, kind:"market", k:{Jupiter:"jupIn",Saturn:"satIn",Rahu:"rahuIn"}[b], title:(b === "Rahu" ? "Rahu–Ketu change sign" : b + " changes sign"), det:det});
+          if(N && (b === "Jupiter" || b === "Saturn")){
+            var h = ((p[b].sign - N.moonSign + 12) % 12) + 1, good = b === "Jupiter" ? [2,5,7,9,11].indexOf(h) >= 0 : [3,6,11].indexOf(h) >= 0;
+            var txt = (b === "Jupiter" ? AC_JUP : AC_SAT)[h - 1];
+            var ss = b === "Saturn" ? (h === 12 ? " · Sade Sati begins" : h === 1 ? " · Sade Sati: peak phase" : h === 2 ? " · Sade Sati: last phase" : h === 3 ? " · Sade Sati ends" : "") : "";
+            ev.push({t:t, kind:"personal", k:"personal", good:good, title:"Your transit: " + b + " " + acOrd(h) + " from your Moon" + ss, det:(good ? "Good" : "Difficult") + " by the book (Table " + (b === "Jupiter" ? "57" : "53") + "): " + txt.toLowerCase()});
+          }
+        }
+      });
+      prev = p;
+    }
+    // eclipses
+    try{
+      var e = A.SearchGlobalSolarEclipse(new Date(from - 40*day));
+      for(var i = 0; i < 8 && e.peak.date.getTime() <= to; i++){ if(e.peak.date.getTime() >= from) ev.push({t:e.peak.date.getTime(), kind:"market", k:"solar", title:"Solar eclipse (" + e.kind + ")", det:"Sun in " + AC_SIGNS[AST.pos(e.peak.date.getTime()).Sun.sign]}); e = A.NextGlobalSolarEclipse(e.peak); }
+      var l = A.SearchLunarEclipse(new Date(from - 40*day));
+      for(var j = 0; j < 8 && l.peak.date.getTime() <= to; j++){ if(l.peak.date.getTime() >= from) ev.push({t:l.peak.date.getTime(), kind:"market", k:"lunar", title:"Lunar eclipse (" + l.kind + ")", det:"Moon in " + AC_SIGNS[AST.pos(l.peak.date.getTime()).Moon.sign]}); l = A.NextLunarEclipse(l.peak); }
+    }catch(err){}
+    // New and Full Moons
+    try{
+      [0, 180].forEach(function(ph){
+        var s = new Date(from);
+        for(var k = 0; k < 30; k++){ var mt = A.SearchMoonPhase(ph, s, 40); if(!mt || mt.date.getTime() > to) break;
+          var ms = mt.date.getTime(); ev.push({t:ms, kind:"moon", k: ph ? "fullm" : "newm", title: ph ? "Full Moon (Purnima)" : "New Moon (Amavasya)", det:"Moon in " + AC_SIGNS[AST.pos(ms).Moon.sign] + (N ? " · " + acOrd(((AST.pos(ms).Moon.sign - N.moonSign + 12) % 12) + 1) + " from your Moon" : "")});
+          s = new Date(ms + 5*day); }
+      });
+    }catch(err){}
+    // Gann seasonal dates (equinoxes, solstices and the midpoints between them)
+    var GS = [[1,4,"Gann seasonal date (midpoint)"],[2,21,"Gann seasonal date (spring equinox)"],[4,5,"Gann seasonal date (midpoint)"],[5,21,"Gann seasonal date (summer solstice)"],[7,8,"Gann seasonal date (midpoint)"],[8,22,"Gann seasonal date (autumn equinox)"],[10,8,"Gann seasonal date (midpoint)"],[11,21,"Gann seasonal date (winter solstice)"]];
+    for(var y = new Date(from).getUTCFullYear(); y <= new Date(to).getUTCFullYear(); y++) GS.forEach(function(g){ var gt = Date.UTC(y, g[0], g[1], 4, 30); if(gt >= from && gt <= to) ev.push({t:gt, kind:"gann", k:"gannSeason", title:g[2], det:"Gann's time rule: watch for a turn within ±3 days"}); });
+    // Moon perigee (Pesavento) and Moon-with-Ketu runs (Vedic intraday rule)
+    try{ var ap = A.SearchLunarApsis(new Date(from - 30*day)); for(var n = 0; n < 30 && ap.time.date.getTime() <= to; n++){ if(ap.kind === 0 && ap.time.date.getTime() >= from) ev.push({t:ap.time.date.getTime(), kind:"moon", k:"perigee", title:"Moon at perigee (closest to Earth)", det:(ap.dist_km ? Math.round(ap.dist_km).toLocaleString("en-IN") + " km · " : "") + "±1 day window"}); ap = A.NextLunarApsis(ap); } }catch(err){}
+    // Mercury combust windows (within 14 degrees of the Sun)
+    var cRun = null, adg = function(a, b){ return Math.abs(((a - b + 540) % 360) - 180); };
+    for(var tc = t0; tc <= to + day; tc += day){ var pc = AST.pos(tc), cb = adg(pc.Mercury.lon, pc.Sun.lon) < 14;
+      if(cb && !cRun) cRun = tc;
+      if(!cb && cRun){ ev.push({t:cRun, kind:"market", k:"mercComb", title:"Mercury combust", det:acDate(cRun) + " to " + acDate(tc - day) + " · within 14° of the Sun"}); cRun = null; } }
+    var kRun = null;
+    for(var tk = t0; tk <= to + day; tk += day){ var pk = AST.pos(tk), on = pk.Moon.sign === pk.Ketu.sign;
+      if(on && !kRun) kRun = tk;
+      if(!on && kRun){ ev.push({t:kRun, kind:"moon", k:"moonKetu", title:"Moon with Ketu", det:"in " + AC_SIGNS[pk.Ketu.sign] + " · " + acDate(kRun) + " to " + acDate(tk - day)}); kRun = null; } }
+
+    // your dasa: sub-period (antardasa) and sub-sub-period (pratyantardasa) changes
+    if(N && N.md){
+      N.md.forEach(function(m){
+        var len = m.e - m.s, s = m.s, k0 = AST.VO.indexOf(m.lord);
+        for(var a = 0; a < 9; a++){
+          var ad = AST.VO[(k0 + a) % 9], al = len*AST.VY[ad]/120, ps = s, p0 = AST.VO.indexOf(ad);
+          if(s >= from && s <= to) ev.push({t:s, kind:"personal", k:"personal", dasa:true, good: N.lagna !== null ? AST.FB[N.lagna].indexOf(ad) >= 0 : null, title:"Your dasa: " + m.lord + "–" + ad + " sub-period begins", det:"runs to " + acDate(s + al) + (N.lagna !== null ? " · " + ad + (AST.FB[N.lagna].indexOf(ad) >= 0 ? " is a functional benefic for you" : " is not a functional benefic for you") : "")});
+          for(var q = 0; q < 9; q++){
+            var pd = AST.VO[(p0 + q) % 9], pl = al*AST.VY[pd]/120;
+            if(ps >= from && ps <= to && q > 0) ev.push({t:ps, kind:"pd", k:"personal", dasa:true, good: N.lagna !== null ? AST.FB[N.lagna].indexOf(pd) >= 0 : null, title:"Your dasa: " + m.lord + "–" + ad + "–" + pd, det:"sub-sub-period to " + acDate(ps + pl)});
+            ps += pl;
+          }
+          s += al;
+        }
+      });
+    }
+    ev.sort(function(a, b){ return a.t - b.t; });
+    return ev;
+  }
+
+  function renderAstroCal(){
+    var host = $("#astroCalBody"); if(!host) return;
+    if(!AST.ready()){ host.innerHTML = '<p class="snote warn">The astronomy library didn’t load (it comes from cdn.jsdelivr.net). Check your internet connection and reload.</p>'; return; }
+    var months = +state.astroCalMonths || 6, view = state.astroCalView || "all", now = Date.now(), to = now + months*30.44*864e5;
+    var N = null; try{ N = AST.natal(state.astroBirth); }catch(e){ N = null; }
+    var all = astroCalEvents(now, to, N);
+    var list = all.filter(function(e){
+      if(e.kind === "moon" && !state.astroCalMoon) return false;
+      if(e.kind === "pd" && !state.astroCalPd) return false;
+      if(view === "market") return e.kind === "market" || e.kind === "moon" || e.kind === "gann";
+      if(view === "personal") return e.kind === "personal" || e.kind === "pd";
+      return true;
+    });
+    // today strip
+    var tf = AST.factorsAtMs(Date.UTC(new Date().getUTCFullYear(), new Date().getUTCMonth(), new Date().getUTCDate(), 4, 30), N), pnow = AST.pos(now);
+    var retro = ["Mercury","Venus","Mars","Jupiter","Saturn"].filter(function(b){ return pnow[b].retro; });
+    var today = '<div class="acToday"><b>Today</b> ' +
+      '<span class="chip">' + esc(tf._tithi) + '</span><span class="chip">Moon in ' + esc(tf._nak) + '</span>' +
+      '<span class="chip">' + (retro.length ? "Retrograde: " + esc(retro.join(", ")) : "No planet retrograde") + '</span>' +
+      (tf._dasa ? '<span class="chip">Your dasa ' + esc(tf._dasa) + '</span>' : '') +
+      (tf._tara ? '<span class="chip">Your tara ' + tf._tara + (tf.taraGood ? " (good)" : " (weak)") + '</span>' : '') + '</div>';
+    var rows = "", lastM = "";
+    list.forEach(function(e){
+      var m = new Date(e.t).toLocaleDateString("en-IN", {timeZone:"Asia/Kolkata", month:"long", year:"numeric"});
+      if(m !== lastM){ rows += '<tr class="acMonth"><td colspan="4">' + esc(m) + '</td></tr>'; lastM = m; }
+      var ev = AC_EVID[e.k] || AC_EVID.personal, lab = AC_VLABEL[ev.v];
+      var tone = e.dasa ? (e.good === true ? ' <span class="chip pos">benefic lord for you</span>' : e.good === false ? ' <span class="chip">not a benefic lord</span>' : '')
+        : e.good === true ? ' <span class="chip pos">good for you</span>' : e.good === false ? ' <span class="chip neg">harder for you</span>' : '';
+      rows += '<tr class="ac-' + e.kind + '"><td class="mono" style="white-space:nowrap">' + esc(acDate(e.t)) + '<div class="dim">' + esc(acDay(e.t)) + '</div></td>' +
+        '<td><b>' + esc(e.title) + '</b>' + tone + '<div class="dim">' + esc(e.det) + '</div></td>' +
+        '<td><span class="chip ' + lab[1] + '">' + lab[0] + '</span></td>' +
+        '<td class="acEvid">' + esc(ev.t) + '</td></tr>';
+    });
+    var nextOf = function(k){ for(var i = 0; i < all.length; i++) if(all[i].k === k || all[i].ev2 === k) return all[i]; return null; };
+    var nm = nextOf("mercRx"), ne = null; for(var i = 0; i < all.length; i++) if(all[i].k === "solar" || all[i].k === "lunar"){ ne = all[i]; break; }
+    host.innerHTML = today +
+      '<div class="acNext">' + (nm ? '<span>Next Mercury retrograde: <b>' + esc(acDate(nm.t)) + '</b></span>' : '') + (ne ? '<span>Next eclipse: <b>' + esc(acDate(ne.t)) + '</b> (' + esc(ne.title.replace(/ \(.*/, "")) + ')</span>' : '') +
+      '<span>' + list.length + ' events in the next ' + months + ' months</span></div>' +
+      (N ? '' : '<p class="snote warn">Add your birth details in the Trading Journal → Astro test to see your personal events (dasa, transits from your Moon).</p>') +
+      '<div class="table-wrap"><table class="acTable"><thead><tr><th>Date</th><th>Event</th><th>Tested on Indian markets</th><th>What the data showed</th></tr></thead><tbody>' + (rows || '<tr><td colspan="4" class="dim">No events match.</td></tr>') + '</tbody></table></div>' + AC_TECH;
+  }
+  function wireAstroCal(){
+    var box = $("#tab-astrocal"); if(!box || box._wired) return; box._wired = true;
+    box.addEventListener("click", function(e){
+      var b = e.target.closest("[data-acm],[data-acv]"); if(!b) return;
+      if(b.hasAttribute("data-acm")) state.astroCalMonths = +b.getAttribute("data-acm");
+      if(b.hasAttribute("data-acv")) state.astroCalView = b.getAttribute("data-acv");
+      box.querySelectorAll("[data-acm]").forEach(function(x){ x.setAttribute("aria-pressed", String(+x.getAttribute("data-acm") === state.astroCalMonths)); });
+      box.querySelectorAll("[data-acv]").forEach(function(x){ x.setAttribute("aria-pressed", String(x.getAttribute("data-acv") === state.astroCalView)); });
+      save(); renderAstroCal();
+    });
+    ["acMoon","acPd"].forEach(function(id){ var c = $("#" + id); if(c) c.addEventListener("change", function(){ state[id === "acMoon" ? "astroCalMoon" : "astroCalPd"] = c.checked; save(); renderAstroCal(); }); });
+  }
+
+  /* ---------- Momentum test: "copy yesterday's direction" vs buy & hold, after costs ---------- */
+  function momSymbolUrl(sym){
+    sym = String(sym || "^NSEI").trim().toUpperCase();
+    var y = (sym.charAt(0) === "^" || sym.indexOf(".") >= 0) ? sym : sym + ".NS";
+    return {label: sym, url: "https://query1.finance.yahoo.com/v8/finance/chart/" + encodeURIComponent(y) + "?range=max&interval=1d"};
+  }
+  function momentumStats(dates, close, cost){
+    var R = [];
+    for(var i = 1; i < close.length; i++) if(close[i] > 0 && close[i-1] > 0) R.push({y: +dates[i].slice(0, 4), r: Math.log(close[i]/close[i-1])});
+    function run(rows, c){
+      var ll = 0, ls = 0, bh = 0, pos = 0, pos2 = 0, sw = 0, hit = 0, n = 0;
+      for(var i = 1; i < rows.length; i++){
+        var up = rows[i-1].r > 0, r = rows[i].r; bh += r;
+        var sig = up ? 1 : 0; if(sig !== pos){ ll -= c; sw++; pos = sig; } if(sig) ll += r;
+        var s2 = up ? 1 : -1; if(s2 !== pos2){ ls -= (pos2 === 0 ? 1 : 2)*c; pos2 = s2; } ls += s2*r;
+        if(r !== 0 && rows[i-1].r !== 0){ n++; if((r > 0) === up) hit++; }
+      }
+      var f = function(x){ return (Math.exp(x) - 1)*100; };
+      return {acc: n ? hit/n*100 : NaN, lf: f(ll), ls: f(ls), bh: f(bh), sw: sw, days: rows.length, years: rows.length ? (rows[rows.length-1].y - rows[0].y + 1) : 0};
+    }
+    var m = 0; R.forEach(function(x){ m += x.r; }); m /= R.length || 1;
+    var num = 0, den = 0; for(var k = 0; k < R.length; k++){ den += (R[k].r - m)*(R[k].r - m); if(k) num += (R[k].r - m)*(R[k-1].r - m); }
+    var y0 = R.length ? R[0].y : 0, y1 = R.length ? R[R.length-1].y : 0, span = y1 - y0 + 1, nb = Math.min(5, Math.max(1, Math.floor(span/3))), step = Math.ceil(span/nb), periods = [];
+    for(var a = y0; a <= y1; a += step){ var b = Math.min(y1, a + step - 1), rows = R.filter(function(x){ return x.y >= a && x.y <= b; }); if(rows.length > 40) periods.push({a: a, b: b, s: run(rows, cost)}); }
+    return {n: R.length, ac: den ? num/den : 0, periods: periods, all: run(R, cost), free: run(R, 0), dbl: run(R, cost*2), from: dates[0], to: dates[dates.length-1]};
+  }
+  function renderMomentum(label, st, costPct){
+    var pc = function(x){ return (x >= 0 ? "+" : "") + x.toFixed(0) + "%"; }, cls = function(a, b){ return a > b ? "pos" : "neg"; };
+    var row = function(name, s){ return '<tr><td>' + name + '</td><td class="num">' + (isFinite(s.acc) ? s.acc.toFixed(1) + "%" : "—") + '</td><td class="num ' + cls(s.lf, s.bh) + '">' + pc(s.lf) + '</td><td class="num ' + cls(s.ls, s.bh) + '">' + pc(s.ls) + '</td><td class="num">' + pc(s.bh) + '</td><td class="num">' + Math.round(s.sw/Math.max(1, s.years)) + '/yr</td></tr>'; };
+    var A = st.all, beat = A.lf > A.bh || A.ls > A.bh, beatPeriods = st.periods.filter(function(p){ return Math.max(p.s.lf, p.s.ls) > p.s.bh; }).length;
+    var verdict = beat
+      ? '<p class="snote">After ' + costPct + '% costs the rule <b>beat</b> buy &amp; hold over the full history (' + beatPeriods + ' of ' + st.periods.length + ' periods). Check the “double cost” line and each period before trusting it: index data can look more predictable than anything you can actually trade.</p>'
+      : '<p class="snote">After ' + costPct + '% costs the rule <b>did not beat</b> buy &amp; hold over the full history (it did in ' + beatPeriods + ' of ' + st.periods.length + ' periods). Yesterday’s direction repeats slightly more than half the time, but switching this often costs more than the edge.</p>';
+    $("#momOut").innerHTML =
+      '<p class="hint" style="margin-top:10px"><b>' + esc(label) + '</b> · ' + esc(st.from) + ' to ' + esc(st.to) + ' · ' + st.n.toLocaleString("en-IN") + ' days · day-to-day correlation of returns <b>' + st.ac.toFixed(3) + '</b> (0 = none; a real but tiny edge is 0.02–0.05)</p>' +
+      '<div class="table-wrap"><table class="momTable"><thead><tr><th>Period</th><th>Right direction</th><th>Long/flat</th><th>Long/short</th><th>Buy &amp; hold</th><th>Switches</th></tr></thead><tbody>' +
+      st.periods.map(function(p){ return row(p.a + "–" + p.b, p.s); }).join("") +
+      row('<b>Full history</b> (' + costPct + '% per switch)', A) + row('No costs (not achievable)', st.free) + row('Double cost (' + (costPct*2) + '%)', st.dbl) +
+      '</tbody></table></div>' + verdict +
+      '<p class="hint">Green = beat buy &amp; hold in that row. Long/flat holds only on days after an up close; long/short also goes short after a down close. Index levels include stocks whose prices update late, which makes an index look slightly more “repeating” than a tradeable future or ETF would be.</p>';
+  }
+  document.addEventListener("click", function(e){ if(e.target && e.target.id === "momRun") runMomentumTest(); });
+  function runMomentumTest(){
+    var cfg = currentCfg(), m = momSymbolUrl($("#momSym").value), costPct = parseFloat($("#momCost").value), st = $("#momStatus");
+    if(!isFinite(costPct) || costPct < 0) costPct = 0.05;
+    st.textContent = "fetching " + m.label + "…"; $("#momRun").disabled = true;
+    fetchTimeout(wrapProxy(cfg.proxy, m.url), 25000)
+      .then(function(res){ if(!res.ok) throw new Error("HTTP " + res.status); return res.text(); })
+      .then(parseYahoo)
+      .then(function(d){ var closes = d.close.slice(), dates = d.dates.slice(); if(d.liveLast){ closes.pop(); dates.pop(); }
+        renderMomentum(m.label, momentumStats(dates, closes, costPct/100), costPct); st.textContent = ""; })
+      .catch(function(e){ st.textContent = "couldn’t load " + m.label + ": " + (e && e.message || e) + " (check the data proxy in Settings)"; })
+      .then(function(){ $("#momRun").disabled = false; });
+  }
+
   function astroRng(seed){ var s = seed >>> 0; return function(){ s = (s*1664525 + 1013904223) >>> 0; return s/4294967296; }; }
   function astroMean(a){ return a.length ? a.reduce(function(t,x){ return t + x; }, 0)/a.length : 0; }
   function astroPermP(a, b, iters){
@@ -9702,7 +10062,8 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
   /* ---------- tabs / theme / controls ---------- */
   function switchTab(name){
     $$("#tabs button").forEach(function(b){ b.classList.toggle("active", b.getAttribute("data-tab")===name); });
-    ["today","screener","golden","silver","darvas","hdf","coil","candles","mb","journal","book","compare","analyzer","announce","playbook"].forEach(function(t){ $("#tab-"+t).hidden = (t!==name); });
+    ["today","screener","golden","silver","darvas","hdf","coil","candles","mb","journal","astrocal","book","compare","analyzer","announce","playbook"].forEach(function(t){ $("#tab-"+t).hidden = (t!==name); });
+    if(name==="astrocal"){ wireAstroCal(); var bx = $("#tab-astrocal"); bx.querySelectorAll("[data-acm]").forEach(function(x){ x.setAttribute("aria-pressed", String(+x.getAttribute("data-acm") === (+state.astroCalMonths || 6))); }); bx.querySelectorAll("[data-acv]").forEach(function(x){ x.setAttribute("aria-pressed", String(x.getAttribute("data-acv") === (state.astroCalView || "all"))); }); $("#acMoon").checked = state.astroCalMoon !== false; $("#acPd").checked = !!state.astroCalPd; renderAstroCal(); }
     if(name==="today") renderToday();
     if(name==="candles") renderCandles();
     if(name==="mb") renderMultibagger();
