@@ -141,6 +141,15 @@ button.ghost.pos:hover{background:var(--pos);color:#fff}
 .acTable td:first-child{white-space:nowrap}
 .acTable .dim{font-size:12px}
 .acTech{margin-top:14px}
+.acCond{border:1px solid var(--line-strong);border-radius:8px;padding:10px 12px;margin:12px 0 6px;background:var(--surface);display:grid;gap:6px;font-size:13px}
+.acCondRow{line-height:1.5}
+#tab-astrocal .acCond .acK{display:inline-block;min-width:118px;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:600;margin-right:6px}
+.acExtra{font-size:12px;color:var(--ink-soft);margin-top:2px}
+.acNow{margin:6px 0 12px;border:1px solid var(--line);border-radius:8px;padding:8px 12px}
+.acNow summary{cursor:pointer;font-size:13px}
+.acNowGrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:10px;margin-top:8px;font-size:13px}
+.acNowItem{border-left:3px solid var(--line-strong);padding-left:8px}
+.acTable tr.ac-mundane td:first-child{border-left:3px solid var(--line-strong)}
 .trackTable tr.trBest td{background:var(--pos-bg)}
 .trackTable td.num.dim{color:var(--muted)}
 .trackTable td.num.warn{color:var(--warn);font-weight:600}
@@ -1442,7 +1451,7 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
       <p class="hint">Every astrological event coming up, so you know it in advance, with what that kind of event <b>actually did to Nifty, Sensex and Bank Nifty</b> in the past. Nifty and Bank Nifty data run from 2007 and Sensex from 1997, to Sep 2026. <b>None of these events predicted market direction reliably</b>, so this calendar gives no buy or sell signals. Use it for awareness and discipline, and let your system’s rules make the trades. Your personal events (dasa, transits from your Moon) are about you, not the market. The Astro test in the Trading Journal checks whether they matter for your own trades.</p>
       <div class="scan-head" style="flex-wrap:wrap;gap:10px;margin-top:4px">
         <div class="seg" role="group" aria-label="Range"><button type="button" data-acm="3">3 months</button><button type="button" data-acm="6">6 months</button><button type="button" data-acm="12">12 months</button></div>
-        <div class="seg" role="group" aria-label="Show"><button type="button" data-acv="all">All</button><button type="button" data-acv="market">Sky events</button><button type="button" data-acv="personal">Personal</button></div>
+        <div class="seg" role="group" aria-label="Show"><button type="button" data-acv="all">All</button><button type="button" data-acv="market">Sky events</button><button type="button" data-acv="personal">Personal</button><button type="button" data-acv="mundane">Planet + nakshatra</button></div>
         <label class="chk" style="margin-left:0"><input type="checkbox" id="acMoon"> Moon events (New/Full Moon, perigee, Moon with Ketu)</label>
         <label class="chk" style="margin-left:0"><input type="checkbox" id="acPd"> Dasa sub-sub-periods</label>
       </div>
@@ -4922,6 +4931,7 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
     perigee: {v:"weak", t:"Moon closest to Earth (Pesavento). Nifty averaged +10 bps a day around perigee vs +3 normally, in the same direction in both halves of the data and on Sensex and Bank Nifty. But it is shrinking (Sensex +19.7 → +2.7 bps) and far below trading costs. Watch, don't trade."},
     moonKetu:{v:"weak", t:"Moon with Ketu (Vedic intraday rule). Nifty averaged −7 bps a day vs +4 otherwise, negative in both halves on Nifty and Bank Nifty; the Sensex was mixed. Consistent but tiny (about 0.1%, against a normal daily swing of about 1.1%). Watch, don't trade."},
     mercComb:{v:"weak", t:"Sarvatobhadra Chakra book: Mercury combust means Teji (rise). This was the only rule from that book that was right on Nifty, Bank Nifty and Sensex in both halves of the data (Nifty +7 bps a day, Bank Nifty +12, p 0.03–0.2). But it is fading: Nifty +13.6 bps in 2007–16, +1.3 in 2017–26. Watch, don't trade."},
+    nakIngress:{v:"trad", t:"The book’s planet-in-nakshatra commodity rules were tested on gold in rupees and dollars (2000–2026) and showed no reliable effect (p > 0.3). The sector themes cannot be tested yet: a slow planet stays 5–13 months in a nakshatra, so each planet + nakshatra pair has occurred only once or twice since 2000. Read these as the tradition, not as a forecast."},
     personal:{v:"personal", t:"About you, not the market. Its effect on your trading is checked by the Astro test in the Trading Journal, once you have enough closed trades."}
   };
   var AC_TECH = '<details class="acTech"><summary><b>Techniques tested (Gann, Banerjee-style Vedic, Pesavento)</b>: what worked and what did not</summary><div class="table-wrap"><table class="acTable"><thead><tr><th>Technique</th><th>Result</th><th>Details</th></tr></thead><tbody>' +
@@ -4941,7 +4951,42 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
      ["Sarvatobhadra Chakra book: Jupiter and Saturn both retrograde = Teji","weak","Right direction everywhere (+3 to +6 bps a day) but p 0.36–0.44. Not significant."],
      ["Sarvatobhadra Chakra full vedha grid (front, right and left vedha from the book’s p.33 table; speed, retrograde and dignity weights from pp.30 and 48)","none","Gold nakshatras (Krittika, Pushya, Chitra, Dhanishta): the right direction but not significant (gold in INR +4.9 bps on malefic-vedha days, p 0.32). Shares (Vrishabha): +2 bps on Nifty (p 0.68), nothing on Sensex. India as a country (Bharat → Moola, India → Krittika): no effect or the wrong way (Krittika malefic days were stronger, p 0.16–0.37). Every p-value was above 0.15 except one wrong-way result, as expected among about 40 tests."]].map(function(r){ var L = r[1] === "none" ? ["No edge found","neg"] : r[1] === "weak" ? ["Weak, watch only","warn"] : ["Not tested",""]; return '<tr><td><b>' + r[0] + '</b></td><td><span class="chip ' + L[1] + '">' + L[0] + '</span></td><td class="acEvid">' + r[2] + '</td></tr>'; }).join("") +
     '</tbody></table></div><p class="hint">Data: daily closes of Nifty 50 and Bank Nifty (2007–2026), Sensex (1997–2026) and S&P 500 (1950–2026). Turning points are closes that were the highest or lowest within ±10–30 trading days. Each technique is compared with what chance alone would give. More than 150 comparisons were run, so a few p-values near 0.05 are expected by luck; none passed the multiple-testing threshold.</p></details>';
-  var AC_VLABEL = {none:["No edge found", "neg"], weak:["Weak, not significant", "warn"], personal:["Personal", "pos"]};
+
+  /* ---------- planet + nakshatra ("mundane") readings for the Astro Calendar ----------
+     Commodity lines: "Sarvatobhadra Chakra and Astrological Predictions", standard-practice table (pp.49-51) and
+     nakshatra significators (pp.56-57): a MALEFIC in the nakshatra = Teji (rise), a BENEFIC = Mandi (fall).
+     Themes: classical deity/symbol meanings. Sectors: traditional planet rulerships. Tested where possible. */
+  var AC_MUND = {
+    naks: ["Aswini","Bharani","Krittika","Rohini","Mrigasira","Ardra","Punarvasu","Pushya","Ashlesha","Magha","P.Phalguni","U.Phalguni","Hasta","Chitra","Swati","Visakha","Anuradha","Jyeshtha","Moola","P.Ashadha","U.Ashadha","Sravana","Dhanishta","Satabhisha","P.Bhadrapada","U.Bhadrapada","Revati"],
+    theme: ["speed, healing, fresh starts (Ashwini Kumaras, horse's head)","restraint, endings and rebirth (Yama)","cutting, fire, purification (Agni, razor)","growth, abundance, comfort (Brahma, chariot)","searching, travel, trade (Soma, deer's head)",
+      "storms, upheaval, destruction then renewal (Rudra, teardrop)","return, recovery, rebuilding (Aditi)","nourishment, stability, prosperity (Brihaspati)","entanglement, secrecy, poison (Nagas, serpent)","authority, government, legacy (Pitrs, throne)",
+      "pleasure, luxury, entertainment (Bhaga)","contracts, alliances, service (Aryaman)","skill, craft, commerce (Savitr, hand)","design, construction, jewels (Vishvakarma)","wind, movement, free trade (Vayu)",
+      "ambition, rivalry, goals (Indra-Agni)","cooperation, organisation (Mitra)","seniority, power struggles (Indra)","uprooting, roots, deep research (Nirriti)","water, purification, invincibility (Apas)",
+      "lasting victory, leadership (Vishvadevas)","listening, media, learning (Vishnu, ear)","wealth, music, abundance (Vasus, drum)","healing, secrecy, water, technology (Varuna)","fire, intensity, sacrifice (Aja Ekapada)",
+      "depth, stability, wisdom (Ahirbudhnya)","nourishment, safe journeys, completion (Pushan, fish)"],
+    comm: ["ghee, rice, textiles, livestock","wheat, rice, black pepper, dry ginger","gold, silver, diamonds, gems, rice, gram, sesame, oil","grains, oils, liquids, metals","livestock, liquids",
+      "oil, salt, liquids, sandalwood, perfumes","cotton, yarn, jute goods, sesame","gold, silver, ghee, rice, salt, asafoetida, oils","jaggery, sugar, masoor, wheat","ghee, oil, sesame, gram, jaggery",
+      "wool, woollens, oils, silver","urad, moong, rice","sandalwood, camphor","gold, gems, jaggery, urad, moong","chillies, oil, asafoetida",
+      "rice, wheat, moong, masoor","tur/arhar, grains, rice, gram","jaggery, camphor, mercury, asafoetida","cotton, white goods, grains","ghee, grains",
+      "iron, brass, copper, livestock","sugar, grains, sweets","gold, silver, pearls, gems","oils, wines","metals, grains, medicines",
+      "jaggery, sugar, sesame, oils","pearls, gems, betel nuts"],
+    market: ["edible oils, rice & textile stocks","wheat & spice (NCDEX)","MCX Gold/Silver, jewellery stocks","metal & edible-oil stocks","",
+      "crude/edible oil, salt, FMCG fragrance","MCX Cotton, textile stocks","MCX Gold/Silver, edible oils","sugar stocks, wheat","edible oils, sugar",
+      "MCX Silver, woollen textiles","pulses (NCDEX)","","MCX Gold, jewellery stocks","spices, oils",
+      "rice & wheat, pulses","pulses & grains (NCDEX)","sugar stocks","MCX Cotton, textiles","dairy, grains",
+      "MCX Copper, steel & metal stocks","sugar stocks","MCX Gold/Silver, jewellery","crude/edible oils, liquor stocks","metal & pharma stocks",
+      "sugar stocks, edible oils","jewellery"],
+    sectors: {Jupiter:"banks & finance, education, gold, food", Saturn:"metals & mining, oil & gas, infrastructure, cement, coal", Rahu:"technology & electronics, aviation, chemicals, exports, speculative stocks",
+      Ketu:"pharma & healthcare, research, sudden reversals", Mars:"defence, real estate, steel & metals, power equipment"},
+    malefic: {Saturn:1, Rahu:1, Ketu:1, Mars:1, Jupiter:0},
+    read: function(b, nk, retro){
+      var M = AC_MUND, mal = M.malefic[b] === 1, trend = mal ? "Teji (rise)" : "Mandi (fall)";
+      return {theme: M.naks[nk] + ": " + M.theme[nk],
+        comm: "Book: " + (mal ? "malefic" : "benefic") + " " + b + (retro ? " (retrograde, double strength)" : "") + " in " + M.naks[nk] + " = " + trend + " in " + M.comm[nk] + (M.market[nk] ? " (market proxy: " + M.market[nk] + ")" : ""),
+        sect: b + " traditionally rules: " + M.sectors[b]};
+    }
+  };
+  var AC_VLABEL = {none:["No edge found", "neg"], weak:["Weak, not significant", "warn"], personal:["Personal", "pos"], trad:["Tradition: commodity rule failed on gold; sectors untested", ""]};
   var AC_JUP = ["Loss of money and focus, wandering","Happiness, domestic harmony, success","Obstacles, loss of position, travels","Troubles, defeat, losses","Intelligence, prosperity, wealth","Mental uneasiness, enemies, worries","Health, happiness, well-being","Disease, illness, grief","Success, wealth, religiousness","Loss of position and money, ill-health","Recovery of health and position, happiness","Fall from grace, grief"];
   var AC_SAT = ["Worries, fear of confinement","Physical weakness, unhappiness","Wealth, health, happiness, all-round success","Stomach problems, separation from family","Uneasiness, quarrels","Freedom from disease and enemies, success","Wandering, trouble from authorities","Suffering, loss of status","Diseases, loss of status","Loss of money, bad name, career changes","Wealth, success, gains","Grief, losses, frustration"];
   var AC_SIGNS = ["Aries","Taurus","Gemini","Cancer","Leo","Virgo","Libra","Scorpio","Sagittarius","Capricorn","Aquarius","Pisces"];
@@ -5004,6 +5049,11 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
     for(var tc = t0; tc <= to + day; tc += day){ var pc = AST.pos(tc), cb = adg(pc.Mercury.lon, pc.Sun.lon) < 14;
       if(cb && !cRun) cRun = tc;
       if(!cb && cRun){ ev.push({t:cRun, kind:"market", k:"mercComb", title:"Mercury combust", det:acDate(cRun) + " to " + acDate(tc - day) + " · within 14° of the Sun"}); cRun = null; } }
+    var nkPrev = AST.pos(t0 - day);
+    for(var tn = t0; tn <= to; tn += day){ var pn = AST.pos(tn);
+      ["Jupiter","Saturn","Rahu","Ketu","Mars"].forEach(function(b){ if(pn[b].nak !== nkPrev[b].nak){ var rd = AC_MUND.read(b, pn[b].nak, !!pn[b].retro);
+        ev.push({t:tn, kind:"mundane", k:"nakIngress", title:b + " enters " + AC_MUND.naks[pn[b].nak] + (pn[b].retro ? " (retrograde)" : ""), det:rd.theme, extra:[rd.comm, rd.sect]}); } });
+      nkPrev = pn; }
     var kRun = null;
     for(var tk = t0; tk <= to + day; tk += day){ var pk = AST.pos(tk), on = pk.Moon.sign === pk.Ketu.sign;
       if(on && !kRun) kRun = tk;
@@ -5029,6 +5079,44 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
     return ev;
   }
 
+  /* ---------- Trading conditions line (top of the Astro Calendar) ----------
+     What actually tested well (Setup track record, 706 stocks 2014-2026): Darvas Box in a Green regime
+     (+0.68%/trade vs +0.21% random, both periods); Golden Guru with Green + RS>=80 (+1.11%, 175 trades);
+     in a Red regime every setup lost money. */
+  // PERSONAL: favourable money periods from the Kundali app's Money calendar for the birth details in CONFIG.astroBirth
+  // (1990-08-11). Delete this list before sharing the file publicly.
+  var AC_MONEY_WINDOWS = [["2027-03-16","2027-06-30","Moon–Jupiter–Venus/Sun"],["2027-11-18","2028-02-15","Moon–Saturn–Saturn"],["2028-06-10","2028-10-20","Moon–Saturn–Venus/Sun"],
+    ["2029-04-10","2029-06-19","Moon–Saturn–Jupiter"],["2030-04-01","2030-06-15","Moon–Mercury–Rahu"],["2030-08-01","2030-11-18","Moon–Mercury–Saturn"],["2030-12-01","2031-01-31","Moon–Ketu–Venus/Sun"],
+    ["2031-06-19","2031-10-31","Moon–Venus–Venus/Sun"],["2032-01-01","2032-07-31","Moon–Venus–Rahu/Jupiter"]];
+  function tradingConditions(){
+    var rg = state.regime || "yellow", info = state.regimeAutoInfo, auto = (state.regimeMode || "manual") === "auto";
+    var rgTxt = {green: "Green: trade your tested setups at full size. Best record: Darvas Box (+0.68% per trade vs +0.21% random) and Golden Guru with RS ≥ 80 (+1.11%).",
+      yellow: "Yellow: half size, A-grade setups only (the ledger’s rule; Yellow was not tested separately).",
+      red: "Red: stay in cash. In Red markets every setup lost money (Darvas −0.48% per trade, Golden Guru −1.21%); new longs are blocked."}[rg];
+    var chipCls = {green: "pos", yellow: "warn", red: "neg"}[rg];
+    var rows = []; try { rows = parseBatch(state.batchInput || ""); } catch(e) { rows = []; }
+    var sc = state.scanCache, scanDate = sc && sc.date ? sc.date : null;
+    var dx = rows.filter(function(d){ return d.dx; }), gg = rows.filter(function(d){ return d.gg; }), ggRS = gg.filter(function(d){ return (d.rs || 0) >= 80; });
+    var names = function(a){ return a.slice(0, 8).map(function(d){ return esc(d.symbol); }).join(", ") + (a.length > 8 ? " +" + (a.length - 8) : ""); };
+    var sig;
+    if(!rows.length) sig = '<span class="dim">No scan loaded. Run a scan to see today’s Darvas / Golden Guru names.</span>';
+    else if(rg === "red") sig = '<span class="dim">Signals are suppressed in Red (' + dx.length + ' Darvas, ' + gg.length + ' Golden Guru in the last scan).</span>';
+    else sig = '<b>Darvas Box:</b> ' + (dx.length ? names(dx) : '<span class="dim">none</span>') + ' · <b>Golden Guru, RS ≥ 80:</b> ' + (ggRS.length ? names(ggRS) : '<span class="dim">none</span>') +
+      (gg.length > ggRS.length ? ' <span class="dim">(' + (gg.length - ggRS.length) + ' more with RS &lt; 80)</span>' : '');
+    var pers = "";
+    var b = state.astroBirth || {};
+    if(b.date === "1990-08-11"){
+      var today = new Date().toISOString().slice(0, 10), cur = null, next = null;
+      AC_MONEY_WINDOWS.forEach(function(w){ if(w[0] <= today && today <= w[1]) cur = w; else if(w[0] > today && !next) next = w; });
+      var fmt = function(d){ return acDate(Date.parse(d + "T04:30:00Z")); };
+      pers = '<div class="acCondRow"><span class="acK">Personal</span> ' + (cur ? '<span class="chip pos">In a favourable money window</span> ' + esc(cur[2]) + ', to ' + esc(fmt(cur[1])) : 'Next favourable money window: <b>' + (next ? esc(fmt(next[0])) + ' – ' + esc(fmt(next[1])) + '</b> <span class="dim">(' + esc(next[2]) + ')</span>' : '—</b>')) +
+        ' <span class="dim">· from your Kundali app’s Money calendar; personal and not tested on markets, so it never overrides the regime</span></div>';
+    }
+    return '<div class="acCond"><div class="acCondRow"><span class="acK">Trading conditions</span> <span class="chip ' + chipCls + '">' + rg.toUpperCase() + (auto && info ? ' · score ' + info.score : '') + '</span> ' + rgTxt + '</div>' +
+      '<div class="acCondRow"><span class="acK">Live signals</span> ' + sig + (scanDate ? ' <span class="dim">· scan ' + esc(scanDate) + '</span>' : '') + '</div>' + pers +
+      '<div class="acCondRow dim" style="font-size:12px">This line comes from the ledger’s tested rules (see Playbook → Setup track record). The sky events below are for awareness only.</div></div>';
+  }
+
   function renderAstroCal(){
     var host = $("#astroCalBody"); if(!host) return;
     if(!AST.ready()){ host.innerHTML = '<p class="snote warn">The astronomy library didn’t load (it comes from cdn.jsdelivr.net). Check your internet connection and reload.</p>'; return; }
@@ -5040,6 +5128,7 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
       if(e.kind === "pd" && !state.astroCalPd) return false;
       if(view === "market") return e.kind === "market" || e.kind === "moon" || e.kind === "gann";
       if(view === "personal") return e.kind === "personal" || e.kind === "pd";
+      if(view === "mundane") return e.kind === "mundane";
       return true;
     });
     // today strip
@@ -5058,13 +5147,19 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
       var tone = e.dasa ? (e.good === true ? ' <span class="chip pos">benefic lord for you</span>' : e.good === false ? ' <span class="chip">not a benefic lord</span>' : '')
         : e.good === true ? ' <span class="chip pos">good for you</span>' : e.good === false ? ' <span class="chip neg">harder for you</span>' : '';
       rows += '<tr class="ac-' + e.kind + '"><td class="mono" style="white-space:nowrap">' + esc(acDate(e.t)) + '<div class="dim">' + esc(acDay(e.t)) + '</div></td>' +
-        '<td><b>' + esc(e.title) + '</b>' + tone + '<div class="dim">' + esc(e.det) + '</div></td>' +
+        '<td><b>' + esc(e.title) + '</b>' + tone + '<div class="dim">' + esc(e.det) + '</div>' + (e.extra ? e.extra.map(function(x){ return '<div class="acExtra">' + esc(x) + '</div>'; }).join("") : "") + '</td>' +
         '<td><span class="chip ' + lab[1] + '">' + lab[0] + '</span></td>' +
         '<td class="acEvid">' + esc(ev.t) + '</td></tr>';
     });
     var nextOf = function(k){ for(var i = 0; i < all.length; i++) if(all[i].k === k || all[i].ev2 === k) return all[i]; return null; };
     var nm = nextOf("mercRx"), ne = null; for(var i = 0; i < all.length; i++) if(all[i].k === "solar" || all[i].k === "lunar"){ ne = all[i]; break; }
-    host.innerHTML = today +
+    // where the slow planets are now, with the traditional readings
+    var nowBox = '<details class="acNow" open><summary><b>Where the slow planets are now</b> <span class="dim">planet + nakshatra readings (tradition, see the note)</span></summary><div class="acNowGrid">' +
+      ["Jupiter","Saturn","Rahu","Ketu","Mars"].map(function(b){ var pb = pnow[b], rd = AC_MUND.read(b, pb.nak, !!pb.retro), since = now, k;
+        for(k = 1; k < 900; k++){ if(AST.pos(now - k*864e5)[b].nak !== pb.nak) break; since = now - k*864e5; }
+        return '<div class="acNowItem"><b>' + b + ' in ' + esc(AC_MUND.naks[pb.nak]) + (pb.retro ? ' ℞' : '') + '</b> <span class="dim">since ' + esc(acDate(since)) + '</span><div>' + esc(rd.theme) + '</div><div class="acExtra">' + esc(rd.comm) + '</div><div class="acExtra">' + esc(rd.sect) + '</div></div>'; }).join("") +
+      '</div><p class="hint">' + esc(AC_EVID.nakIngress.t) + '</p></details>';
+    host.innerHTML = tradingConditions() + today + nowBox +
       '<div class="acNext">' + (nm ? '<span>Next Mercury retrograde: <b>' + esc(acDate(nm.t)) + '</b></span>' : '') + (ne ? '<span>Next eclipse: <b>' + esc(acDate(ne.t)) + '</b> (' + esc(ne.title.replace(/ \(.*/, "")) + ')</span>' : '') +
       '<span>' + list.length + ' events in the next ' + months + ' months</span></div>' +
       (N ? '' : '<p class="snote warn">Add your birth details in the Trading Journal → Astro test to see your personal events (dasa, transits from your Moon).</p>') +
