@@ -508,7 +508,7 @@ table.sc-setup td.num{font-family:"IBM Plex Mono",monospace;text-align:right}
   <div class="wordmark">
     <span class="mark" aria-hidden="true">₹</span>
     <div>
-      <h1 title="Momentum + pullback screener · NSE swing setups · build 2026-09-29b">The 10% Ledger</h1>
+      <h1 title="Momentum + pullback screener · NSE swing setups · build 2026-09-29c">The 10% Ledger</h1>
     </div>
   </div>
   <div class="controls">
@@ -6666,12 +6666,28 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
     if(m.tnx && m.tnx.chg20!=null){
       var macroScore = -(m.tnx.chg20 + (m.dxy&&m.dxy.chg20!=null?0.5*m.dxy.chg20:0) + (m.brent&&m.brent.chg20!=null?0.3*m.brent.chg20:0));
       var tail = macroScore>0;
-      var leadTitle = "Combined from US 10Y yield (full weight) + Dollar Index (half weight) + Brent crude (0.3x weight) — the 3 factors that showed a real trend effect. VIX/India VIX and USD/INR are left OUT of this score (tested and found not to help, see the chips below for why). "+
-        "Backtested (15y Nifty): a tailwind read -> next 20 days +1.62% median, 67.8% win. A headwind read -> +0.62% median, 56.8% win. "+
-        "Honest caveat #1: this blend barely beats using the US 10Y yield ALONE (67.5%/56.7%) — combining these factors added almost nothing on top of it. "+
-        "Honest caveat #2: even the 'Headwind' bucket closed UP more often than not historically — this is a RELATIVE read (better vs worse odds), not a forecast that the market will fall.";
-      leadHtml = '<span class="chip '+(tail?"pos":"warn")+'" style="font-size:13px;padding:6px 12px" title="'+esc(leadTitle)+'">'+
-        '<b>Macro read: '+(tail?"↑ Tailwind":"↓ Headwind")+'</b></span> ';
+      // strength label from |score| — thresholds are just descriptive buckets over the same
+      // continuous score, not separately backtested categories; the backtest itself only tested
+      // the binary Tailwind/Headwind split, so treat "Strong/Mild" as a plain-language hint about
+      // how far from neutral today's reading sits, not a claim that "Strong" performs better.
+      var strength = Math.abs(macroScore)>=8 ? "Strong " : Math.abs(macroScore)>=3 ? "" : "Mild ";
+      var leadTitle = "This is a relative ODDS read, not a buy/sell signal — deliberately not wired to 'sell your stocks and hold cash', because even the worst-reading bucket in the backtest below still closed UP more often than not. "+
+        "Combined from US 10Y yield (full weight) + Dollar Index (half weight) + Brent crude (0.3x weight) — the 3 factors that showed a real trend effect. VIX/India VIX and USD/INR are left OUT (tested, found not to help — see the chips below). "+
+        "Backtested (15y Nifty, confirmed again on 15y Nifty 500): Tailwind -> next 20 days +1.62% median, 67.8% win (Nifty 500: 67.8%). Headwind -> +0.62% median, 56.8% win (Nifty 500: 60.3%) — still positive most of the time, just worse odds. "+
+        "This blend barely beats the US 10Y yield ALONE (67.5%/56.7%) — combining added almost nothing on top of it.";
+      // clamp the score to a plausible ±15 range (typical bound for these instruments' 20d moves)
+      // and map to a 0-100% needle position on a red -> amber -> green gradient track
+      var clamped = Math.max(-15, Math.min(15, macroScore));
+      var needlePos = Math.round((clamped+15)/30*100);
+      leadHtml = '<div style="margin-bottom:12px" title="'+esc(leadTitle)+'">'+
+        '<div style="display:flex;justify-content:space-between;font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.03em;margin-bottom:4px">'+
+          '<span>Headwind</span><span>Neutral</span><span>Tailwind</span></div>'+
+        '<div style="position:relative;height:10px;border-radius:999px;background:linear-gradient(90deg, var(--neg), var(--warn), var(--pos))">'+
+          '<div style="position:absolute;top:-3px;left:'+needlePos+'%;transform:translateX(-50%);width:4px;height:16px;background:var(--ink);border-radius:2px;box-shadow:0 0 0 2px var(--bg)"></div>'+
+        '</div>'+
+        '<div style="text-align:center;margin-top:6px;font-size:13px;font-weight:600;color:'+(tail?"var(--pos)":"var(--neg)")+'">Macro read: '+(tail?"↑ ":"↓ ")+esc(strength)+(tail?"Tailwind":"Headwind")+
+          '<span class="dim" style="font-weight:400;font-size:11px"> — relative odds, not a buy/sell call</span></div>'+
+      '</div>';
     }
     function chip(label, val, chg, cls, title){
       if(val==null) return "";
