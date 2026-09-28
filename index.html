@@ -508,7 +508,7 @@ table.sc-setup td.num{font-family:"IBM Plex Mono",monospace;text-align:right}
   <div class="wordmark">
     <span class="mark" aria-hidden="true">₹</span>
     <div>
-      <h1 title="Momentum + pullback screener · NSE swing setups · build 2026-09-24b">The 10% Ledger</h1>
+      <h1 title="Momentum + pullback screener · NSE swing setups · build 2026-09-29b">The 10% Ledger</h1>
     </div>
   </div>
   <div class="controls">
@@ -563,6 +563,10 @@ table.sc-setup td.num{font-family:"IBM Plex Mono",monospace;text-align:right}
   <!-- TODAY -->
   <section id="tab-today">
     <div class="regime-banner" id="todayRegime"></div>
+    <div class="panel" id="macroPanel" style="padding:12px 16px">
+      <div class="scan-head"><h2 style="font-size:14px">Macro conditions</h2><span class="scan-meta" id="macroMeta"></span></div>
+      <div id="macroChips" class="summary" aria-live="polite"><p class="empty">Run a scan to pull US 10Y yield, USD/INR, Brent crude, Dollar Index and VIX.</p></div>
+    </div>
     <div class="panel">
       <div class="scan-head"><h2>Today</h2><span class="scan-meta" id="todayMeta"></span></div>
       <p class="hint">One screen. It runs the funnel — <b>Green regime → RS ≥ 80 → your one setup → price still at the trigger</b> — and hands you the short list to watch today with the exact buy-stop level. Most days it is short or empty. <b>That is correct</b> — no trade is the right call more often than not.</p>
@@ -6633,7 +6637,64 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
     });
     save(); renderWatchlist();
   }
+  // ── macro conditions panel — see the fetchMacroSeries comment above for the backtest this is
+  // built from. Each chip's title carries the real historical numbers; the chip's own colour is a
+  // simplified "favourable / unfavourable for Nifty, historically" cue, EXCEPT the two VIX chips,
+  // which are deliberately coloured the opposite of naive intuition (elevated = pos) because the
+  // backtest found elevated fear here preceded BETTER Nifty returns, not worse.
+  function renderMacroPanel(){
+    var host = $("#macroChips"); if(!host) return;
+    var m = state.macro && state.macro.d;
+    if(!m || !Object.keys(m).length){
+      host.innerHTML = '<p class="empty">Run a scan to pull US 10Y yield, USD/INR, Brent crude, Dollar Index and VIX.</p>';
+      if($("#macroMeta")) $("#macroMeta").textContent = "";
+      return;
+    }
+    if($("#macroMeta")) $("#macroMeta").textContent = m && state.macro.at ? ("as of "+new Date(state.macro.at).toLocaleString()) : "";
+    // ── combined macro read — backtested before shipping (15y Nifty, <scratchpad>/macro_combined.js):
+    // tried a 5-factor equal-weight blend, a 3-factor blend, TNX+DXY only, and TNX alone. RESULT:
+    // nothing beat TNX by itself (UP 67.5%/DOWN 56.7% win) by more than a fraction of a point —
+    // every added factor either did nothing or slightly NARROWED the gap. The magnitude-weighted
+    // blend below (TNX full weight, DXY half, Brent 0.3x) was the best of everything tried, at
+    // +0.3pp over TNX alone (67.8%/56.8%) — genuinely marginal, not a real improvement; TNX is
+    // doing essentially all of the work. VIX/India VIX were tested in the blend too and added
+    // nothing, so they're left OUT of the score (shown as separate context chips only, not below).
+    // IMPORTANT: even the "Headwind" bucket closed UP more often than not (56.7-58.7% of the time)
+    // in this 15-year, bullish-biased Nifty sample — this is a relative tailwind/headwind read, NOT
+    // a forecast that the market will fall. Never label it as an absolute up/down prediction.
+    var leadHtml = "";
+    if(m.tnx && m.tnx.chg20!=null){
+      var macroScore = -(m.tnx.chg20 + (m.dxy&&m.dxy.chg20!=null?0.5*m.dxy.chg20:0) + (m.brent&&m.brent.chg20!=null?0.3*m.brent.chg20:0));
+      var tail = macroScore>0;
+      var leadTitle = "Combined from US 10Y yield (full weight) + Dollar Index (half weight) + Brent crude (0.3x weight) — the 3 factors that showed a real trend effect. VIX/India VIX and USD/INR are left OUT of this score (tested and found not to help, see the chips below for why). "+
+        "Backtested (15y Nifty): a tailwind read -> next 20 days +1.62% median, 67.8% win. A headwind read -> +0.62% median, 56.8% win. "+
+        "Honest caveat #1: this blend barely beats using the US 10Y yield ALONE (67.5%/56.7%) — combining these factors added almost nothing on top of it. "+
+        "Honest caveat #2: even the 'Headwind' bucket closed UP more often than not historically — this is a RELATIVE read (better vs worse odds), not a forecast that the market will fall.";
+      leadHtml = '<span class="chip '+(tail?"pos":"warn")+'" style="font-size:13px;padding:6px 12px" title="'+esc(leadTitle)+'">'+
+        '<b>Macro read: '+(tail?"↑ Tailwind":"↓ Headwind")+'</b></span> ';
+    }
+    function chip(label, val, chg, cls, title){
+      if(val==null) return "";
+      var arrow = chg==null ? "" : (chg>=0 ? " ↑" : " ↓");
+      return '<span class="chip '+(cls||"")+'" title="'+esc(title)+'"><b>'+esc(label)+'</b> '+esc(val)+(chg!=null?'<span class="dim" style="font-size:10px"> '+(chg>=0?'+':'')+chg.toFixed(1)+'%'+arrow+' /20d</span>':'')+'</span>';
+    }
+    var out = [];
+    if(m.tnx) out.push(chip("US 10Y yield", nfmt(m.tnx.now,2)+"%", m.tnx.chg20, m.tnx.chg20<0?"pos":m.tnx.chg20>0?"warn":"",
+      "The single strongest macro signal found here. Backtested (15y Nifty history): when the US 10Y yield FELL over the prior 20 days, Nifty's next 20 days: +1.61% median, 69% win. When it ROSE: +0.25%, 52% win — barely above a coin flip. Currently "+(m.tnx.chg20<0?"falling":"rising")+"."));
+    if(m.dxy) out.push(chip("Dollar Index", nfmt(m.dxy.now,2), m.dxy.chg20, m.dxy.chg20<0?"pos":m.dxy.chg20>0?"warn":"",
+      "Backtested: Dollar Index WEAKENING over 20d -> Nifty next 20d +1.48%/66% win. STRENGTHENING -> +0.35%/54%. A weaker dollar has historically been supportive for Nifty (capital flows toward EM). Currently "+(m.dxy.chg20<0?"weakening":"strengthening")+"."));
+    if(m.brent) out.push(chip("Brent crude", "$"+nfmt(m.brent.now,2), m.brent.chg20, m.brent.chg20<0?"pos":m.brent.chg20>0?"warn":"",
+      "Backtested: Brent FALLING over 20d -> Nifty next 20d +1.26%/61% win. RISING -> +0.34%/55% — India is a net oil importer, so cheaper crude has historically helped. Currently "+(m.brent.chg20<0?"falling":"rising")+"."));
+    if(m.usdinr) out.push(chip("USD/INR", "₹"+nfmt(m.usdinr.now,2), m.usdinr.chg20, "",
+      "Backtested: the WEAKEST of the 6 macro factors tested — rupee strengthening vs weakening barely moved Nifty's next-20d read (+1.42%/64% vs +1.0%/62%), unlike the Dollar Index above which captured a much cleaner effect. Shown for reference, not colour-coded, because the historical edge here was too noisy to trust."));
+    if(m.vix) out.push(chip("VIX (US)", nfmt(m.vix.now,2), m.vix.chg20, m.vix.now>=20?"pos":"",
+      "Contrarian result, not a typo: backtested, a HIGH VIX level preceded Nifty's next 20 days doing BETTER (+2.41%/69%) than a low VIX level (+1.1%/63%) — spikes in US fear have historically marked capitulation/buying points for Nifty, not warnings to get defensive."));
+    if(m.indiavix) out.push(chip("India VIX", nfmt(m.indiavix.now,2), m.indiavix.chg20, m.indiavix.now>=18?"pos":"",
+      "Contrarian result, not a typo: backtested, a HIGH India VIX level preceded Nifty's next 20 days doing better (+2.46%/71% — the single best reading of any factor tested here) than a low level (+0.91%/63%). Local fear spikes have historically marked good entry points, not danger signals."));
+    host.innerHTML = leadHtml + (out.join("") || '<p class="empty">Macro data didn\'t load this scan — try Force refresh.</p>');
+  }
   function renderToday(){
+    renderMacroPanel();
     var host=$("#todayList"); if(!host) return;
     var setup = state.todaySetup || "golden";
     if($("#todaySetup")) $("#todaySetup").value = setup;
@@ -9157,6 +9218,38 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
       .then(function(txt){ return parseYahoo(txt); })
       .catch(function(){ return null; });
   }
+  // ── macro conditions — fetched unconditionally on every scan, same as the Nifty series above ──
+  // Backtested on 15 years of Nifty daily data before shipping (each factor's trailing 20-day
+  // change/level vs Nifty's OWN next-20-day return, baseline any-day +1.04% median / 62.3% win):
+  //   US 10Y yield (^TNX): by far the strongest signal found in this tool, stock or macro-level —
+  //     yield FALLING -> Nifty +1.61%/69%; yield RISING -> +0.25%/52%. A 17-point win-rate swing.
+  //   Dollar Index (DX-Y.NYB): dollar WEAKENING -> +1.48%/66%; STRENGTHENING -> +0.35%/54%.
+  //   Brent crude (BZ=F): crude FALLING -> +1.26%/61%; RISING -> +0.34%/55% (India is a net oil
+  //     importer — cheaper oil helps).
+  //   USD/INR (INR=X) itself: the user's own original request, but the WEAKEST/noisiest of the six
+  //     tested — rupee strengthening vs weakening barely moved the read (+1.42%/64% vs +1.0%/62%).
+  //     Dollar Index captured the real effect far better than USD/INR specifically.
+  //   VIX / India VIX: level or trend RISING (more fear) -> Nifty did BETTER next 20 days, not
+  //     worse (India VIX high level: +2.46%/71%, the single best reading of the whole set) — a
+  //     contrarian "fear spikes here have marked buying opportunities" result, not "calm = safe".
+  // See <scratchpad>/macro_backtest.js for the full script. Shown as context, not folded into the
+  // Green/Yellow/Red regime score (that would need its own separate backtest of the combined read).
+  var MACRO_TICKERS = { tnx:"^TNX", usdinr:"INR=X", brent:"BZ=F", dxy:"DX-Y.NYB", vix:"^VIX", indiavix:"^INDIAVIX" };
+  function fetchMacroSeries(cfg, signal){
+    if(state.scanSource!=="proxy" || !cfg || !cfg.proxy) return Promise.resolve(null);
+    var keys = Object.keys(MACRO_TICKERS);
+    return Promise.all(keys.map(function(k){
+      var url = wrapProxy(cfg.proxy, "https://query1.finance.yahoo.com/v8/finance/chart/"+encodeURIComponent(MACRO_TICKERS[k])+"?range=6mo&interval=1d");
+      return fetchTimeout(url, 15000, signal)
+        .then(function(res){ if(!res.ok) throw new Error("HTTP "+res.status); return res.text(); })
+        .then(function(txt){ return parseYahoo(txt); })
+        .catch(function(){ return null; });
+    })).then(function(results){
+      var out={};
+      keys.forEach(function(k,i){ out[k]=results[i]; });
+      return out;
+    });
+  }
   function applyAutoRegime(){
     var info = state.regimeAutoInfo;
     if(info && info.regime) state.regime = info.regime;
@@ -9852,7 +9945,7 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
     var resFailCap = Math.max(25, Math.round(uni.length * 0.25));
     scanAbort = new AbortController();
     scanUIRunning(true);
-    var ok=[], failMap={}, extra={}, done=0, total=uni.length, lastStart=0, retried={}, scanIndexHealth=null, scanSectorIdx=null, scanNiftyRaw=null;
+    var ok=[], failMap={}, extra={}, done=0, total=uni.length, lastStart=0, retried={}, scanIndexHealth=null, scanSectorIdx=null, scanNiftyRaw=null, scanMacro=null;
     setProg(0,total);
 
     // Twelve Data free tier: 8 API credits / rolling minute. We hold to 6 to leave
@@ -9991,6 +10084,11 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
         });
       }
     }).then(function(){
+      if(ok.length && !scanAbort.signal.aborted){
+        setStatus("checking macro conditions…", true);
+        return fetchMacroSeries(cfg, scanAbort.signal).then(function(m){ scanMacro = m; });
+      }
+    }).then(function(){
       if((state.sectorMode||"manual")==="auto" && ok.length && !scanAbort.signal.aborted){
         setStatus("checking sector indices…", true);
         return fetchSectorIndices(cfg, scanAbort.signal).then(function(idx){ scanSectorIdx = idx; });
@@ -10036,6 +10134,17 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
       if(scanNiftyRaw && scanNiftyRaw.close && scanNiftyRaw.close.length){
         var NT=300, nts=Math.max(0, scanNiftyRaw.close.length-NT);
         state.niftySeries = { c: scanNiftyRaw.close.slice(nts).map(function(x){ return Math.round(x*100)/100; }), d: scanNiftyRaw.dates.slice(nts) };
+      }
+      // distill each macro series down to just "now" + its 20-trading-day change — that's all the
+      // panel needs, and it keeps state.macro tiny instead of storing 6 months of history per factor
+      if(scanMacro){
+        var mm={};
+        Object.keys(MACRO_TICKERS).forEach(function(k){
+          var s=scanMacro[k]; if(!s || !s.close || s.close.length<25) return;
+          var mn=s.close.length, now=s.close[mn-1], past=s.close[Math.max(0,mn-21)];
+          mm[k] = { now:Math.round(now*1000)/1000, chg20: past>0?Math.round((now/past-1)*10000)/100:null, date:s.dates[mn-1] };
+        });
+        state.macro = { d:mm, at:new Date().toISOString() };
       }
       var leadingSet={}; (state.leadingSectors||[]).forEach(function(x){ leadingSet[x]=1; });
       // automatic market regime — Nifty 50 health + this scan's breadth
