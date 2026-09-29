@@ -309,6 +309,11 @@ details.sub textarea{width:100%;min-height:116px;margin-top:8px;background:var(-
 .bc-chip{background:var(--surface);border:1px solid var(--line);border-radius:5px;padding:2px 7px;font-size:11px}
 .bc-chip.pos{color:var(--pos)} .bc-chip.neg{color:var(--neg)}
 .bc-note{color:var(--muted);font-size:10.5px;margin-top:8px;line-height:1.45}
+.news-list{display:flex;flex-direction:column;gap:6px}
+.news-item{display:block;padding:7px 9px;background:var(--surface);border:1px solid var(--line);border-radius:6px;text-decoration:none;color:inherit}
+.news-item:hover{border-color:var(--line-strong)}
+.news-title{font-size:12.5px;color:var(--ink);line-height:1.4}
+.news-src{font-size:10.5px;color:var(--muted);margin-top:2px}
 tr.mb-detail td{background:var(--surface-2);padding:12px 14px}
 .mb-pills{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:5px 18px;max-width:780px}
 .mb-p{display:grid;grid-template-columns:130px 1fr 52px;gap:8px;align-items:center;font-size:11.5px}
@@ -508,7 +513,7 @@ table.sc-setup td.num{font-family:"IBM Plex Mono",monospace;text-align:right}
   <div class="wordmark">
     <span class="mark" aria-hidden="true">₹</span>
     <div>
-      <h1 title="Momentum + pullback screener · NSE swing setups · build 2026-09-29c">The 10% Ledger</h1>
+      <h1 title="Momentum + pullback screener · NSE swing setups · build 2026-09-29e">The 10% Ledger</h1>
     </div>
   </div>
   <div class="controls">
@@ -1173,6 +1178,8 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
             <option value="basepattern">O'Neil named base pattern</option>
             <option value="cuphandle">☕ Cup and handle only</option>
             <option value="trendfollow">📈 Trend structure (HH+HL daily + weekly, RSI ≥50)</option>
+            <option value="newsunexplained">📰 Unexplained big movers — today's move, no news found</option>
+            <option value="newsexplained">📰 Explained big movers — today's move, has a news catalyst</option>
             <option value="watchlist">Watchlist</option>
           </select>
         </label>
@@ -1217,6 +1224,10 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
         <button id="bookOpen" class="ghost" title="Open this stock in the Analyzer">Full analysis →</button>
         <span class="book-prob" id="bookProb" title="Estimated chance of +10% before the stop — from this stock's own history where available (‘e’ = a score-based estimate)"></span>
       </div>
+      <div class="scan-head" style="margin-top:2px" id="newsMoversRow">
+        <span class="scan-meta" id="newsMoversStatus">News not checked for today's movers yet — runs automatically after a scan, or click to run it now.</span>
+        <button id="newsMoversBtn" class="ghost">🔄 Check news for today's movers</button>
+      </div>
       <div id="bookHead" class="summary" aria-live="polite"></div>
       <div class="book-stage">
         <div class="book-nav-top" role="group" aria-label="Chart book navigation">
@@ -1230,6 +1241,11 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
       <div id="bookConf" class="book-conf" aria-live="polite" hidden></div>
       <div id="bookStretch" class="book-conf" aria-live="polite" hidden></div>
       <div id="bookShare" class="book-conf" aria-live="polite" hidden></div>
+      <div class="book-conf" aria-live="polite">
+        <div class="bc-head"><span class="bc-lean">Recent news</span><span class="bc-conf" id="newsMeta">via Google News search — a real move often has a real reason; not every move does</span></div>
+        <div class="row-actions" style="margin:4px 0 8px"><button id="newsFetchBtn" class="ghost">📰 Check recent news for this stock</button></div>
+        <div id="bookNews"></div>
+      </div>
       <p class="hint" style="margin-top:10px">Entry / stop / targets are the tool's standard plan: entry at the breakout level (or your override in the Analyzer), stop under support or a fixed % if none, exit scaled at +5% / +7.5% / +10%, size fixed at 1% of capital at risk. For <b>Darvas Box</b> and <b>High Dry Fry</b> names the note above swaps in Darvas's own rule — a buy-stop above the prior day's high, stop 1% under entry or below the base low.</p>
     </div>
   </section>
@@ -1941,6 +1957,7 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
     bookSR: true, bookPat: true, bookVwap: true, bookTrend: true, bookStretchBand: false, bookFiiWindow: true, bookVap: false, bookNifty: false, bookSD: false, niftySeries: null,
     todaySetup: "golden", todayLead: false, todayRisk: "0.25",
     mbMinScore: 55, mbNoFlags: false, mbOpen: {},
+    newsMovers: null,
     astroBirth: null,
     astroCalMonths: 6, astroCalView: "all", astroCalMoon: true, astroCalPd: false
   };
@@ -2225,6 +2242,7 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
       } : null;
       var bmp = (p[54]||"").split("|");
       d.bm = (bmp[0]!=="" && bmp[0]!=null && isFinite(+bmp[0])) ? { run6m:+bmp[0], baseWidth40:+bmp[1] } : null;
+      d.chg1d = pf(55);
       var st = deriveStructure(d.price, d.breakout, d.basePct, d.baseBars, d.volRatio);
       d.structurePts=st.pts; d.structureLbl=st.label;
       rows.push(d);
@@ -3303,6 +3321,8 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
       case "basepattern":  return !!(d.bp && d.bp.length);
       case "cuphandle":    return !!(d.bp && d.bp.some(function(x){ return x.code==="CH"; }));
       case "trendfollow":  return !!(d.tf && d.tf.pass);
+      case "newsunexplained": return newsMoverStatus(d.symbol)==="unexplained";
+      case "newsexplained":   return newsMoverStatus(d.symbol)==="explained";
       case "mb":         return d.mb && /^(A|B)$/.test(d.mb.cls);
       case "mba":        return d.mb && d.mb.cls==="A";
       case "mbearly":   { var eg=mbEarly(d); return !!(d.mb && d.mb.total!=null && eg && (eg.tier==="early"||eg.tier==="ignition")); }
@@ -4157,6 +4177,37 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
     if(rec.q0 && rec.q1 && rec.q0.label && rec.q1.label) return { q0label: rec.q0.label, q1label: rec.q1.label };
     return null;
   }
+  var newsFetchSeq = 0;
+  function renderNewsPanel(d){
+    var host = $("#bookNews"); if(!host) return;
+    host.innerHTML = "";
+    if($("#newsMeta")) $("#newsMeta").textContent = "via Google News search — a real move often has a real reason; not every move does";
+    var btn = $("#newsFetchBtn"); if(btn){ btn.disabled = false; btn.textContent = "📰 Check recent news for "+d.symbol; }
+  }
+  function fetchNewsForBook(){
+    var d = bookPool[state.bookIdx]; if(!d) return;
+    var sym = d.symbol, mySeq = ++newsFetchSeq;
+    var host = $("#bookNews"), btn = $("#newsFetchBtn");
+    if(!host) return;
+    if(btn){ btn.disabled = true; btn.textContent = "📰 Fetching…"; }
+    host.innerHTML = '<p class="empty">Searching Google News for '+esc(sym)+'…</p>';
+    fetchStockNews(sym).then(function(items){
+      if(mySeq!==newsFetchSeq) return; // user moved to a different stock before this landed
+      if(btn){ btn.disabled = false; btn.textContent = "📰 Check recent news for "+sym; }
+      if(!items.length){ host.innerHTML = '<p class="empty">No recent headlines found for '+esc(sym)+' — the move (if any) may not have a findable news catalyst, or it\'s simply quiet right now.</p>'; return; }
+      host.innerHTML = '<div class="news-list">'+items.map(function(it){
+        var ago = it.ago==null ? "" : it.ago<24 ? (it.ago+"h ago") : (Math.round(it.ago/24)+"d ago");
+        return '<a class="news-item" href="'+esc(it.link)+'" target="_blank" rel="noopener">'+
+          '<div class="news-title">'+esc(it.title)+'</div>'+
+          '<div class="news-src">'+esc(it.source||"")+(ago?' · '+ago:'')+'</div>'+
+        '</a>';
+      }).join("")+'</div>';
+    }).catch(function(err){
+      if(mySeq!==newsFetchSeq) return;
+      if(btn){ btn.disabled = false; btn.textContent = "📰 Check recent news for "+sym; }
+      host.innerHTML = '<p class="empty">Couldn\'t fetch news ('+esc(err.message||"network error")+') — try again, or check your CORS proxy setting.</p>';
+    });
+  }
   function renderShareholding(d){
     var host = $("#bookShare"); if(!host) return;
     var sym = d.symbol, rec = shareholdingGet(sym);
@@ -4265,6 +4316,7 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
   function renderBook(){
     var host = $("#bookChart"); if(!host) return;
     if($("#tab-book") && $("#tab-book").hidden) return;   // don't fetch charts for a hidden tab
+    renderNewsMoversStatus();
     var scope = state.bookScope || "all";
     if($("#bookScope") && $("#bookScope").value!==scope) $("#bookScope").value = scope;
     $$("#bookTF button").forEach(function(x){ x.setAttribute("aria-pressed", String(x.getAttribute("data-v")===(state.chartTF||"daily"))); });
@@ -4326,6 +4378,7 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
       if($("#bookConf")){ $("#bookConf").innerHTML = ""; $("#bookConf").hidden = true; }
       if($("#bookStretch")){ $("#bookStretch").innerHTML = ""; $("#bookStretch").hidden = true; }
       if($("#bookShare")){ $("#bookShare").innerHTML = ""; $("#bookShare").hidden = true; }
+      if($("#bookNews")) $("#bookNews").innerHTML = "";
       $("#bookHead").innerHTML = "";
       $("#bookPlan").innerHTML = "";
       host.innerHTML = '<p class="empty">'+(rows.length ? "No stock in your scan matches this filter — change the <b>Show</b> dropdown." : "Run a scan (Screener → Scan now), then come back here.")+'</p>';
@@ -4365,12 +4418,17 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
       : secB ? "No dedicated Nifty index for this sector — ranked by this scan's own average RS ("+secB.avgRS+") instead · rank "+secB.rank+" of "+secB.total : "";
     var secChip = secB ? '<span class="chip '+(secB.status?({green:"pos",yellow:"warn",red:"neg"})[secB.status]:"")+'" title="'+secTitle+
       '">'+esc(secB.sector)+(secB.status?" · "+({green:"leading",yellow:"neutral",red:"lagging"})[secB.status]:"")+'</span>' : "";
+    var chgChip = d.chg1d!=null ? '<span class="chip '+(d.chg1d>=0?"pos":"neg")+'">today '+(d.chg1d>=0?"+":"")+d.chg1d.toFixed(1)+'%</span>' : "";
+    var nmSt = newsMoverStatus(d.symbol), nmRec = nmSt && state.newsMovers.results[d.symbol];
+    var newsChip = nmSt==="explained" ? '<span class="chip pos" title="'+esc(nmRec.title||"")+(nmRec.source?" — "+esc(nmRec.source):"")+'">📰 news found</span>'
+      : nmSt==="unexplained" ? '<span class="chip warn" title="One of today\'s biggest movers, checked against Google News — no headline found">📰 unexplained</span>'
+      : "";
     $("#bookHead").innerHTML =
       '<span class="chip"><b>'+esc(d.symbol)+'</b></span>'+
       '<span class="chip">score <b>'+sc.total+'</b></span>'+
       '<span class="chip">RS <b>'+(d.rs!=null?Math.round(d.rs):"–")+'</b></span>'+
       '<span class="chip">'+esc(state.timeframe)+' swing</span>'+
-      secChip+
+      secChip+chgChip+newsChip+
       tags.map(function(t){ return '<span class="chip '+(t.c||"")+'"'+(t.s?' title="'+esc(t.t)+'" style="cursor:help"':'')+'>'+esc(t.s||t.t)+'</span>'; }).join("");
 
     if($("#bookConf")){
@@ -4434,6 +4492,7 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
       ((d.setup==="HDF"||d.dx) ? '<p class="note warn">Darvas / High Dry Fry entry: a <b>buy-stop just above the prior day’s high</b> once price is clearing the base; initial stop <b>1% under entry</b> or below the base low, whichever is tighter. Add on strength, never average down.</p>' : '');
 
     renderShareholding(d);
+    renderNewsPanel(d);
     bookDrawChart(d);
   }
 
@@ -5810,6 +5869,124 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
     if(state.scanSource==="twelvedata") return fetchTwelve(sym, cfg);
     if(state.scanSource==="fmp") return fetchFMP(sym, cfg);
     return fetchYahoo(sym, cfg);
+  }
+  // ── on-demand news lookup — Google News' free RSS search, NOT bulk-fetched during a scan (750
+  // extra requests every scan would be far too slow) — only when the user asks, for the ONE stock
+  // currently open in Chart Book. Found live-testing this: Yahoo Finance's own news/search API
+  // returns an EMPTY news array for NSE symbols across the board (tested RELIANCE, TCS and 5 other
+  // names — not a small-cap coverage gap, Yahoo just doesn't carry Indian-equity news through any
+  // endpoint reachable without a login), and its legacy RSS feed is dead (empty template, no
+  // items). Google News RSS is free, needs no key, and actually returns real, dated, relevant
+  // results — confirmed on 2026-09-29's real unexplained gainers (AXISCADES: "shares hit 10% upper
+  // circuit on block deal"; KPIGREEN: "Why KPI Green Energy Share Price is Rising"). Also confirmed
+  // it's NOT a magic bullet: 2 of that same day's 4 originally-unflagged movers (ELECTCAST,
+  // LLOYDSENGG) still had no same-day explanatory headline even with this search — some moves
+  // genuinely don't have a findable news catalyst, and this panel will honestly show "no recent
+  // headlines found" rather than force a story onto them.
+  function fetchStockNews(sym, signal){
+    var cfg = currentCfg();
+    var q = encodeURIComponent(sym+" share NSE");
+    var url = "https://news.google.com/rss/search?q="+q+"&hl=en-IN&gl=IN&ceid=IN:en";
+    var full = wrapProxy(cfg.proxy, url);
+    return fetchTimeout(full, 15000, signal)
+      .then(function(res){ if(!res.ok) throw new Error("HTTP "+res.status); return res.text(); })
+      .then(function(txt){
+        var doc;
+        try{ doc = new DOMParser().parseFromString(txt, "text/xml"); }catch(e){ throw new Error("bad response"); }
+        if(doc.querySelector("parsererror")) throw new Error("bad response");
+        var items = Array.prototype.slice.call(doc.querySelectorAll("item")).slice(0,8);
+        return items.map(function(it){
+          var rawTitle = (it.querySelector("title") && it.querySelector("title").textContent) || "";
+          var link = (it.querySelector("link") && it.querySelector("link").textContent) || "";
+          var pub = (it.querySelector("pubDate") && it.querySelector("pubDate").textContent) || "";
+          var srcEl = it.querySelector("source");
+          var source = srcEl ? srcEl.textContent : "";
+          // Google News titles are usually "Headline - Source" — split it back apart if `source`
+          // wasn't separately present in this item
+          var title = rawTitle, src = source;
+          if(!src){ var m = rawTitle.match(/^(.*) - ([^-]+)$/); if(m){ title = m[1]; src = m[2]; } }
+          var when = pub ? new Date(pub) : null;
+          return { title: title, link: link, source: src, ago: when ? Math.max(0, Math.round((Date.now()-when.getTime())/3600000)) : null };
+        });
+      });
+  }
+  // ── today's-movers news check — ranks the current scan's rows by |day change|, then runs the
+  // same fetchStockNews() lookup automatically (and on manual request) for just the top N, so the
+  // "which of today's big movers actually have a reason" question from the retrospective doesn't
+  // need clicking through the whole scan one stock at a time. Bounded to a small top-N on purpose:
+  // Google News RSS through a CORS proxy is slow (~1-2s each) and not something to fire off for
+  // an entire 750-stock scan, so this only ever looks at the day's biggest movers.
+  var NEWS_MOVERS_N = 15, NEWS_MOVERS_CONCURRENCY = 2;
+  function topMoversFromRows(rows, n){
+    return rows.filter(function(d){ return d.chg1d!=null; })
+      .slice().sort(function(a,b){ return Math.abs(b.chg1d)-Math.abs(a.chg1d); })
+      .slice(0, n).map(function(d){ return {sym:d.symbol, chg1d:d.chg1d}; });
+  }
+  function newsMoverStatus(sym){
+    var nm = state.newsMovers;
+    if(!nm || nm.date!==new Date().toISOString().slice(0,10)) return null;
+    var r = nm.results[sym];
+    return r ? r.status : null;
+  }
+  function renderNewsMoversStatus(){
+    var el = $("#newsMoversStatus"), btn = $("#newsMoversBtn");
+    if(!el) return;
+    var nm = state.newsMovers;
+    if(!nm){ el.textContent = "News not checked for today's movers yet — runs automatically after a scan, or click to run it now."; if(btn) btn.disabled = false; return; }
+    var results = nm.results, list = nm.list;
+    var done = list.filter(function(m){ return results[m.sym]; });
+    var explained = done.filter(function(m){ return results[m.sym].status==="explained"; }).length;
+    var unexplained = done.filter(function(m){ return results[m.sym].status==="unexplained"; }).length;
+    var errors = done.filter(function(m){ return results[m.sym].status==="error"; }).length;
+    if(nm.checking){
+      el.textContent = "Checking news for today's "+list.length+" biggest movers… "+done.length+"/"+list.length+
+        (done.length ? " ("+explained+" explained · "+unexplained+" unexplained"+(errors?" · "+errors+" failed":"")+")" : "");
+      if(btn) btn.disabled = true;
+    } else {
+      el.textContent = "Today's "+list.length+" biggest movers checked: "+explained+" have a news catalyst · "+unexplained+" unexplained"+
+        (errors?" · "+errors+" couldn't be checked":"")+" — use the Show filter to see either group.";
+      if(btn) btn.disabled = false;
+    }
+  }
+  var newsMoversSeq = 0;
+  function checkMoversNews(rows){
+    var list = topMoversFromRows(rows, NEWS_MOVERS_N);
+    var today = new Date().toISOString().slice(0,10);
+    if(!list.length){
+      var el = $("#newsMoversStatus");
+      if(el) el.textContent = "No day-change data in this scan — run a live scan (not a pasted/older batch) to get today's movers.";
+      return;
+    }
+    state.newsMovers = { date: today, list: list, results: {}, checking: true };
+    save(); renderNewsMoversStatus();
+    var queue = list.slice(), active = 0, seq = ++newsMoversSeq;
+    function pump(){
+      if(seq!==newsMoversSeq) return; // superseded by a newer check
+      if(!queue.length){
+        if(active===0){ state.newsMovers.checking = false; save(); renderNewsMoversStatus(); if(state.bookScope==="newsunexplained"||state.bookScope==="newsexplained") renderBook(); }
+        return;
+      }
+      var m = queue.shift(); active++;
+      fetchStockNews(m.sym).then(function(items){
+        if(seq!==newsMoversSeq) return;
+        // only count as "explained" if there's coverage from the last 48h — Google News' search
+        // returns up to 8 results regardless of age, and an old unrelated article about the stock
+        // (earnings from a month ago, a generic price-target piece) shouldn't count as a reason
+        // for TODAY's move. Older results are still fetched and kept on the per-stock panel where
+        // the user can judge context for themselves — this check is just stricter about the label.
+        var fresh = items.filter(function(it){ return it.ago!=null && it.ago<=48; });
+        state.newsMovers.results[m.sym] = fresh.length
+          ? { status:"explained", title:fresh[0].title, source:fresh[0].source, link:fresh[0].link, ago:fresh[0].ago }
+          : { status:"unexplained" };
+      }).catch(function(err){
+        if(seq!==newsMoversSeq) return;
+        state.newsMovers.results[m.sym] = { status:"error", msg: err.message||"failed" };
+      }).then(function(){
+        if(seq!==newsMoversSeq) return;
+        active--; save(); renderNewsMoversStatus(); pump();
+      });
+    }
+    for(var i=0;i<NEWS_MOVERS_CONCURRENCY;i++) pump();
   }
   function chartLegend(tf){
     var sma = state.chartMA==="sma", wk = tf==="weekly";
@@ -8877,6 +9054,9 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
     // "Big Mover" candidate context — prior 6-month return + 40-bar base width (see bigMoverContext)
     var bmCtx = bigMoverContext({c:c, h:h, l:l});
     var bmStr = bmCtx ? [bmCtx.run6m, bmCtx.baseWidth40].join("|") : "";
+    // today's own day-over-day % move — used to rank the day's "top movers" for the news check,
+    // nothing else reads this (every other filter in the tool is multi-day/structural on purpose)
+    var chg1d = c.length>=2 && c[c.length-2]>0 ? r2((c[c.length-1]/c[c.length-2]-1)*100) : null;
     // pre-breakout readiness — coil/dry-volume/near-highs/trend/not-extended, 4+ of 5 at once
     var rdy = preBreakoutRead({c:c, h:h, l:l, v:vol});
     var rdyFlagBits = rdy ? [rdy.flags.tight,rdy.flags.dryVol,rdy.flags.nearHigh,rdy.flags.trend,rdy.flags.notExt].map(function(x){return x?1:0;}).join("") : "";
@@ -8917,7 +9097,7 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
       blueSky: (bsky.newHigh && bsky.above) ? 1 : 0,
       fibZone: fib ? fib.zone : "",
       fibRetr: fib ? Math.round(fib.retr*100)/100 : null,
-      coil: coilStr, mvt: mvtStr, gg: ggStr, sg: sgStr, dx: dxStr, hdf: hdfStr, cdl: cdlStr, mb: "", vm: vmStr, acc: accStr, vsk: vskStr, vfh: vfhStr, gxw: gxwStr, sx: sxStr, cm: cmStr, pb: pbStr, rdy: rdyStr, db: dbStr, bp: bpStr, tf: tfStr, chg: chgStr, bm: bmStr,
+      coil: coilStr, mvt: mvtStr, gg: ggStr, sg: sgStr, dx: dxStr, hdf: hdfStr, cdl: cdlStr, mb: "", vm: vmStr, acc: accStr, vsk: vskStr, vfh: vfhStr, gxw: gxwStr, sx: sxStr, cm: cmStr, pb: pbStr, rdy: rdyStr, db: dbStr, bp: bpStr, tf: tfStr, chg: chgStr, bm: bmStr, chg1d: chg1d,
       revYoY: null, profYoY: null, epsYoY: null, qDate: "", profYoYPrev: null, ttmYoY: null   // filled in later by applyFund()
     };
   }
@@ -8928,7 +9108,7 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
       r.basePct||0, r.baseBars||0, r.stage2||0, (r.rs==null?"":r.rs), (r.setup||""),
       (r.trig||""), (r.trigWR==null?"":r.trigWR), (r.athPct==null?"":r.athPct), (r.blueSky||0),
       (r.revYoY==null?"":r.revYoY), (r.profYoY==null?"":r.profYoY), (r.epsYoY==null?"":r.epsYoY), (r.qDate||""),
-      (r.profYoYPrev==null?"":r.profYoYPrev), (r.ttmYoY==null?"":r.ttmYoY), (r.coil||""), (r.mvt||""), (r.gg||""), (r.sg||""), (r.dx||""), (r.hdf||""), (r.cdl||""), (r.mb||""), (r.vm||""), (r.adr==null?"":r.adr), (r.nr||""), (r.gx||""), (r.acc||""), (r.vsk||""), (r.vfh||""), (r.gxw||""), (r.sx||""), (r.cm||""), (r.pb||""), (r.rdy||""), (r.db||""), (r.bp||""), (r.tf||""), (r.chg||""), (r.bm||"")].join(", ");
+      (r.profYoYPrev==null?"":r.profYoYPrev), (r.ttmYoY==null?"":r.ttmYoY), (r.coil||""), (r.mvt||""), (r.gg||""), (r.sg||""), (r.dx||""), (r.hdf||""), (r.cdl||""), (r.mb||""), (r.vm||""), (r.adr==null?"":r.adr), (r.nr||""), (r.gx||""), (r.acc||""), (r.vsk||""), (r.vfh||""), (r.gxw||""), (r.sx||""), (r.cm||""), (r.pb||""), (r.rdy||""), (r.db||""), (r.bp||""), (r.tf||""), (r.chg||""), (r.bm||""), (r.chg1d==null?"":r.chg1d)].join(", ");
   }
 
   /* ---------- auto-screen: fetch adapters ---------- */
@@ -10204,6 +10384,9 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
       renderToday();
       setStatus(aborted?"stopped":"done", false);
       scanMetaFromCache();
+      // auto-run the news check for today's biggest movers — same lookup as the manual
+      // "Check news for today's movers" button, just fired automatically once a scan lands
+      if(ok.length) checkMoversNews(ok.map(function(r){ return {symbol:r.sym, chg1d:r.chg1d}; }));
       if(!ok.length){
         $("#scanErrline").innerHTML = "Nothing fetched — every request failed. Your proxy / Worker isn't returning data. Test it by opening <code>&lt;your-worker-url&gt;/?url=https://query1.finance.yahoo.com/v8/finance/chart/RELIANCE.NS</code> in a browser tab.";
       } else if(failed.length){
@@ -10422,6 +10605,8 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
     }
     if($("#bookWatch")) $("#bookWatch").addEventListener("click", bookToggleWatch);
     if($("#bookAnnounce")) $("#bookAnnounce").addEventListener("click", function(){ var d=bookPool[state.bookIdx]; if(d) window.open(announceUrl(d.symbol), "_blank", "noopener"); });
+    if($("#newsFetchBtn")) $("#newsFetchBtn").addEventListener("click", fetchNewsForBook);
+    if($("#newsMoversBtn")) $("#newsMoversBtn").addEventListener("click", function(){ checkMoversNews(parseBatch($("#batchInput").value)); });
     if($("#bookSearch")){
       $("#bookSearch").addEventListener("change", bookSearchJump);
       $("#bookSearch").addEventListener("keydown", function(e){ if(e.key==="Enter"){ e.preventDefault(); bookSearchJump(); } });
