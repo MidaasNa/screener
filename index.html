@@ -343,6 +343,10 @@ table.mb-scen td.num{font-family:"IBM Plex Mono",monospace;text-align:right;padd
 .cx-rsi-ref{stroke:var(--line);stroke-width:1;stroke-dasharray:2 2}
 .cx-rsi-mid{stroke:var(--line);stroke-width:1;stroke-dasharray:1 2;opacity:.6}
 .cx-rsi{fill:none;stroke:var(--accent);stroke-width:1.3}
+.cx-cross-v,.cx-cross-h{stroke:var(--ink);stroke-width:1;stroke-dasharray:3 2;opacity:.55}
+.cx-cross-pricebg,.cx-cross-tipbg{fill:var(--ink)}
+.cx-cross-pricelab{fill:var(--surface);font-size:9px;font-family:"IBM Plex Mono",monospace;font-weight:600;dominant-baseline:middle}
+.cx-cross-tip{fill:var(--surface);font-size:9px;font-family:"IBM Plex Mono",monospace;font-weight:600}
 .cx-base{fill:var(--accent);fill-opacity:.10;stroke:var(--accent);stroke-opacity:.55;stroke-dasharray:3 2}
 .cx-vap{fill:#8a7ad1;fill-opacity:.16;stroke:none}
 .cx-vap.cx-vap-poc{fill:#e8b93a;fill-opacity:.32}
@@ -517,7 +521,7 @@ table.sc-setup td.num{font-family:"IBM Plex Mono",monospace;text-align:right}
   <div class="wordmark">
     <span class="mark" aria-hidden="true">₹</span>
     <div>
-      <h1 title="Momentum + pullback screener · NSE swing setups · build 2026-09-30a">The 10% Ledger</h1>
+      <h1 title="Momentum + pullback screener · NSE swing setups · build 2026-10-01a">The 10% Ledger</h1>
     </div>
   </div>
   <div class="controls">
@@ -4644,6 +4648,46 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
         }
         bookDrawChart(d);   // redraw from the cache — no re-fetch
       });
+      // crosshair — updates a handful of pre-built, hidden SVG elements' attributes/text on
+      // every mousemove instead of re-running buildChartSVG (which would re-walk the whole
+      // series on every pixel of mouse travel)
+      if(svgEl && opts._map){
+        var cxMap = opts._map;
+        var cxG = svgEl.querySelector(".cx-crosshair"), cxV = svgEl.querySelector(".cx-cross-v"),
+            cxH = svgEl.querySelector(".cx-cross-h"), cxPriceBg = svgEl.querySelector(".cx-cross-pricebg"),
+            cxPriceLab = svgEl.querySelector(".cx-cross-pricelab"), cxTip = svgEl.querySelector(".cx-cross-tip");
+        if(cxG && cxV && cxH && cxPriceBg && cxPriceLab && cxTip){
+          svgEl.addEventListener("mousemove", function(ev){
+            var rect = svgEl.getBoundingClientRect(); if(!rect.width || !rect.height) return;
+            var vb = svgEl.viewBox.baseVal;
+            var sx = (ev.clientX-rect.left) * (vb.width/rect.width), sy = (ev.clientY-rect.top) * (vb.height/rect.height);
+            var cxw = cxMap.W - cxMap.PL - cxMap.PR;
+            var bi = Math.max(0, Math.min(cxMap.n-1, Math.round((sx-cxMap.PL) * (cxMap.n-1) / cxw)));
+            var barX = (cxMap.PL + (cxMap.n<=1?0:bi*cxw/(cxMap.n-1))).toFixed(1);
+            cxV.setAttribute("x1", barX); cxV.setAttribute("x2", barX);
+            var inPricePanel = sy>=cxMap.T && sy<=cxMap.PB;
+            cxH.style.display = cxPriceBg.style.display = cxPriceLab.style.display = inPricePanel ? "" : "none";
+            if(inPricePanel){
+              var yy=sy.toFixed(1);
+              cxH.setAttribute("y1", yy); cxH.setAttribute("y2", yy);
+              var cxPrice = cxMap.hi - (sy-cxMap.T)/(cxMap.PB-cxMap.T)*(cxMap.hi-cxMap.lo);
+              cxPriceBg.setAttribute("y", (sy-7).toFixed(1));
+              cxPriceLab.setAttribute("y", yy);
+              cxPriceLab.textContent = nfmt(cxPrice,1);
+            }
+            var dt=cxMap.D[bi];
+            if(dt!=null){
+              var o1=cxMap.O[bi], h1=cxMap.H[bi], l1=cxMap.L[bi], c1=cxMap.C[bi], v1=cxMap.V[bi];
+              var chg = (bi>0 && cxMap.C[bi-1]>0) ? (c1/cxMap.C[bi-1]-1)*100 : null;
+              var volTxt = v1>=1e7 ? (v1/1e7).toFixed(2)+"Cr" : v1>=1e5 ? (v1/1e5).toFixed(2)+"L" : nfmt(v1,0);
+              cxTip.textContent = dt+" · O "+nfmt(o1,1)+" H "+nfmt(h1,1)+" L "+nfmt(l1,1)+" C "+nfmt(c1,1)+
+                (chg!=null?" ("+(chg>=0?"+":"")+chg.toFixed(1)+"%)":"")+" · Vol "+volTxt;
+            }
+            cxG.style.display = "";
+          });
+          svgEl.addEventListener("mouseleave", function(){ cxG.style.display = "none"; });
+        }
+      }
     }
     var cached = chartCache[sym];
     if(!cached){ var ex=getExtra(sym); if(ex && ex.chart && ex.chart.c && ex.chart.c.length>=30) cached = ex.chart; }
@@ -6155,8 +6199,9 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
     var VY=function(v){ return VB-(v/maxV)*(VB-VT); };
     var cw=Math.max(1.3, xw/n*0.6), f1=function(x){return x.toFixed(1);};
     // stash the pixel/price mapping on opts (passed by reference) so the caller can invert a
-    // click's (x,y) back into (bar index / date, price) for manually-drawn trendlines.
-    opts._map = { lo:lo, hi:hi, n:n, PL:PL, PR:PR, T:T, PB:PB, W:W, D:D };
+    // click's (x,y) back into (bar index / date, price) for manually-drawn trendlines, and the
+    // crosshair can look up the OHLCV of whichever bar the cursor is over.
+    opts._map = { lo:lo, hi:hi, n:n, PL:PL, PR:PR, T:T, PB:PB, W:W, D:D, O:O, H:H, L:L, C:C, V:V };
     var g=[];
     for(var t=0;t<=4;t++){
       var pv=hi-(hi-lo)*t/4, yy=Y(pv);
@@ -6584,6 +6629,19 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
       var ppi=nearestBarIndex(D, opts.protractorPendingPoint.date);
       if(ppi>=0) g.push('<circle cx="'+f1(X(ppi))+'" cy="'+f1(Y(opts.protractorPendingPoint.price))+'" r="4" class="cx-protractor-pending"/>');
     }
+    // crosshair — hidden static markup, positioned/populated live by bookDrawChart's mousemove
+    // listener (no re-render on every pixel of mouse movement, just attribute/text updates)
+    var crossBottom = showRSI ? RB : VB;
+    g.push(
+      '<g class="cx-crosshair" style="display:none" pointer-events="none">'+
+        '<line class="cx-cross-v" x1="0" y1="'+f1(T)+'" x2="0" y2="'+f1(crossBottom)+'"/>'+
+        '<line class="cx-cross-h" x1="'+f1(PL)+'" y1="0" x2="'+f1(W-PR)+'" y2="0"/>'+
+        '<rect class="cx-cross-pricebg" x="'+f1(W-PR)+'" y="0" width="'+f1(PR)+'" height="14"/>'+
+        '<text class="cx-cross-pricelab" x="'+f1(W-PR+4)+'" y="0">–</text>'+
+        '<rect class="cx-cross-tipbg" x="'+f1(PL)+'" y="'+f1(T+2)+'" width="360" height="14" rx="2"/>'+
+        '<text class="cx-cross-tip" x="'+f1(PL+4)+'" y="'+f1(T+12)+'">–</text>'+
+      '</g>'
+    );
     return '<svg viewBox="0 0 '+W+' '+HH+'" class="cx-svg'+(opts.drawing?' cx-drawing':'')+'" preserveAspectRatio="xMidYMid meet" role="img" aria-label="daily price chart for '+esc(opts.symbol||"")+'">'+g.join("")+'</svg>';
   }
   function renderChart(sym){
