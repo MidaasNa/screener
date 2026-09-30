@@ -521,7 +521,7 @@ table.sc-setup td.num{font-family:"IBM Plex Mono",monospace;text-align:right}
   <div class="wordmark">
     <span class="mark" aria-hidden="true">₹</span>
     <div>
-      <h1 title="Momentum + pullback screener · NSE swing setups · build 2026-10-01a">The 10% Ledger</h1>
+      <h1 title="Momentum + pullback screener · NSE swing setups · build 2026-10-01b">The 10% Ledger</h1>
     </div>
   </div>
   <div class="controls">
@@ -1186,6 +1186,7 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
             <option value="basepattern">O'Neil named base pattern</option>
             <option value="cuphandle">☕ Cup and handle only</option>
             <option value="trendfollow">📈 Trend structure (HH+HL daily + weekly, RSI ≥50)</option>
+            <option value="supportbounce">🩹 Bounced off support (last 1-2 sessions — no backtested edge, reference only)</option>
             <option value="newsunexplained">📰 Unexplained big movers — today's move, no news found</option>
             <option value="newsexplained">📰 Explained big movers — today's move, has a news catalyst</option>
             <option value="watchlist">Watchlist</option>
@@ -2252,6 +2253,8 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
       var bmp = (p[54]||"").split("|");
       d.bm = (bmp[0]!=="" && bmp[0]!=null && isFinite(+bmp[0])) ? { run6m:+bmp[0], baseWidth40:+bmp[1] } : null;
       d.chg1d = pf(55);
+      var sbp = (p[56]||"").split("|");
+      d.sbnc = (sbp[0]!=="" && sbp[0]!=null && isFinite(+sbp[0])) ? { ago:+sbp[0], support:+sbp[1] } : null;
       var st = deriveStructure(d.price, d.breakout, d.basePct, d.baseBars, d.volRatio);
       d.structurePts=st.pts; d.structureLbl=st.label;
       rows.push(d);
@@ -3330,6 +3333,7 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
       case "basepattern":  return !!(d.bp && d.bp.length);
       case "cuphandle":    return !!(d.bp && d.bp.some(function(x){ return x.code==="CH"; }));
       case "trendfollow":  return !!(d.tf && d.tf.pass);
+      case "supportbounce": return !!d.sbnc;
       case "newsunexplained": return newsMoverStatus(d.symbol)==="unexplained";
       case "newsexplained":   return newsMoverStatus(d.symbol)==="explained";
       case "mb":         return d.mb && /^(A|B)$/.test(d.mb.cls);
@@ -3411,6 +3415,10 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
         (dbExceptional?" · dramatic dry-up — hist 20d median +4.1%, 73% win (n=30)":" · hist 20d median +2.9%, 64% win"), c:"pos"});
     }
     if(d.tf && d.tf.pass) tags.push({s:"📈 Trend structure HH+HL", t:TF_TIP(d.tf), c:"pos"});
+    if(d.sbnc) tags.push({s:"🩹 Bounced off support"+(d.sbnc.ago===0?" today":" "+d.sbnc.ago+"d ago"),
+      t:"🩹 Closed back above support (≈"+inr(d.sbnc.support)+") "+(d.sbnc.ago===0?"today":d.sbnc.ago+"d ago")+
+        " — reference only, NOT a backed signal. Backtested 4 separate versions of this idea (loose, strict single-touch, multi-touch zone, with/without volume) on 750 stocks/10y: every one came back statistically indistinguishable from a random day (20d median +0.65% vs +0.60% baseline, 52.8% vs 52.6% win, n=94,688) — the stricter/more textbook versions were if anything slightly worse. Shown so you can eyeball the setup yourself, not because it predicts anything.",
+      c:"warn"});
     if(d.bp) d.bp.forEach(function(x){
       var m=BASE_PATTERN[x.code]; if(!m) return;
       tags.push({s:m.emoji+" "+m.name, t:m.emoji+" "+m.name+" — "+basePatternTooltip(x).replace(/^O'Neil [a-z ]+— /,""), c: x.code==="TWT" ? "pos" : "warn"});
@@ -8430,6 +8438,40 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
     }
     return null;
   }
+  // "Bounced off support in the last 1-2 sessions" — REFERENCE / CLASSIFICATION ONLY, not a
+  // backed signal. Backtested 4 independent versions of this idea on the 750-stock/10y dataset
+  // (loose "near a 26-day low", a strict single-touch pivot re-test, a multi-touch zone, and this
+  // exact recent-1-2-session definition, with and without a volume requirement) — every version
+  // came back statistically indistinguishable from a random day (20d median ~+0.6%, ~52-53% win
+  // either way; the stricter/more "textbook" versions were if anything slightly WORSE than
+  // baseline). Shown purely so you can eyeball candidates currently sitting on a support retest —
+  // not because the data says it predicts anything.
+  //
+  // Support = the nearest genuine pivot low (a real swing low, width 3 bars each side) in the
+  // last 90 bars that price rallied at least 8% away from before coming back — not just "today's
+  // own low", which in a straight decline is trivially true every day and isn't a real level.
+  function supportBounceAt(o,h,l,c){
+    var n=c.length; if(n<100) return null;
+    var i=n-1, support=null;
+    for(var p=i-6; p>=Math.max(6,i-90); p--){
+      if(!(l[p]<l[p-1]&&l[p]<l[p-2]&&l[p]<l[p-3]&&l[p]<l[p+1]&&l[p]<l[p+2]&&l[p]<l[p+3])) continue;
+      var lowVal=l[p], maxAfter=-Infinity;
+      for(var k=p+1;k<i;k++) if(h[k]>maxAfter) maxAfter=h[k];
+      if(maxAfter>=lowVal*1.08){ support=lowVal; break; }
+    }
+    if(support==null) return null;
+    var bouncedAgo=-1;
+    for(var j=i;j>=i-1;j--){
+      var testedNear = l[j]<=support*1.02 && l[j]>=support*0.94;
+      if(!testedNear) continue;
+      var rng=h[j]-l[j]; if(rng<=0) continue;
+      var clv=(c[j]-l[j])/rng;
+      if(c[j]>o[j] && c[j]>=support && clv>=0.55){ bouncedAgo = i-j; break; }
+    }
+    if(bouncedAgo<0) return null;
+    if(c[i] < support) return null;   // bounce didn't hold — don't flag a failed one
+    return { ago:bouncedAgo, support:Math.round(support*100)/100 };
+  }
   // ── O'Neil named base patterns (structural classification, NOT a standalone return-predicting
   // signal) ── Flat base, Ascending base, Three-Weeks-Tight and High Tight Flag are all real,
   // precisely-defined O'Neil shapes ("How to Make Money in Stocks"). Backtested each one's
@@ -9146,6 +9188,9 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
     // today's own day-over-day % move — used to rank the day's "top movers" for the news check,
     // nothing else reads this (every other filter in the tool is multi-day/structural on purpose)
     var chg1d = c.length>=2 && c[c.length-2]>0 ? r2((c[c.length-1]/c[c.length-2]-1)*100) : null;
+    // "bounced off support, last 1-2 sessions" — reference/classification only, see supportBounceAt()
+    var sbnc = supportBounceAt(op,h,l,c);
+    var sbncStr = sbnc ? [sbnc.ago, sbnc.support].join("|") : "";
     // pre-breakout readiness — coil/dry-volume/near-highs/trend/not-extended, 4+ of 5 at once
     var rdy = preBreakoutRead({c:c, h:h, l:l, v:vol});
     var rdyFlagBits = rdy ? [rdy.flags.tight,rdy.flags.dryVol,rdy.flags.nearHigh,rdy.flags.trend,rdy.flags.notExt].map(function(x){return x?1:0;}).join("") : "";
@@ -9186,7 +9231,7 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
       blueSky: (bsky.newHigh && bsky.above) ? 1 : 0,
       fibZone: fib ? fib.zone : "",
       fibRetr: fib ? Math.round(fib.retr*100)/100 : null,
-      coil: coilStr, mvt: mvtStr, gg: ggStr, sg: sgStr, dx: dxStr, hdf: hdfStr, cdl: cdlStr, mb: "", vm: vmStr, acc: accStr, vsk: vskStr, vfh: vfhStr, gxw: gxwStr, sx: sxStr, cm: cmStr, pb: pbStr, rdy: rdyStr, db: dbStr, bp: bpStr, tf: tfStr, chg: chgStr, bm: bmStr, chg1d: chg1d,
+      coil: coilStr, mvt: mvtStr, gg: ggStr, sg: sgStr, dx: dxStr, hdf: hdfStr, cdl: cdlStr, mb: "", vm: vmStr, acc: accStr, vsk: vskStr, vfh: vfhStr, gxw: gxwStr, sx: sxStr, cm: cmStr, pb: pbStr, rdy: rdyStr, db: dbStr, bp: bpStr, tf: tfStr, chg: chgStr, bm: bmStr, chg1d: chg1d, sbnc: sbncStr,
       revYoY: null, profYoY: null, epsYoY: null, qDate: "", profYoYPrev: null, ttmYoY: null   // filled in later by applyFund()
     };
   }
@@ -9197,7 +9242,7 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
       r.basePct||0, r.baseBars||0, r.stage2||0, (r.rs==null?"":r.rs), (r.setup||""),
       (r.trig||""), (r.trigWR==null?"":r.trigWR), (r.athPct==null?"":r.athPct), (r.blueSky||0),
       (r.revYoY==null?"":r.revYoY), (r.profYoY==null?"":r.profYoY), (r.epsYoY==null?"":r.epsYoY), (r.qDate||""),
-      (r.profYoYPrev==null?"":r.profYoYPrev), (r.ttmYoY==null?"":r.ttmYoY), (r.coil||""), (r.mvt||""), (r.gg||""), (r.sg||""), (r.dx||""), (r.hdf||""), (r.cdl||""), (r.mb||""), (r.vm||""), (r.adr==null?"":r.adr), (r.nr||""), (r.gx||""), (r.acc||""), (r.vsk||""), (r.vfh||""), (r.gxw||""), (r.sx||""), (r.cm||""), (r.pb||""), (r.rdy||""), (r.db||""), (r.bp||""), (r.tf||""), (r.chg||""), (r.bm||""), (r.chg1d==null?"":r.chg1d)].join(", ");
+      (r.profYoYPrev==null?"":r.profYoYPrev), (r.ttmYoY==null?"":r.ttmYoY), (r.coil||""), (r.mvt||""), (r.gg||""), (r.sg||""), (r.dx||""), (r.hdf||""), (r.cdl||""), (r.mb||""), (r.vm||""), (r.adr==null?"":r.adr), (r.nr||""), (r.gx||""), (r.acc||""), (r.vsk||""), (r.vfh||""), (r.gxw||""), (r.sx||""), (r.cm||""), (r.pb||""), (r.rdy||""), (r.db||""), (r.bp||""), (r.tf||""), (r.chg||""), (r.bm||""), (r.chg1d==null?"":r.chg1d), (r.sbnc||"")].join(", ");
   }
 
   /* ---------- auto-screen: fetch adapters ---------- */
