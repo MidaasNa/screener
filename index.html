@@ -521,7 +521,7 @@ table.sc-setup td.num{font-family:"IBM Plex Mono",monospace;text-align:right}
   <div class="wordmark">
     <span class="mark" aria-hidden="true">₹</span>
     <div>
-      <h1 title="Momentum + pullback screener · NSE swing setups · build 2026-10-01b">The 10% Ledger</h1>
+      <h1 title="Momentum + pullback screener · NSE swing setups · build 2026-10-05b">The 10% Ledger</h1>
     </div>
   </div>
   <div class="controls">
@@ -1187,6 +1187,7 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
             <option value="cuphandle">☕ Cup and handle only</option>
             <option value="trendfollow">📈 Trend structure (HH+HL daily + weekly, RSI ≥50)</option>
             <option value="supportbounce">🩹 Bounced off support (last 1-2 sessions — no backtested edge, reference only)</option>
+            <option value="trendbreakout">🏔️ Multi-year downtrend line breakout (backtested: 20d excess +0.35% to +0.75% vs Nifty, ≥2yr line)</option>
             <option value="newsunexplained">📰 Unexplained big movers — today's move, no news found</option>
             <option value="newsexplained">📰 Explained big movers — today's move, has a news catalyst</option>
             <option value="watchlist">Watchlist</option>
@@ -1239,6 +1240,7 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
         <button id="newsMoversBtn" class="ghost">🔄 Check news for today's movers</button>
       </div>
       <div id="bookHead" class="summary" aria-live="polite"></div>
+      <div id="bookDeliv" class="cx-asof" aria-live="polite" style="margin:2px 0 8px"></div>
       <div class="book-stage">
         <div class="book-nav-top" role="group" aria-label="Chart book navigation">
           <button id="bookPrev" class="book-arrow" title="Previous (←)" aria-label="Previous chart">‹</button>
@@ -2255,6 +2257,8 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
       d.chg1d = pf(55);
       var sbp = (p[56]||"").split("|");
       d.sbnc = (sbp[0]!=="" && sbp[0]!=null && isFinite(+sbp[0])) ? { ago:+sbp[0], support:+sbp[1] } : null;
+      var tbp = (p[57]||"").split("|");
+      d.tbrk = (tbp[0]!=="" && tbp[0]!=null && isFinite(+tbp[0])) ? { ago:+tbp[0], spanYears:+tbp[1], lineNow:+tbp[2] } : null;
       var st = deriveStructure(d.price, d.breakout, d.basePct, d.baseBars, d.volRatio);
       d.structurePts=st.pts; d.structureLbl=st.label;
       rows.push(d);
@@ -3334,6 +3338,7 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
       case "cuphandle":    return !!(d.bp && d.bp.some(function(x){ return x.code==="CH"; }));
       case "trendfollow":  return !!(d.tf && d.tf.pass);
       case "supportbounce": return !!d.sbnc;
+      case "trendbreakout":  return !!d.tbrk;
       case "newsunexplained": return newsMoverStatus(d.symbol)==="unexplained";
       case "newsexplained":   return newsMoverStatus(d.symbol)==="explained";
       case "mb":         return d.mb && /^(A|B)$/.test(d.mb.cls);
@@ -3419,6 +3424,10 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
       t:"🩹 Closed back above support (≈"+inr(d.sbnc.support)+") "+(d.sbnc.ago===0?"today":d.sbnc.ago+"d ago")+
         " — reference only, NOT a backed signal. Backtested 4 separate versions of this idea (loose, strict single-touch, multi-touch zone, with/without volume) on 750 stocks/10y: every one came back statistically indistinguishable from a random day (20d median +0.65% vs +0.60% baseline, 52.8% vs 52.6% win, n=94,688) — the stricter/more textbook versions were if anything slightly worse. Shown so you can eyeball the setup yourself, not because it predicts anything.",
       c:"warn"});
+    if(d.tbrk) tags.push({s:"🏔️ "+d.tbrk.spanYears+"yr trendline break"+(d.tbrk.ago===0?" today":" "+d.tbrk.ago+"d ago"),
+      t:"🏔️ Broke above a "+d.tbrk.spanYears+"-year downtrend line (≈"+inr(d.tbrk.lineNow)+") "+(d.tbrk.ago===0?"today":d.tbrk.ago+"d ago")+
+        " — Jeffrey Neumann's core entry (Schwager, Unknown Market Wizards): breakouts from long (1-5yr) downtrend lines, not short-term ones. Backtested on 750 stocks/10y, measured BOTH raw and excess-vs-Nifty return (raw alone overstates edge — it's mostly market drift): a 1-year line showed NO edge (20d excess -0.81% vs -0.45% baseline — worse than baseline). A real >=2-year line is different — 20d excess +0.35% vs -0.27% baseline (n=5,131); >=3-year even stronger, +0.75% vs -0.15% baseline (n=3,076). This badge only fires on lines >=2 years — shorter ones are deliberately excluded.",
+      c:"pos"});
     if(d.bp) d.bp.forEach(function(x){
       var m=BASE_PATTERN[x.code]; if(!m) return;
       tags.push({s:m.emoji+" "+m.name, t:m.emoji+" "+m.name+" — "+basePatternTooltip(x).replace(/^O'Neil [a-z ]+— /,""), c: x.code==="TWT" ? "pos" : "warn"});
@@ -4396,6 +4405,7 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
       if($("#bookStretch")){ $("#bookStretch").innerHTML = ""; $("#bookStretch").hidden = true; }
       if($("#bookShare")){ $("#bookShare").innerHTML = ""; $("#bookShare").hidden = true; }
       if($("#bookNews")) $("#bookNews").innerHTML = "";
+      if($("#bookDeliv")) $("#bookDeliv").innerHTML = "";
       $("#bookHead").innerHTML = "";
       $("#bookPlan").innerHTML = "";
       host.innerHTML = '<p class="empty">'+(rows.length ? "No stock in your scan matches this filter — change the <b>Show</b> dropdown." : "Run a scan (Screener → Scan now), then come back here.")+'</p>';
@@ -4510,6 +4520,7 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
 
     renderShareholding(d);
     renderNewsPanel(d);
+    renderDelivery(d);
     bookDrawChart(d);
   }
 
@@ -4663,7 +4674,8 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
         var cxMap = opts._map;
         var cxG = svgEl.querySelector(".cx-crosshair"), cxV = svgEl.querySelector(".cx-cross-v"),
             cxH = svgEl.querySelector(".cx-cross-h"), cxPriceBg = svgEl.querySelector(".cx-cross-pricebg"),
-            cxPriceLab = svgEl.querySelector(".cx-cross-pricelab"), cxTip = svgEl.querySelector(".cx-cross-tip");
+            cxPriceLab = svgEl.querySelector(".cx-cross-pricelab"), cxTip = svgEl.querySelector(".cx-cross-tip"),
+            cxTipBg = svgEl.querySelector(".cx-cross-tipbg");
         if(cxG && cxV && cxH && cxPriceBg && cxPriceLab && cxTip){
           svgEl.addEventListener("mousemove", function(ev){
             var rect = svgEl.getBoundingClientRect(); if(!rect.width || !rect.height) return;
@@ -4688,8 +4700,10 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
               var o1=cxMap.O[bi], h1=cxMap.H[bi], l1=cxMap.L[bi], c1=cxMap.C[bi], v1=cxMap.V[bi];
               var chg = (bi>0 && cxMap.C[bi-1]>0) ? (c1/cxMap.C[bi-1]-1)*100 : null;
               var volTxt = v1>=1e7 ? (v1/1e7).toFixed(2)+"Cr" : v1>=1e5 ? (v1/1e5).toFixed(2)+"L" : nfmt(v1,0);
+              var dvAt = delivAt(sym, dt);
               cxTip.textContent = dt+" · O "+nfmt(o1,1)+" H "+nfmt(h1,1)+" L "+nfmt(l1,1)+" C "+nfmt(c1,1)+
-                (chg!=null?" ("+(chg>=0?"+":"")+chg.toFixed(1)+"%)":"")+" · Vol "+volTxt;
+                (chg!=null?" ("+(chg>=0?"+":"")+chg.toFixed(1)+"%)":"")+" · Vol "+volTxt+(dvAt?" · Del "+dvAt[0].toFixed(0)+"%":"");
+              if(cxTipBg){ try{ cxTipBg.setAttribute("width", Math.max(120, cxTip.getComputedTextLength()+10).toFixed(0)); }catch(e){} }
             }
             cxG.style.display = "";
           });
@@ -6044,6 +6058,152 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
       });
     }
     for(var i=0;i<NEWS_MOVERS_CONCURRENCY;i++) pump();
+  }
+  // ── NSE delivery % — INFO ONLY, no signal claimed. Tested on 555 trading days / 714 stocks
+  // (train Oct 2024-Jul 2026 + since this tool went live): delivery % does NOT predict 20%+
+  // moves or direction. High delivery (>=60%) marks steadier names (0.61x the chance of a 20%
+  // move, but the best median return vs the market, +0.5%/20d); low delivery (<30%) marks more
+  // speculative, high-churn names (1.46x the chance of a 20% move, worse median, -1.0%) — both
+  // mostly a volatility / stock-type effect once ADR is controlled for. A "delivery-backed" volume
+  // surge was no better than a "churn" surge. So it's shown as context about WHAT KIND of stock
+  // this is, not as a buy/avoid flag.
+  // Source: NSE's public daily file sec_bhavdata_full_DDMMYYYY.csv (all EQ symbols, ~400 KB/day),
+  // fetched through the same CORS proxy as the candles, last ~27 weekdays, only for symbols in the
+  // current scan, cached in localStorage under its own key (not inside the main state blob).
+  var DELIV_KEY = "the10ledger.deliv.v1", delivStore = null, delivLoading = false, delivError = "", delivChecked = false, delivNoneRecent = {};
+  function delivLoadStore(){
+    if(delivStore) return delivStore;
+    delivStore = { days:{}, none:{}, covered:{} };
+    try{ var raw = localStorage.getItem(DELIV_KEY); if(raw){ var o = JSON.parse(raw); if(o && o.days) delivStore = { days:o.days, none:o.none||{}, covered:o.covered||{} }; } }catch(e){}
+    return delivStore;
+  }
+  function delivSaveStore(){
+    var s = delivStore; if(!s) return;
+    var dates = Object.keys(s.days).sort();
+    while(dates.length > 32){ delete s.days[dates.shift()]; }
+    if(dates.length) Object.keys(s.none).forEach(function(k){ if(k < dates[0]) delete s.none[k]; });
+    try{ localStorage.setItem(DELIV_KEY, JSON.stringify(s)); }catch(e){}   // quota full → keep in memory only
+  }
+  function delivCandidateDays(){
+    var out = [], t = new Date(), i;
+    for(i=0;i<42;i++){
+      var d = new Date(t.getFullYear(), t.getMonth(), t.getDate()-i), w = d.getDay();
+      if(w===0 || w===6) continue;
+      var y=d.getFullYear(), m=d.getMonth()+1, dd=d.getDate(), p=function(n){ return (n<10?"0":"")+n; };
+      out.push({ iso: y+"-"+p(m)+"-"+p(dd), s: p(dd)+p(m)+y });
+    }
+    return out;   // newest first
+  }
+  function delivParseCsv(txt, symSet){
+    var out = {}, lines = txt.split(/\r?\n/), i;
+    for(i=1;i<lines.length;i++){
+      var ln = lines[i]; if(!ln) continue;
+      var p = ln.split(","); if(p.length<15 || p[1].trim()!=="EQ") continue;
+      var sym = p[0].trim(); if(symSet && !symSet[sym]) continue;
+      var dp = parseFloat(p[14]), dq = parseFloat(p[13]);
+      if(isFinite(dp)) out[sym] = [Math.round(dp*10)/10, isFinite(dq) ? Math.round(dq) : 0];
+    }
+    return out;
+  }
+  function delivFetchDay(c, symSet, cfg){
+    var url = "https://nsearchives.nseindia.com/products/content/sec_bhavdata_full_"+c.s+".csv";
+    return fetchTimeout(wrapProxy(cfg.proxy, url), 25000).then(function(res){
+      if(res.status===404) return { none:true };
+      if(!res.ok) throw new Error("HTTP "+res.status);
+      return res.text().then(function(txt){
+        if(txt.indexOf("SYMBOL")<0 || txt.indexOf("DELIV_PER")<0) throw new Error("unexpected response");
+        // NSE does NOT 404 on a holiday — it serves the last trading day's file under the holiday's
+        // filename (26-Jan returns 23-Jan's data). The file's own DATE1 column is the truth.
+        var first = (txt.split(/\r?\n/)[1]||"").split(","), mm = (first[2]||"").trim().match(/^(\d{1,2})-([A-Za-z]{3})-(\d{4})$/);
+        if(!mm) throw new Error("unexpected response");
+        var MI = {jan:1,feb:2,mar:3,apr:4,may:5,jun:6,jul:7,aug:8,sep:9,oct:10,nov:11,dec:12}[mm[2].toLowerCase()];
+        var fileIso = mm[3]+"-"+(MI<10?"0":"")+MI+"-"+(mm[1].length<2?"0":"")+mm[1];
+        if(fileIso !== c.iso) return { none:true };
+        return { data: delivParseCsv(txt, symSet) };
+      });
+    });
+  }
+  function delivEnsure(){
+    if(delivLoading) return;
+    delivChecked = true;
+    if(isHosted && !state.hostOverride){ delivError = "this hosted preview can't fetch data — use the downloaded file"; return; }
+    var cfg = currentCfg(); if(!cfg.proxy){ delivError = "set your CORS proxy on the Screener tab first"; return; }
+    var store = delivLoadStore(), cands = delivCandidateDays(), recentCut = cands.length>2 ? cands[2].iso : "";
+    // cached days only hold the symbols that were in the scan when they were fetched — if a newer
+    // scan has symbols the cache never covered, refetch with the union (old + new symbols)
+    var cov = store.covered || (store.covered = {}), scanSyms = {};
+    parseBatch($("#batchInput").value).forEach(function(r){ scanSyms[r.symbol] = 1; });
+    var uncovered = Object.keys(scanSyms).filter(function(s){ return !cov[s]; });
+    if(uncovered.length && Object.keys(store.days).length) store.days = {};
+    Object.keys(scanSyms).forEach(function(s){ cov[s] = 1; });
+    var missing = cands.filter(function(c){ return !store.days[c.iso] && !store.none[c.iso] && !delivNoneRecent[c.iso]; });
+    if(!missing.length) return;
+    var symSet = cov;
+    delivLoading = true; delivError = "";
+    var q = missing.slice(), active = 0, gotAny = false, firstErr = "";
+    renderDeliveryCurrent();
+    function pump(){
+      if(!q.length){
+        if(active===0){
+          delivLoading = false;
+          if(gotAny) delivSaveStore();
+          if(!Object.keys(store.days).length && firstErr) delivError = firstErr;
+          renderDeliveryCurrent();
+        }
+        return;
+      }
+      var c = q.shift(); active++;
+      delivFetchDay(c, symSet, cfg).then(function(r){
+        if(r.none){ if(c.iso < recentCut) store.none[c.iso] = 1; else delivNoneRecent[c.iso] = 1; }   // today's/last session's file may just not be published yet
+        else { store.days[c.iso] = r.data; gotAny = true; }
+      }).catch(function(e){ if(!firstErr) firstErr = e.message || "network error"; }).then(function(){ active--; pump(); });
+    }
+    for(var k=0;k<4;k++) pump();
+  }
+  function delivSeries(sym){
+    var s = delivLoadStore(), out = [];
+    Object.keys(s.days).sort().forEach(function(dt){ var e = s.days[dt][sym]; if(e) out.push({ d:dt, dp:e[0], dq:e[1] }); });
+    return out;
+  }
+  function delivAt(sym, date){ var day = delivLoadStore().days[date]; return day && day[sym] ? day[sym] : null; }
+  function delivSummary(sym){
+    var ser = delivSeries(sym); if(ser.length<6) return null;
+    var last = ser[ser.length-1], prior = ser.slice(Math.max(0, ser.length-21), ser.length-1), i, sp=0, sq=0;
+    for(i=0;i<prior.length;i++){ sp += prior[i].dp; sq += prior[i].dq; }
+    var avgDP = sp/prior.length, avgDQ = sq/prior.length;
+    return { last:last, n:ser.length, avgDP:avgDP, avgDQ:avgDQ, dpRel: avgDP>0 ? last.dp/avgDP : null, dqRel: avgDQ>0 ? last.dq/avgDQ : null, spark: ser.slice(-20) };
+  }
+  function delivShort(iso){
+    var p = iso.split("-"), M = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+    return (+p[2])+" "+(M[(+p[1])-1]||"");
+  }
+  function renderDeliveryCurrent(){ var d = bookPool && bookPool[state.bookIdx]; if($("#bookDeliv")) renderDelivery(d); }
+  function renderDelivery(d){
+    var host = $("#bookDeliv"); if(!host) return;
+    if(!d){ host.innerHTML = ""; return; }
+    if(!delivChecked && !delivLoading) delivEnsure();   // once per page load: fetch only the sessions not already cached
+    var sym = d.symbol, sm = delivSummary(sym);
+    var TIP ="NSE delivery % = the share of today's traded shares that were actually taken for delivery (not squared off intraday). INFO ONLY — backtested on 555 days / 714 stocks: it does not predict 20%+ moves or direction. High delivery (>=60%) marks steadier stocks (fewer big moves, slightly better median return vs the market); low delivery (<30%) marks more speculative, high-churn stocks (more big moves in both directions, worse median). 'Delivery-backed' volume surges were no better than 'churn' surges. Use it to judge what kind of stock this is, not as a buy/avoid signal. Source: NSE daily delivery file.";
+    if(sm){
+      var L = sm.last, word = L.dp>=60 ? "high — typically a steadier, investor-held name" : L.dp<30 ? "low — typically more speculative / high intraday churn" : "typical";
+      var lo = Math.min.apply(null, sm.spark.map(function(x){return x.dp;})), hi = Math.max.apply(null, sm.spark.map(function(x){return x.dp;})), B = "▁▂▃▄▅▆▇█";
+      var spark = sm.spark.map(function(x){ return B.charAt(hi>lo ? Math.min(7, Math.floor((x.dp-lo)/(hi-lo)*8)) : 3); }).join("");
+      host.innerHTML = '<span title="'+esc(TIP)+'" style="cursor:help">📦 <b>Delivery</b> ('+esc(delivShort(L.date||L.d))+'): <b>'+L.dp.toFixed(1)+'%</b>'+
+        ' · 20-day avg '+sm.avgDP.toFixed(1)+'%'+(sm.dpRel!=null?' ('+sm.dpRel.toFixed(2)+'×)':'')+
+        (sm.dqRel!=null?' · delivered qty '+sm.dqRel.toFixed(1)+'× its 20-day avg':'')+
+        ' · '+word+' <span style="font-family:\'IBM Plex Mono\',monospace;letter-spacing:1px" title="delivery % over the last '+sm.spark.length+' sessions">'+spark+'</span></span>';
+      return;
+    }
+    if(delivLoading){ host.innerHTML = '📦 Delivery %: loading NSE delivery files… (once a day, last ~25 sessions)'; return; }
+    if(delivError){
+      host.innerHTML = '📦 Delivery %: couldn’t load ('+esc(delivError)+') — <a href="#" data-deliv="retry">retry</a>';
+    } else if(Object.keys(delivLoadStore().days).length){
+      host.innerHTML = '📦 Delivery %: no NSE delivery data for '+esc(sym)+' (not in NSE’s EQ-series delivery file — e.g. ETFs, trade-for-trade or very new listings) — <a href="#" data-deliv="retry">reload</a>';
+    } else {
+      host.innerHTML = '📦 Delivery %: NSE has no delivery files for the recent sessions yet — <a href="#" data-deliv="retry">retry</a>';
+    }
+    var a = host.querySelector("a[data-deliv]");
+    if(a) a.addEventListener("click", function(ev){ ev.preventDefault(); delivStore = { days:{}, none:{} }; delivNoneRecent = {}; try{ localStorage.removeItem(DELIV_KEY); }catch(e){} delivError = ""; delivEnsure(); renderDeliveryCurrent(); });
   }
   function chartLegend(tf){
     var sma = state.chartMA==="sma", wk = tf==="weekly";
@@ -8472,6 +8632,61 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
     if(c[i] < support) return null;   // bounce didn't hold — don't flag a failed one
     return { ago:bouncedAgo, support:Math.round(support*100)/100 };
   }
+  // Multi-year downtrend-line breakout — Jeffrey Neumann's core entry (Schwager, "Unknown Market
+  // Wizards": buys breakouts from 1-5 year downtrend lines, exits fast if it doesn't follow
+  // through). Backtested on the 750-stock/10y dataset, checking BOTH raw AND excess-vs-Nifty
+  // forward return (raw alone overstates things — a positive raw baseline here is mostly Nifty's
+  // own drift, not stock-picking, so excess-vs-Nifty is the number that actually isolates
+  // stock-specific edge): a 1-year line showed NO edge (20d raw +0.01% vs +0.42% baseline, excess
+  // -0.81% vs -0.45% baseline — worse than baseline both ways). A genuine >=2-year line is
+  // different: 20d raw +2.01% vs +0.66% baseline, excess +0.35% vs -0.27% baseline (n=5,131) —
+  // and a >=3-year line is stronger still: excess +0.75% vs -0.15% baseline (n=3,076). This is
+  // the first filter built this session whose edge survives stripping out market beta, so it
+  // ships as a backed signal, not a reference-only classification. Requires >=2 years (>=500
+  // trading days) between the two anchor pivots — shorter lines are deliberately excluded, they
+  // tested worse than a coin flip.
+  function trendBreakoutAt(h,c){
+    var n=c.length; if(n<560) return null;
+    var i=n-1, lookback=550, minSpan=500, freshBars=5, from=Math.max(0,i-lookback);
+    var piv=[];
+    for(var k=Math.max(5,from); k<=i-10; k++){
+      var isHi=true;
+      for(var w=1;w<=5;w++) if(h[k]<h[k-w]||h[k]<h[k+w]){ isHi=false; break; }
+      if(isHi) piv.push({x:k,y:h[k]});
+    }
+    if(piv.length<2) return null;
+    var price=h[i], best=null, bestScore=1.5;
+    var hiSlice=h.slice(from,i), rng=Math.max.apply(null,hiSlice)-Math.min.apply(null,hiSlice);
+    for(var a=0;a<piv.length-1;a++){
+      for(var b=a+1;b<piv.length;b++){
+        var p1=piv[a], p2=piv[b];
+        if(p2.x-p1.x < minSpan) continue;
+        var m=(p2.y-p1.y)/(p2.x-p1.x);
+        if(m>=0) continue;   // must be declining
+        var c0=p1.y-m*p1.x, lineAtI=m*i+c0;
+        if(lineAtI < price*0.85 || lineAtI > price*1.35) continue;
+        var tol=Math.max(price*0.02, 0.03*rng), touch=0, viol=0;
+        for(var j=0;j<piv.length;j++){
+          if(piv[j].x < p1.x) continue;
+          var lineY=m*piv[j].x+c0, dy=piv[j].y-lineY;
+          if(Math.abs(dy)<=tol) touch++; else if(dy>tol) viol++;
+        }
+        var score=touch-viol*1.5;
+        if(score>bestScore){ bestScore=score; best={m:m,c:c0,x1:p1.x}; }
+      }
+    }
+    if(!best) return null;
+    var lineNow=best.m*i+best.c;
+    if(c[i] <= lineNow) return null;
+    var brokeAgo=-1;
+    for(var back=0; back<=freshBars; back++){
+      var j2=i-back; if(j2<=best.x1) break;
+      var lineJ=best.m*j2+best.c, lineJm1=best.m*(j2-1)+best.c;
+      if(c[j2]>lineJ && c[j2-1]<=lineJm1){ brokeAgo=back; break; }
+    }
+    if(brokeAgo<0) return null;
+    return { ago:brokeAgo, spanYears:Math.round((i-best.x1)/25.2)/10, lineNow:Math.round(lineNow*100)/100 };
+  }
   // ── O'Neil named base patterns (structural classification, NOT a standalone return-predicting
   // signal) ── Flat base, Ascending base, Three-Weeks-Tight and High Tight Flag are all real,
   // precisely-defined O'Neil shapes ("How to Make Money in Stocks"). Backtested each one's
@@ -9191,6 +9406,9 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
     // "bounced off support, last 1-2 sessions" — reference/classification only, see supportBounceAt()
     var sbnc = supportBounceAt(op,h,l,c);
     var sbncStr = sbnc ? [sbnc.ago, sbnc.support].join("|") : "";
+    // multi-year downtrend-line breakout — backed signal, see trendBreakoutAt()
+    var tbrk = trendBreakoutAt(h,c);
+    var tbrkStr = tbrk ? [tbrk.ago, tbrk.spanYears, tbrk.lineNow].join("|") : "";
     // pre-breakout readiness — coil/dry-volume/near-highs/trend/not-extended, 4+ of 5 at once
     var rdy = preBreakoutRead({c:c, h:h, l:l, v:vol});
     var rdyFlagBits = rdy ? [rdy.flags.tight,rdy.flags.dryVol,rdy.flags.nearHigh,rdy.flags.trend,rdy.flags.notExt].map(function(x){return x?1:0;}).join("") : "";
@@ -9231,7 +9449,7 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
       blueSky: (bsky.newHigh && bsky.above) ? 1 : 0,
       fibZone: fib ? fib.zone : "",
       fibRetr: fib ? Math.round(fib.retr*100)/100 : null,
-      coil: coilStr, mvt: mvtStr, gg: ggStr, sg: sgStr, dx: dxStr, hdf: hdfStr, cdl: cdlStr, mb: "", vm: vmStr, acc: accStr, vsk: vskStr, vfh: vfhStr, gxw: gxwStr, sx: sxStr, cm: cmStr, pb: pbStr, rdy: rdyStr, db: dbStr, bp: bpStr, tf: tfStr, chg: chgStr, bm: bmStr, chg1d: chg1d, sbnc: sbncStr,
+      coil: coilStr, mvt: mvtStr, gg: ggStr, sg: sgStr, dx: dxStr, hdf: hdfStr, cdl: cdlStr, mb: "", vm: vmStr, acc: accStr, vsk: vskStr, vfh: vfhStr, gxw: gxwStr, sx: sxStr, cm: cmStr, pb: pbStr, rdy: rdyStr, db: dbStr, bp: bpStr, tf: tfStr, chg: chgStr, bm: bmStr, chg1d: chg1d, sbnc: sbncStr, tbrk: tbrkStr,
       revYoY: null, profYoY: null, epsYoY: null, qDate: "", profYoYPrev: null, ttmYoY: null   // filled in later by applyFund()
     };
   }
@@ -9242,7 +9460,7 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
       r.basePct||0, r.baseBars||0, r.stage2||0, (r.rs==null?"":r.rs), (r.setup||""),
       (r.trig||""), (r.trigWR==null?"":r.trigWR), (r.athPct==null?"":r.athPct), (r.blueSky||0),
       (r.revYoY==null?"":r.revYoY), (r.profYoY==null?"":r.profYoY), (r.epsYoY==null?"":r.epsYoY), (r.qDate||""),
-      (r.profYoYPrev==null?"":r.profYoYPrev), (r.ttmYoY==null?"":r.ttmYoY), (r.coil||""), (r.mvt||""), (r.gg||""), (r.sg||""), (r.dx||""), (r.hdf||""), (r.cdl||""), (r.mb||""), (r.vm||""), (r.adr==null?"":r.adr), (r.nr||""), (r.gx||""), (r.acc||""), (r.vsk||""), (r.vfh||""), (r.gxw||""), (r.sx||""), (r.cm||""), (r.pb||""), (r.rdy||""), (r.db||""), (r.bp||""), (r.tf||""), (r.chg||""), (r.bm||""), (r.chg1d==null?"":r.chg1d), (r.sbnc||"")].join(", ");
+      (r.profYoYPrev==null?"":r.profYoYPrev), (r.ttmYoY==null?"":r.ttmYoY), (r.coil||""), (r.mvt||""), (r.gg||""), (r.sg||""), (r.dx||""), (r.hdf||""), (r.cdl||""), (r.mb||""), (r.vm||""), (r.adr==null?"":r.adr), (r.nr||""), (r.gx||""), (r.acc||""), (r.vsk||""), (r.vfh||""), (r.gxw||""), (r.sx||""), (r.cm||""), (r.pb||""), (r.rdy||""), (r.db||""), (r.bp||""), (r.tf||""), (r.chg||""), (r.bm||""), (r.chg1d==null?"":r.chg1d), (r.sbnc||""), (r.tbrk||"")].join(", ");
   }
 
   /* ---------- auto-screen: fetch adapters ---------- */
@@ -9273,7 +9491,12 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
     return base + encodeURIComponent(target);
   }
   function yahooUrl(sym){
-    return "https://query1.finance.yahoo.com/v8/finance/chart/" + encodeURIComponent(sym + ".NS") + "?range=2y&interval=1d";
+    // 5y, not 2y — the multi-year trendline-breakout filter needs >=2.2 years of history to
+    // confirm a genuine multi-year anchor pivot, and the per-stock historical win-rate stats
+    // (histWinRate, volume-shock history, etc.) get a deeper, more reliable sample from the
+    // extra years too. Bigger payload and slower scans than the old 2y fetch — accepted
+    // tradeoff for making the trendline filter actually usable.
+    return "https://query1.finance.yahoo.com/v8/finance/chart/" + encodeURIComponent(sym + ".NS") + "?range=5y&interval=1d";
   }
   function parseYahoo(txt){
     var j; try{ j = JSON.parse(txt); }catch(e){ throw new Error("bad response"); }
@@ -10514,6 +10737,7 @@ return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(Co
       renderCandles();
       renderMultibagger();
       renderJournal();
+      delivChecked = false;   // a fresh scan may bring new symbols / a new session — let Chart Book top up the delivery cache
       renderBook();
       renderToday();
       setStatus(aborted?"stopped":"done", false);
